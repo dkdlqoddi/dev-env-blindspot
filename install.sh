@@ -23,6 +23,7 @@ SETTINGS=".claude/settings.json"
 HOOK_CMD='bash "$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh"'
 if command -v jq >/dev/null 2>&1; then
   [[ -f "$SETTINGS" ]] || echo '{}' > "$SETTINGS"
+  jq -e . "$SETTINGS" >/dev/null 2>&1 || { echo "error: $SETTINGS is not valid JSON — fix or remove it, then re-run"; exit 1; }
   if ! jq -e --arg cmd "$HOOK_CMD" \
       '.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)' "$SETTINGS" >/dev/null; then
     tmp="$(mktemp)"

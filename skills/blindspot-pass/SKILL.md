@@ -22,7 +22,7 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
 4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 
-5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`.
+5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. On greenfield runs (3 lenses), omit `similar-features` from the 스캔 렌즈 line and drop its `### similar-features` section.
 
 6. **Verify.** Spawn `doc-verifier` on the file; fix every issue, re-save.
 

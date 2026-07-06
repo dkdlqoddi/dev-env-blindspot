@@ -24,6 +24,13 @@ git submodule update --remote .claude/shared
 bash .claude/shared/install.sh
 ```
 
+이미 submodule이 등록된 소비 프로젝트를 새로 clone한 경우에는 먼저 초기화가 필요하다:
+
+```bash
+git submodule update --init --recursive
+bash .claude/shared/install.sh
+```
+
 ## 제공 Skill (라이프사이클 순)
 
 | Skill | 용도 | 산출물 |
