@@ -12,7 +12,7 @@ Shared Claude Code skills/agents that other projects consume as a git submodule 
 bash test/check.sh
 ```
 
-Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 8 files (5 skills + 3 agents), and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
+Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 9 files (5 skills + 4 agents), and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
 
 ## Conventions
 

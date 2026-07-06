@@ -2,6 +2,7 @@
 
 - 날짜: 2026-07-06
 - 상태: 승인됨 (사용자 인터뷰 및 설계 리뷰 완료)
+- 개정: 2026-07-06 — 아티클 대조 리뷰 반영: blindspot-pass에 도메인 리서치 분기 추가(`domain-researcher` agent), §9에 브레인스토밍/프로토타입 범위 제외 기록
 - 참조: Thariq(Anthropic), ["A Field Guide to Fable: Finding Your Unknowns"](https://x.com/trq212/article/2073100352921215386), ["How We Use Skills"](https://x.com/trq212/status/2033949937936085378)
 
 ## 1. 목적
@@ -23,7 +24,7 @@
 | 강제 메커니즘 | SessionStart hook + CLAUDE.md `@import` 이중화 | hook이 매 세션 규칙 주입, import는 안전망 |
 | 언어 | 지침서(SKILL.md, agent, MANDATE) 영어 / 산출물(질문·문서·보고서·퀴즈) 한국어 | 모델 지침 안정성 + 사용자 가독성 |
 | 산출물 형식 | Markdown 일원화, Pre-Merge Quiz만 자체완결형 HTML | git diff/리뷰 용이 + 아티클의 퀴즈 기법 유지 |
-| 구조 | 4 Skills(라이프사이클) + 3 Agents(격리 실행자) | skill=워크플로우 지식, agent=컨텍스트 격리 |
+| 구조 | 4 Skills(라이프사이클) + 4 Agents(격리 실행자) | skill=워크플로우 지식, agent=컨텍스트 격리 |
 
 ## 3. 저장소 구조
 
@@ -55,6 +56,7 @@ dev-env-blindspot/
 │       └── SKILL.md           # 전체 라이프사이클 오케스트레이터 (/blindspot-flow)
 ├── agents/
 │   ├── codebase-scanner.md
+│   ├── domain-researcher.md
 │   ├── doc-verifier.md
 │   └── change-analyzer.md
 ├── docs/superpowers/specs/    # 이 저장소의 설계 문서
@@ -90,12 +92,14 @@ dev-env-blindspot/
 
 - **트리거**: 낯선 코드베이스·도메인 작업 전, 구현 계획 수립 전, 사용자가 "모르는 게 뭔지" 물을 때
 - **워크플로우**:
-  1. 과제 및 (있으면) requirements 문서를 입력으로
+  1. 과제 및 (있으면) requirements 문서를 입력으로 — 낯섦을 코드 영역과 도메인 영역(코드 밖 지식)으로 분류
   2. `codebase-scanner` agent를 **3~4개 병렬 스폰**, 렌즈 분담:
      - 관례·패턴 (conventions)
      - 유사 기능 선례 (similar features)
      - 통합 지점·의존성 (integration points)
      - 엣지케이스·외부 제약 (edge cases)
+
+     도메인 영역이 있으면 같은 병렬 배치에 `domain-researcher` 1개 추가 스폰 (웹 리서치: 핵심 개념·품질 기준·함정·결정 후보, 출처 URL 근거). 코드를 전혀 건드리지 않는 순수 도메인 과제면 코드 렌즈 생략
   3. 결과 종합: Unknown Unknown을 "결정 가능한 구체적 질문"으로 변환, 4분면 재배치
   4. 아키텍처 영향 큰 순으로 사용자에게 확인 (AskUserQuestion)
   5. 해소 결과 포함해 문서화, `doc-verifier` 검증
@@ -147,6 +151,7 @@ dev-env-blindspot/
 | Agent | 입력 | 출력 | tools |
 |---|---|---|---|
 | `codebase-scanner` | 렌즈(관점) + 과제 설명 | `파일:라인` 근거가 달린 구조화된 발견 목록 (마크다운) | Read, Grep, Glob, Bash(읽기 전용 git 명령) |
+| `domain-researcher` | 도메인 주제 + 과제 설명 + 사용자가 이미 아는 것 | 핵심 개념(교육용) + 출처 URL 근거가 달린 발견 목록 | WebSearch, WebFetch |
 | `doc-verifier` | 문서 경로 | placeholder/모순/모호성/범위 이슈 목록, 없으면 PASS | Read, Grep, Glob |
 | `change-analyzer` | base ref (기본 main) | 변경 요약, 파일별 핵심 변경, 위험 지점, 테스트 존재 여부 | Read, Grep, Glob, Bash(git diff/log) |
 
@@ -224,6 +229,7 @@ bash .claude/shared/install.sh
 - 산출물 다국어 지원 (한국어 고정)
 - skill 사용 텔레메트리(PreToolUse 로깅) — 아티클이 언급하나 초기 버전에서는 제외, 필요해지면 추가
 - CI 파이프라인 (test/check.sh 로컬 실행으로 시작)
+- 브레인스토밍/프로토타입 skill (아티클의 pre-implementation 기법) — `superpowers:brainstorming` 등 기존 생태계 skill과 중복. Unknown Knowns는 인터뷰 + conventions 스캔으로 대체하되, 시각적 "보면 안다" 산출물에서 한계가 있음은 인지된 트레이드오프 — 설계 승인까지 통과한 UI가 첫눈에 뒤집히는 사례가 반복되면 재검토
 
 ## 10. 열린 질문
 
