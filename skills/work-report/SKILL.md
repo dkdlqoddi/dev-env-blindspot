@@ -1,6 +1,6 @@
 ---
 name: work-report
-description: Use in two modes — (a) notes mode the moment implementation starts and whenever a non-obvious decision or plan deviation happens mid-work: log it immediately; (b) report mode when work completes or before merge: analyze the diff via change-analyzer, write a Korean report with separate Human/Agent sections, and generate a self-contained pre-merge quiz HTML the user must pass before merging.
+description: "Use in two modes — (a) notes mode the moment implementation starts and whenever a non-obvious decision or plan deviation happens mid-work: log it immediately; (b) report mode when work completes or before merge: analyze the diff via change-analyzer, write a Korean report with separate Human/Agent sections, and generate a self-contained pre-merge quiz HTML the user must pass before merging."
 ---
 
 # Work Report
