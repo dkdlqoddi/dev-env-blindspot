@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-Merge Quiz: blindspot Agent/Skill 저장소 구축</title>
+<style>
+  body { font-family: sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+  .q { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+  .q.correct { border-color: #2e7d32; background: #edf7ed; }
+  .q.wrong { border-color: #c62828; background: #fdecea; }
+  #result { font-size: 1.2rem; font-weight: bold; margin: 1rem 0; }
+  button { padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
+  .summary { background: #f5f5f5; border-radius: 8px; padding: 1rem; }
+  label { display: block; }
+</style>
+</head>
+<body>
+<h1>Pre-Merge Quiz: blindspot Agent/Skill 저장소 구축</h1>
+<div class="summary">
+<h2>변경 요약</h2>
+<ul>
+<li>빈 저장소 → 크로스-프로젝트 Claude Code Agent/Skill 저장소 (dc45220 → a8e8740, 커밋 12개)</li>
+<li><b>Skill 5종</b>: requirements-interview / blindspot-pass / explainer / work-report / blindspot-flow(오케스트레이터)</li>
+<li><b>Agent 3종</b>(읽기 전용): codebase-scanner / doc-verifier / change-analyzer</li>
+<li><b>강제 장치</b>: SessionStart hook이 MANDATE.md(작업유형→필수 skill 매핑)를 매 세션 주입 + 소비 CLAUDE.md import 안전망</li>
+<li><b>온보딩</b>: submodule(.claude/shared) + 멱등 install.sh(개별 심링크, hook 병합 jq/python3, import 추가)</li>
+<li><b>검증</b>: test/check.sh — hook 출력, frontmatter lint(정확히 8파일), 가짜 소비 프로젝트 2회 설치 멱등성</li>
+<li>최종 리뷰 반영: corrupt settings.json 명시적 실패, greenfield 렌즈 문서화, 신규 clone 안내, 심링크 검증 강화</li>
+</ul>
+<p>상세: <code>docs/blindspot/2026-07-06-blindspot-agents-skills-report.md</code></p>
+</div>
+<h2>퀴즈 — 전부 맞혀야 머지 가능</h2>
+<div id="quiz"></div>
+<button onclick="grade()">정답 확인</button>
+<div id="result"></div>
+<script>
+// QUESTIONS: work-report가 이 배열을 실제 문항으로 교체한다.
+const QUESTIONS = [
+  { q: "소비 프로젝트가 '작업유형→필수 skill' 매핑을 실제로 지키게 만드는 강제 메커니즘은 무엇인가?",
+    options: [
+      "SessionStart hook이 skill이 실행될 때까지 다른 tool 호출을 차단한다",
+      "기계적 강제는 없다 — hook이 MANDATE 규칙을 컨텍스트에 주입하고 CLAUDE.md import가 안전망일 뿐, 준수는 모델 행동에 의존한다",
+      "install.sh가 슬래시 커맨드 인터셉터를 등록한다",
+      "settings.json이 매 응답마다 skill 호출 여부를 검증한다"
+    ], answer: 1 },
+  { q: "submodule 업데이트 후 install.sh를 재실행해도 SessionStart hook이 중복 등록되지 않는 이유는?",
+    options: [
+      "ln -sfn이 hook 항목까지 중복 제거해 주기 때문",
+      "매 실행마다 settings.json을 처음부터 새로 만들기 때문",
+      "동일한 command 문자열의 기존 항목을 jq/python으로 먼저 조회하고, 없을 때만 append하기 때문",
+      "hook을 매번 삭제한 뒤 다시 추가하기 때문"
+    ], answer: 2 },
+  { q: "jq가 설치된 환경에서 소비 프로젝트의 기존 settings.json이 깨진(invalid) JSON이면 install.sh는 어떻게 동작하는가?",
+    options: [
+      "명시적 에러 메시지를 출력하고 exit 1로 즉시 실패한다 (최종 리뷰에서 추가된 가드)",
+      "{}로 덮어쓰고 계속 진행한다",
+      "경고만 남기고 hook 병합을 건너뛴 채 성공으로 끝난다",
+      "python3 폴백으로 자동 전환한다"
+    ], answer: 0 },
+  { q: "blindspot-pass가 codebase-scanner 4개를 한 메시지에서 spawn하도록 지시하는 이유는?",
+    options: [
+      "하나의 컨텍스트 윈도우를 공유하게 하려고",
+      "AskUserQuestion이 배치 호출을 요구해서",
+      "총 agent 수를 4개 이하로 제한하려고",
+      "4개 렌즈를 병렬 실행하기 위해 — 직렬화하면 약 4배 느려진다"
+    ], answer: 3 },
+  { q: "test/check.sh의 [[ ${#files[@]} -eq 8 ]] 검사는 무엇을 막고, 언제 깨지는가?",
+    options: [
+      "템플릿 파일 개수를 세는 검사로, 템플릿 추가 시 깨진다",
+      "skill 5 + agent 3 정확 유지를 강제하는 tripwire — 6번째 skill/4번째 agent 추가 시 이 숫자·skill명 루프·MANDATE.md를 함께 갱신할 때까지 실패한다",
+      "심링크 무결성 검사로, 링크가 끊기면 깨진다",
+      "frontmatter 유효성만 검증하며 파일 수와는 무관하다"
+    ], answer: 1 },
+  { q: "코드가 없는 greenfield 프로젝트에서 blindspot-pass의 동작 차이는?",
+    options: [
+      "4렌즈를 모두 돌리되 similar-features는 '없음'을 반환한다",
+      "requirements-interview 단계를 건너뛴다",
+      "similar-features 렌즈를 제외한 3개 스캐너만 실행하고, unknowns 문서에서 해당 렌즈 표기와 섹션을 생략한다",
+      "doc-verifier 검증을 생략한다"
+    ], answer: 2 }
+];
+const quiz = document.getElementById("quiz");
+QUESTIONS.forEach((it, i) => {
+  const d = document.createElement("div");
+  d.className = "q"; d.id = "q" + i;
+  d.innerHTML = "<p><b>Q" + (i + 1) + ".</b> " + it.q + "</p>" +
+    it.options.map((o, j) =>
+      '<label><input type="radio" name="q' + i + '" value="' + j + '"> ' + o + "</label>"
+    ).join("");
+  quiz.appendChild(d);
+});
+function grade() {
+  let ok = 0;
+  QUESTIONS.forEach((it, i) => {
+    const sel = document.querySelector('input[name="q' + i + '"]:checked');
+    const el = document.getElementById("q" + i);
+    const good = sel && Number(sel.value) === it.answer;
+    el.className = "q " + (good ? "correct" : "wrong");
+    if (good) ok++;
+  });
+  const r = document.getElementById("result");
+  r.textContent = ok === QUESTIONS.length
+    ? "통과 (" + ok + "/" + QUESTIONS.length + ") — 머지 가능"
+    : "미통과 (" + ok + "/" + QUESTIONS.length + ") — 오답 확인 후 재시도. 머지 금지";
+}
+</script>
+</body>
+</html>
