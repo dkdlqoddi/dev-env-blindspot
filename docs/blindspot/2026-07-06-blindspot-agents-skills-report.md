@@ -2,7 +2,8 @@
 
 - 날짜: 2026-07-06
 - 기준: dc45220 (초기 커밋) → a8e8740 (HEAD)
-- 퀴즈: docs/blindspot/quiz/2026-07-06-blindspot-agents-skills.html — 통과 전 머지 금지
+- 퀴즈: docs/blindspot/quiz/2026-07-06-blindspot-agents-skills.html — **통과 완료 (2026-07-06 사용자 검수 승인)**
+- 상태: 인수 완료 — main에 반영됨 (별도 머지 브랜치 없음, 사용자 승인하 main 직접 작업)
 
 ## Human 섹션
 
