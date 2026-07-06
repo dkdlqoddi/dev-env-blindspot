@@ -710,7 +710,7 @@ Run: `bash test/check.sh`
 Expected: `OK: all checks passed`
 
 Run: `grep -c "QUESTIONS" skills/work-report/templates/quiz.html`
-Expected: `3` (declaration + two loop references — confirms the replaceable contract exists)
+Expected: `5` (comment + declaration + two loops + length check — confirms the replaceable contract exists)
 
 - [ ] **Step 8: Commit**
 
