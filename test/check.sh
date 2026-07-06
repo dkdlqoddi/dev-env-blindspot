@@ -13,7 +13,7 @@ done
 
 # --- 2. frontmatter lint (skills + agents) ---
 files=("$ROOT"/skills/*/SKILL.md "$ROOT"/agents/*.md)
-[[ ${#files[@]} -ge 3 ]] || fail "expected at least 3 lintable files, got ${#files[@]}"
+[[ ${#files[@]} -eq 8 ]] || fail "expected 8 lintable files (5 skills + 3 agents), got ${#files[@]}"
 for f in "${files[@]}"; do
   [[ "$(head -n1 "$f")" == "---" ]] || fail "$f: missing frontmatter open"
   fm="$(awk '/^---$/{c++; next} c==1' "$f")"
