@@ -9,7 +9,7 @@ Thin orchestrator. All real logic lives in the four lifecycle skills — this sk
 
 ## Workflow
 
-Run the stages below in order, invoking each with the Skill tool by name. Before each stage, check `docs/blindspot/` for an existing deliverable for this topic; if found, tell the user (Korean) and offer reuse or redo. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
+Run the stages below in order, invoking each by reading their `SKILL.md` file and following its instructions. Before each stage, check `docs/blindspot/` for an existing deliverable for this topic; if found, tell the user (Korean) and offer reuse or redo. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
 
 1. `requirements-interview` → requirements doc
 2. `blindspot-pass` → unknowns doc
