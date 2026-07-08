@@ -13,6 +13,7 @@ Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x
 ```bash
 mkdir -p .agents/plugins
 git submodule add https://github.com/dkdlqoddi/dev-env-blindspot.git .agents/plugins/dev-env-blindspot
+git submodule update --init --recursive .agents/plugins/dev-env-blindspot
 ```
 
 그리고 프로젝트의 `.agents/AGENTS.md` 파일에 다음 문장을 추가하여 작업 규칙을 주입합니다:

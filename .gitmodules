@@ -1,0 +1,3 @@
+[submodule "external/fablize"]
+	path = external/fablize
+	url = https://github.com/fivetaku/fablize.git
