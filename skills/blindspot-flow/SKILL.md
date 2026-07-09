@@ -1,6 +1,6 @@
 ---
 name: blindspot-flow
-description: Use when the user invokes /blindspot-flow or asks to run a feature through the full lifecycle end-to-end — thin orchestrator that sequences requirements-interview, blindspot-pass, explainer, then work-report notes mode through implementation and report mode at the end.
+description: Use when the user invokes /blindspot-flow or asks to run a feature through the planning phase (requirements, unknowns, explainer) — thin orchestrator that sequences requirements-interview, blindspot-pass, and explainer, then hands off to blindspot-goal for implementation.
 ---
 
 # Blindspot Flow
@@ -12,7 +12,7 @@ Thin orchestrator. All real logic lives in the four lifecycle skills — this sk
 Run the stages below in order. **Crucially, you must execute this flow under the strict procedural discipline of the `fablize` plugin.**
 
 Before starting:
-1. Read `.agents/plugins/dev-env-blindspot/external/fablize/skills/fablize/SKILL.md` and fully adopt its rules.
+1. Read `.agents/plugins/dev-env-blindspot/external/fablize/skills/fablize/SKILL.md` and fully adopt its rules. Run the `fablize` setup if needed (check `~/.fablize/progress.json`).
 2. In all your terminal commands for `fablize`, treat `${CLAUDE_PLUGIN_ROOT}` as exactly `.agents/plugins/dev-env-blindspot/external/fablize`. (On Windows environments, prefix python commands with `PYTHONUTF8=1` or `$env:PYTHONUTF8=1` to avoid unicode encode errors).
 3. Use `goals.py create` to register exactly 3 stages. Use this format:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/goals.py create --brief "Blindspot Flow Planning" --goal "requirements-interview::requirements doc" --goal "blindspot-pass::unknowns doc" --goal "explainer::design doc"`

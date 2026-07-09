@@ -14,7 +14,7 @@ You are now in autonomous mode (likely running under `/goal`). Do not stop to as
 **Crucially, you must execute this flow under the strict procedural discipline of the `fablize` plugin.**
 
 Before starting:
-1. Read `.agents/plugins/dev-env-blindspot/external/fablize/skills/fablize/SKILL.md` and fully adopt its rules.
+1. Read `.agents/plugins/dev-env-blindspot/external/fablize/skills/fablize/SKILL.md` and fully adopt its rules. If `fablize` is not set up (i.e. `~/.fablize/progress.json` is missing), automatically run `bash ${CLAUDE_PLUGIN_ROOT}/setup/setup.sh local` to bypass interactive onboarding.
 2. In all your terminal commands for `fablize`, treat `${CLAUDE_PLUGIN_ROOT}` as exactly `.agents/plugins/dev-env-blindspot/external/fablize`. (On Windows environments, prefix python commands with `PYTHONUTF8=1` or `$env:PYTHONUTF8=1` to avoid unicode encode errors).
 3. Use `goals.py create` to register your implementation plan steps as concrete, verifiable goals. Use this format:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/goals.py create --brief "Autonomous Implementation" --goal "Implementation::code the feature" --goal "Final Report::verify and document"`
