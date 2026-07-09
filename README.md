@@ -45,23 +45,27 @@ cat .agents/plugins/dev-env-blindspot/plugin.json       # 플러그인 설정이
 | (구현을 시작하면 자동) | `work-report` 노트 모드 | 비자명한 결정을 내릴 때마다 구현 노트에 즉시 기록한다 |
 | "작업 끝났어, 보고서 만들어줘" / 머지 직전 | `work-report` 보고 모드 | diff를 분석해 보고서 + **Pre-Merge Quiz**(HTML)를 생성한다 |
 
-### 방법 B — 전체 라이프사이클 한 번에 (`blindspot-flow`)
+### 방법 B — 전체 라이프사이클 한 번에 (`blindspot-flow` + `blindspot-goal`)
 
-새 기능을 처음부터 끝까지 이 체계로 진행하고 싶으면:
+새 기능을 처음부터 끝까지 기획부터 구현까지 이 체계로 진행하고 싶으면, 기획(대화형)과 구현(자율형) 2단계로 나누어 진행합니다:
 
+**1단계: 기획 (Interactive)**
 ```
 카테고리별 월 예산 한도 기능을 추가하고 싶어. blindspot-flow로 진행해줘.
 ```
-
-그러면 아래 순서로 진행되며, **각 단계 사이마다 계속할지 물어본다** (이미 산출물이 있는 단계는 재사용을 제안):
-
-```
+그러면 아래 기획 순서로 진행되며, 각 단계 사이마다 계속할지 물어봅니다:
 ① requirements-interview  코드 스캔 → 질문에 하나씩 답하면 → 요구사항 문서
 ② blindspot-pass          병렬 스캔 → 놓친 결정사항 확인 → unknowns 문서
 ③ explainer               설계 문서 (대안·범위 제외 포함)
-④ (구현 진행)             결정할 때마다 구현 노트 자동 기록
-⑤ work-report 보고 모드   보고서 + Pre-Merge Quiz 생성
+
+**2단계: 구현 및 자체 검증 (Autonomous)**
+기획이 완료되면 에이전트가 `/goal`을 유도합니다. 채팅창에 다음 명령어를 입력하고 주무시면 됩니다:
 ```
+/goal blindspot-goal
+```
+그러면 기계적 검증(fablize 시스템)을 켜고 아래 순서를 스스로 끝마칩니다:
+④ (구현 진행)             결정할 때마다 구현 노트 자동 기록, 테스트 통과 증거 수집
+⑤ work-report 보고 모드   보고서 생성 (자율 모드이므로 Pre-Merge Quiz는 생략됨)
 
 사용자가 할 일은 **질문에 답하는 것**뿐이다. 질문은 객관식 위주로, 한 번에 하나씩 온다.
 
@@ -109,7 +113,8 @@ git submodule update --init --recursive
 | `blindspot-pass` | codebase-scanner 병렬 스캔으로 Unknown Unknowns를 결정 가능한 질문으로 구체화 | `...-unknowns.md` |
 | `explainer` | 결정사항·대안·범위 제외를 담은 독립 설계 문서 | `...-explainer.md` |
 | `work-report` | (노트) 구현 중 결정 즉시 기록 / (보고) diff 분석 + Human/Agent 분리 보고서 + Pre-Merge Quiz | `...-report.md`, `quiz/*.html`, `<slug>-implementation-notes.md` |
-| `blindspot-flow` | 위 전체를 순서대로 실행하는 오케스트레이터 | (하위 skill 산출물) |
+| `blindspot-flow` | 기획 3단계를 대화형으로 순서대로 실행하는 오케스트레이터 | (하위 skill 산출물) |
+| `blindspot-goal` | 구현 2단계를 퀴즈 없이 자율 검증으로 끝마치는 오케스트레이터 | (하위 skill 산출물) |
 
 ## 5. 제공 Agent (모두 읽기 전용)
 
