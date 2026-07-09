@@ -13,14 +13,11 @@ Run the stages below in order. **Crucially, you must execute this flow under the
 
 Before starting:
 1. Read `.agents/plugins/dev-env-blindspot/external/fablize/skills/fablize/SKILL.md` and fully adopt its rules.
-2. In all your terminal commands for `fablize`, treat `${CLAUDE_PLUGIN_ROOT}` as exactly `.agents/plugins/dev-env-blindspot/external/fablize`. Run the `fablize` setup if needed.
-3. Use `goals.py create` to register the following 3 stages as concrete, verifiable goals.
-4. Progress through each stage using `goals.py next`. Between stages, use `goals.py checkpoint` to record the generated markdown document (e.g., `docs/blindspot/...`) as concrete evidence before moving to the next goal.
-
-The 3 stages to register and execute are:
-1. `requirements-interview` → requirements doc
-2. `blindspot-pass` → unknowns doc
-3. `explainer` → design doc
+2. In all your terminal commands for `fablize`, treat `${CLAUDE_PLUGIN_ROOT}` as exactly `.agents/plugins/dev-env-blindspot/external/fablize`. (On Windows environments, prefix python commands with `PYTHONUTF8=1` or `$env:PYTHONUTF8=1` to avoid unicode encode errors).
+3. Use `goals.py create` to register exactly 3 stages. Use this format:
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/goals.py create --brief "Blindspot Flow Planning" --goal "requirements-interview::requirements doc" --goal "blindspot-pass::unknowns doc" --goal "explainer::design doc"`
+4. Progress through each stage using `goals.py next`. Between stages, use `goals.py checkpoint` to record the generated markdown document (e.g., `docs/blindspot/...`) as concrete evidence.
+5. **Important**: Fable enforces a verification gate on the final goal (`explainer`). When checkpointing the 3rd goal, you must provide `--verify-cmd` and `--verify-evidence` (e.g., use `ls docs/blindspot/` to verify the design doc exists).
 
 For each stage, invoke it by reading its `SKILL.md` file and following its instructions. Before each stage, check `docs/blindspot/` for an existing deliverable for this topic; if found, tell the user (Korean) and offer reuse or redo.
 
