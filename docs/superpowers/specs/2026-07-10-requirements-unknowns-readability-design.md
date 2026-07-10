@@ -2,6 +2,7 @@
 
 - 날짜: 2026-07-10
 - 상태: 승인됨 (사용자 인터뷰 1문항 + 설계 리뷰 완료)
+- 개정: 2026-07-10 — 최종 리뷰 반영: 5단계 칼럼 명명을 두 표 모두로 일반화(미해소 표의 `질문` 칸 포함), 발견(근거) 단수 표기, 저장 전 자가 점검 문장 추가
 - 관련: [퀴즈 가독성](2026-07-10-quiz-readability-design.md), [보고서·Explainer 가독성](2026-07-10-report-explainer-readability-design.md) — 같은 기준의 세 번째 확장. 이로써 라이프사이클 산출물 전체 커버
 
 ## 1. 문제
@@ -71,7 +72,7 @@
 > 5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. Omit lenses that did not run from the 스캔 렌즈 line and drop their `### <lens>` sections (greenfield drops `similar-features`; code-only tasks drop `domain`).
 
 신규:
-> 5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. The 구체화된 질문, 결정, and 보류 이유 columns are read by non-developers — apply the step 3 sentence bar to them. The 발견/근거 columns and the 스캔 원본 요약 sections are technical evidence for later stages — technical language is correct there; do not simplify it. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. Omit lenses that did not run from the 스캔 렌즈 line and drop their `### <lens>` sections (greenfield drops `similar-features`; code-only tasks drop `domain`).
+> 5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. The question, decision, and hold-reason cells across both tables (구체화된 질문·질문·결정·보류 이유) are read by non-developers — apply the step 3 sentence bar to them; before saving, self-check every sentence in those cells: could someone who has never seen code follow it? The 발견(근거) column and the 스캔 원본 요약 sections are technical evidence for later stages — technical language is correct there; do not simplify it. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. Omit lenses that did not run from the 스캔 렌즈 line and drop their `### <lens>` sections (greenfield drops `similar-features`; code-only tasks drop `domain`).
 
 **Gotchas append** (기존 마지막 항목 `- Domain unknowns don't live in the repo — ...` 뒤):
 
