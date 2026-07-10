@@ -20,11 +20,11 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
    If domain territory exists, add ONE `domain-researcher` agent (subagent_type: `domain-researcher`) to the same parallel batch, with: the domain topic, the task description, and what the user already knows.
 
-3. **Synthesize.** Merge findings yourself (plain reasoning, no extra agent). For each finding: restate it as a concrete, decidable question ("X를 어떻게 할지", not "X 주의"), assign a quadrant, sort by architecture impact. Keep evidence attached — `file:line` for code findings, source URL for domain findings.
+3. **Synthesize.** Merge findings yourself (plain reasoning, no extra agent). For each finding: restate it as a concrete, decidable question ("X를 어떻게 할지", not "X 주의") written for someone who has never seen the code — unavoidable technical terms plain Korean first with the term in parentheses, code identifiers only after a plain description. Assign a quadrant, sort by architecture impact. Keep evidence attached — `file:line` for code findings, source URL for domain findings; evidence stays technical.
 
-4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. Questions, options, and the primer follow the same non-developer bar as step 3. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 
-5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. Omit lenses that did not run from the 스캔 렌즈 line and drop their `### <lens>` sections (greenfield drops `similar-features`; code-only tasks drop `domain`).
+5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. The 구체화된 질문, 결정, and 보류 이유 columns are read by non-developers — apply the step 3 sentence bar to them. The 발견/근거 columns and the 스캔 원본 요약 sections are technical evidence for later stages — technical language is correct there; do not simplify it. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`. Omit lenses that did not run from the 스캔 렌즈 line and drop their `### <lens>` sections (greenfield drops `similar-features`; code-only tasks drop `domain`).
 
 6. **Verify.** Spawn `doc-verifier` on the file; fix every issue, re-save.
 
@@ -36,3 +36,4 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 - Scanners return findings; YOU convert them to questions. A finding without a decision attached is noise.
 - Do not serialize the scanner spawns — parallel or it takes 4x longer.
 - Domain unknowns don't live in the repo — codebase lenses on a pure-domain task return empty findings. Classify territory first; route domain topics to `domain-researcher`.
+- A concretized question the user cannot parse defeats the whole pass — the decision gets guessed, not made. Questions and decisions in plain Korean; evidence and scan summaries stay technical.
