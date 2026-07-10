@@ -13,13 +13,15 @@
   button { padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
   .summary { background: #f5f5f5; border-radius: 8px; padding: 1rem; }
   label { display: block; }
+  label.answer { color: #2e7d32; font-weight: bold; }
+  .explain { background: #fff8e1; border-radius: 6px; padding: .5rem .8rem; margin-top: .5rem; }
 </style>
 </head>
 <body>
 <h1>Pre-Merge Quiz: [주제]</h1>
 <div class="summary">
 <h2>변경 요약</h2>
-<!-- SUMMARY: work-report가 이 블록을 실제 변경 요약으로 교체 -->
+<!-- SUMMARY: work-report가 이 블록을 실제 변경 요약으로 교체 (비전문가 기준 문장, 커밋 해시·화살표 금지) -->
 </div>
 <h2>퀴즈 — 전부 맞혀야 머지 가능</h2>
 <div id="quiz"></div>
@@ -27,8 +29,10 @@
 <div id="result"></div>
 <script>
 // QUESTIONS: work-report가 이 배열을 실제 문항으로 교체한다.
+// 모든 문장은 비전문가 기준(work-report SKILL.md 4단계 규칙). explain은 필수 — 정답 확인 후 표시된다.
 const QUESTIONS = [
-  { q: "예시 질문?", options: ["보기 A", "보기 B", "보기 C"], answer: 0 },
+  { q: "예시 질문?", options: ["보기 A", "보기 B", "보기 C"], answer: 0,
+    explain: "예시 해설 — 왜 정답인지, 가장 그럴듯한 오답은 왜 틀렸는지 쉬운 말 2–3문장." },
 ];
 const quiz = document.getElementById("quiz");
 QUESTIONS.forEach((it, i) => {
@@ -37,7 +41,8 @@ QUESTIONS.forEach((it, i) => {
   d.innerHTML = "<p><b>Q" + (i + 1) + ".</b> " + it.q + "</p>" +
     it.options.map((o, j) =>
       '<label><input type="radio" name="q' + i + '" value="' + j + '"> ' + o + "</label>"
-    ).join("");
+    ).join("") +
+    '<div class="explain" hidden><b>해설.</b> ' + it.explain + "</div>";
   quiz.appendChild(d);
 });
 function grade() {
@@ -47,6 +52,8 @@ function grade() {
     const el = document.getElementById("q" + i);
     const good = sel && Number(sel.value) === it.answer;
     el.className = "q " + (good ? "correct" : "wrong");
+    el.querySelectorAll("label")[it.answer].classList.add("answer");
+    el.querySelector(".explain").hidden = false;
     if (good) ok++;
   });
   const r = document.getElementById("result");
