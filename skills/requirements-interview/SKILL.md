@@ -18,12 +18,12 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
 
 3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
-   - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do.
+   - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do. One fact per sentence, ≤25 어절 each.
    - Order by architecture impact: answers that change the design come first.
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
    - Record every question, answer, and its architecture impact.
 
-4. **Write the document.** Follow `templates/requirements.md` in this skill's folder. Fill every section in Korean, for a reader who has never seen the code: no arrow shorthand (A→B) or unexplained jargon; unavoidable technical terms plain Korean first with the term in parentheses. Evidence links and 관련 문서 paths stay as they are. Before saving, self-check every sentence: could someone who has never seen code follow it? Save to `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md` (slug = kebab-case topic, date = today).
+4. **Write the document.** Follow `templates/requirements.md` in this skill's folder. Fill every section in Korean, for a reader who has never seen the code: no arrow shorthand (A→B) or unexplained jargon; unavoidable technical terms plain Korean first with the term in parentheses; one fact per sentence, ≤25 어절 each — split long compound sentences. Evidence links and 관련 문서 paths stay as they are. Before saving, self-check every sentence: could someone who has never seen code follow it, and is it one fact within 25 어절? Save to `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md` (slug = kebab-case topic, date = today).
 
 5. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the saved file. Fix every reported issue, re-save. Do not skip on PASS-looking drafts — verification is not optional.
 
@@ -35,3 +35,4 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 - Never ask the user something answerable by reading the code — that is what the scanner run is for.
 - One decision per question. Batched questions get half-answers.
 - A question the user cannot parse gets a guessed answer; guessed answers become wrong requirements. Every question and every document sentence must survive the "reader has never seen the code" test.
+- Clean vocabulary does not equal readable: a 40+ 어절 sentence with nested clauses locks out the same readers even with zero jargon — the one-fact / ≤25 어절 bar is part of the standard.

@@ -23,7 +23,7 @@ Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `p
 - Every SKILL.md has a `## Gotchas` section. Append recurring failure points there; never delete entries or create separate gotcha docs.
 - Agents are read-only by design — keep `tools` minimal (`Bash` only where git inspection is required, with read-only instructions in the body).
 - Deliverable path contract baked into skills: `docs/blindspot/YYYY-MM-DD-<slug>-{requirements,unknowns,explainer,report}.md`, `docs/blindspot/quiz/*.html`, `docs/blindspot/<slug>-implementation-notes.md` (no date prefix).
-- Non-developer readability rules are intentionally duplicated across 5 skills for self-containment (work-report steps 3–4, explainer step 2, requirements-interview steps 3–4, blindspot-pass steps 3–5) — edit the standard in all of them together.
+- Non-developer readability rules are intentionally duplicated across 4 skills for self-containment (work-report steps 3–4, explainer step 2, requirements-interview steps 3–4, blindspot-pass steps 3–5) — edit the standard in all of them together. The standard covers vocabulary (plain Korean first, term in parentheses; no arrows/code syntax) AND sentence shape (one fact per sentence, ≤25 어절; quiz options ≤40 chars; quiz answerable from its own 변경 요약).
 
 ## Consumer contract (breaking-change checklist)
 
