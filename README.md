@@ -135,7 +135,7 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 | 증상 | 원인/해결 |
 |---|---|
 | `install.sh`가 "not valid JSON" 에러로 실패 | 기존 `.claude/settings.json`이 깨져 있음 — 파일을 고치거나 지운 뒤 재실행 |
-| `install.sh`가 jq/python3 없다고 실패 | 둘 중 하나 설치 (`sudo apt install jq`), 또는 에러 메시지에 출력된 hook JSON을 settings.json에 수동 추가 |
+| `install.sh`가 python3 없다고 실패 | python3 설치 (`sudo apt install python3`), 또는 에러 메시지에 출력된 hook JSON을 settings.json에 수동 추가 |
 | clone 직후 `.claude/skills/` 심링크가 깨져 있음 | submodule 미초기화 — `git submodule update --init --recursive` 후 `install.sh` 재실행 |
 | skill이 자동으로 발동하지 않음 | 설치 후 시작한 **새 세션**인지 확인. 그래도 안 되면 skill 이름을 직접 언급 ("blindspot-pass 실행해줘") |
 | 네이티브 Windows에서 심링크 오류 | 지원 범위 밖 — Linux / WSL / macOS에서 사용 |
@@ -143,7 +143,7 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 ## 8. 이 저장소 개발
 
 ```bash
-bash test/check.sh   # mandate hook + frontmatter lint + installer 멱등성
+bash test/check.sh   # mandate hook + frontmatter lint + skill→agent 참조 무결성 + readability 표준 동기화 + installer 멱등성
 ```
 
 skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 9`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`CLAUDE.md`의 Consumer contract 체크리스트 참고).

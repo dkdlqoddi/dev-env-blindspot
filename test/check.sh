@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Repo self-check: mandate hook, frontmatter lint, installer idempotency.
+# Repo self-check: mandate hook, frontmatter lint, reference integrity, installer idempotency.
 set -euo pipefail
 shopt -s nullglob
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -21,7 +21,18 @@ for f in "${files[@]}"; do
   grep -q '^description:' <<<"$fm" || fail "$f: missing description"
 done
 
-# --- 3. install.sh idempotency (fake consumer project) ---
+# --- 3. skill → agent reference integrity (agent rename tripwire) ---
+refs="$(grep -ho 'subagent_type: `[a-z-]*`' "$ROOT"/skills/*/SKILL.md | sed 's/.*`\([a-z-]*\)`.*/\1/' | sort -u)" || true
+[[ -n "$refs" ]] || fail "no subagent_type references found in any SKILL.md — pattern drift?"
+while read -r name; do
+  [[ -f "$ROOT/agents/$name.md" ]] || fail "skills reference agent '$name' but agents/$name.md is missing"
+done <<<"$refs"
+
+# --- 4. readability standard present in its 4 self-contained copies (see CLAUDE.md conventions) ---
+n="$(grep -l '25 어절' "$ROOT"/skills/*/SKILL.md | wc -l)" || true
+[[ "$n" -eq 4 ]] || fail "readability standard marker ('25 어절') in $n SKILL.md files, expected 4"
+
+# --- 5. install.sh idempotency (fake consumer project) ---
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/proj/.claude/shared"
@@ -29,7 +40,9 @@ cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
 (
   cd "$tmp/proj"
   bash .claude/shared/install.sh >/dev/null
+  cp .claude/settings.json ../settings.first
   bash .claude/shared/install.sh >/dev/null   # second run must change nothing
+  cmp -s .claude/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
   [[ -L .claude/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
   [[ -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
   [[ -L .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }

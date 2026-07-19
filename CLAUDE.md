@@ -12,7 +12,7 @@ Shared Claude Code skills/agents that other projects consume as a git submodule 
 bash test/check.sh
 ```
 
-Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 9 files (5 skills + 4 agents), and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
+Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 9 files (5 skills + 4 agents), skill→agent `subagent_type` reference integrity (every referenced agent file exists), readability-standard marker (`25 어절`) present in exactly 4 SKILL.md files, and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
 
 Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `python3 -m http.server` and use localhost.
 
