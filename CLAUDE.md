@@ -24,6 +24,7 @@ Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `p
 - Agents are read-only by design — keep `tools` minimal (`Bash` only where git inspection is required, with read-only instructions in the body).
 - Deliverable path contract baked into skills: `docs/blindspot/YYYY-MM-DD-<slug>-{requirements,unknowns,explainer,report}.md`, `docs/blindspot/quiz/*.html`, `docs/blindspot/<slug>-implementation-notes.md` (no date prefix).
 - Non-developer readability rules are intentionally duplicated across 4 skills for self-containment (work-report steps 3–4, explainer step 2, requirements-interview steps 3–4, blindspot-pass steps 3–5) — edit the standard in all of them together. The standard covers vocabulary (plain Korean first, term in parentheses; no arrows/code syntax) AND sentence shape (one fact per sentence, ≤25 어절; quiz options ≤40 chars; quiz answerable from its own 변경 요약).
+- Question policy (evidence-first asking, 7-question cap that triggers more scanning instead of more asking, no mid-work blocking on reversible decisions, per-cycle calibration) lives once in `MANDATE.md`; `blindspot-pass` step 4 and `work-report` notes/report modes implement the mechanics.
 
 ## Consumer contract (breaking-change checklist)
 

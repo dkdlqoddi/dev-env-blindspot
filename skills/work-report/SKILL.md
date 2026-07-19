@@ -13,7 +13,8 @@ Trigger: implementation starts, OR you make a non-obvious decision, pick a conse
 
 1. Ensure `docs/blindspot/<slug>-implementation-notes.md` exists — if not, create it from `templates/implementation-notes.md` in this skill's folder.
 2. Append one Korean entry per event AT DECISION TIME (not batched later): 결정 / 이유 / 검토한 대안 / 보수적 선택 여부 / 계획과의 이탈 여부.
-3. Continue working — notes mode never blocks implementation.
+3. A decision that seems to need user input: if it is reversible, take the conservative option, log it, and mark it 사용자 확인 필요 for the next checkpoint (stage boundary or report mode) instead of asking mid-flow. Ask immediately only when the choice is irreversible or destructive (data loss, external side effects, published contracts).
+4. Continue working — notes mode never blocks implementation.
 
 ## Report mode
 
@@ -32,7 +33,7 @@ Trigger: work complete, pre-merge, or the user asks for a report.
    - Every question gets an `explain` field: 2–3 plain Korean sentences (same ≤25 어절 bar) on why the answer is right and why the most tempting wrong option is wrong. Technical terms and file paths belong here (in parentheses), not in questions.
    - The summary block follows the same sentence rules: user-visible changes only, no commit hashes, no arrows — and it must state every fact the questions rely on.
    - Before saving, self-check every question: could someone who read only the 변경 요약 answer it? Is every sentence one fact within 25 어절, every option within 40 characters? If not, rewrite.
-5. **Gate.** Tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing.
+5. **Gate.** First present any 사용자 확인 필요 items queued in the implementation notes as batched Korean questions — their answers may amend the report. Then tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing.
 
 ## Gotchas
 
@@ -43,3 +44,4 @@ Trigger: work complete, pre-merge, or the user asks for a report.
 - A 요약 written in engineer-speak (arrows, raw jargon) locks stakeholders out — but only the 요약: 리뷰 포인트 and the Agent 섹션 are technical by design; simplifying them destroys their function.
 - Clean vocabulary does not equal readable: a 40+ 어절 sentence with nested clauses locks out the same readers even with zero jargon — the one-fact / ≤25 어절 bar is part of the standard.
 - A quiz that needs report-internals recall is an exam, not a gate; if the 변경 요약 cannot support the answer, fix the summary or drop the question.
+- Stopping mid-work to ask about a reversible choice trades flow for false safety — conservative default + note + checkpoint batch keeps the decision visible without blocking. Immediate questions are reserved for irreversible or destructive choices.

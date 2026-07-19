@@ -34,4 +34,4 @@
 
 ### 구현 노트 요약
 
-(implementation-notes에서 이탈·보수적 선택 항목 발췌)
+(implementation-notes에서 이탈·보수적 선택·사용자 확인 필요 항목 발췌 — 확인 필요 항목은 머지 전에 질문으로 제시)
