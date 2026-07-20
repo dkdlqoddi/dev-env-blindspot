@@ -20,8 +20,8 @@ Trigger: implementation starts, OR you make a non-obvious decision, pick a conse
 
 Trigger: work complete, pre-merge, or the user asks for a report.
 
-1. **Analyze.** Spawn `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with the default branch — main, else master).
-2. **Merge sources.** change-analyzer output + `<slug>-implementation-notes.md` + the explainer/plan if present.
+1. **Analyze.** Spawn IN PARALLEL (one message, two Agent calls): `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with the default branch — main, else master), and `check-runner` (subagent_type: `check-runner`) with the project's standard check commands if known.
+2. **Merge sources.** change-analyzer output + check-runner 검증 결과 + `<slug>-implementation-notes.md` + the explainer/plan if present.
 3. **Write the report** following `templates/report.md`, Korean, to `docs/blindspot/YYYY-MM-DD-<slug>-report.md`. Keep the two audiences strictly separate:
    - Human 섹션 — 3–5문장 요약, 스크린샷/데모 자리, 리뷰 포인트(파일:라인). The 요약 is read by non-developers: apply the sentence rules from step 4 to it — one fact per sentence, ≤25 어절 each, split anything longer; what happened and what it means for users, never how the code looks; no code syntax, identifiers, file paths, or arrow shorthand; unavoidable technical terms plain Korean first with the term in parentheses. 리뷰 포인트 is for code reviewers — keep it technical; 파일:라인 references are its job.
    - Agent 섹션 — 의도, 제약, 검토한 엣지케이스, 의도적 범위 제외 (structured for a future agent to consume; technical language is correct here — do not simplify it)

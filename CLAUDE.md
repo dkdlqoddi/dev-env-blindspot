@@ -12,7 +12,7 @@ Shared Claude Code skills/agents that other projects consume as a git submodule 
 bash test/check.sh
 ```
 
-Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 9 files (5 skills + 4 agents), skill→agent `subagent_type` reference integrity (every referenced agent file exists), readability-standard marker (`25 어절`) present in exactly 4 SKILL.md files, and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
+Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 10 files (5 skills + 5 agents), skill→agent `subagent_type` reference integrity (every referenced agent file exists), readability-standard marker (`25 어절`) present in exactly 4 SKILL.md files, and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
 
 Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `python3 -m http.server` and use localhost.
 
@@ -21,7 +21,7 @@ Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `p
 - Model-facing instruction files (`SKILL.md`, `agents/*.md`, `MANDATE.md`): English. User-facing deliverables the skills generate: Korean. Do not mix.
 - Skill frontmatter `description` is the trigger condition — always "Use when ...".
 - Every SKILL.md has a `## Gotchas` section. Append recurring failure points there; never delete entries or create separate gotcha docs.
-- Agents are read-only by design — keep `tools` minimal (`Bash` only where git inspection is required, with read-only instructions in the body).
+- Agents are read-only by design — they never edit files. Keep `tools` minimal (`Bash` only where git inspection or running the project's standard checks is required, with read-only instructions in the body).
 - Deliverable path contract baked into skills: `docs/blindspot/YYYY-MM-DD-<slug>-{requirements,unknowns,explainer,report}.md`, `docs/blindspot/quiz/*.html`, `docs/blindspot/<slug>-implementation-notes.md` (no date prefix).
 - Non-developer readability rules are intentionally duplicated across 4 skills for self-containment (work-report steps 3–4, explainer step 2, requirements-interview steps 3–4, blindspot-pass steps 3–5) — edit the standard in all of them together. The standard covers vocabulary (plain Korean first, term in parentheses; no arrows/code syntax) AND sentence shape (one fact per sentence, ≤25 어절; quiz options ≤40 chars; quiz answerable from its own 변경 요약).
 - Question policy (evidence-first asking, 7-question cap that triggers more scanning instead of more asking, no mid-work blocking on reversible decisions, per-cycle calibration) lives once in `MANDATE.md`; `blindspot-pass` step 4 and `work-report` notes/report modes implement the mechanics.

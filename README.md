@@ -124,6 +124,7 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 | `domain-researcher` | 코드 밖 도메인 지식 웹 리서치 — 핵심 개념·품질 기준·함정을 출처 URL 근거와 함께 반환 |
 | `doc-verifier` | 산출 문서의 placeholder·모순·모호성·범위 검사 |
 | `change-analyzer` | base 대비 diff 분석: 변경 요약, 위험 지점, 테스트 유무, 퀴즈 후보 |
+| `check-runner` | 프로젝트 표준 검사(테스트·린트·빌드) 실행 — 실패만 증류해 반환, 전체 로그는 반환 안 함 |
 
 ## 6. 규칙
 
@@ -148,6 +149,6 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 bash test/check.sh   # mandate hook + frontmatter lint + skill→agent 참조 무결성 + readability 표준 동기화 + installer 멱등성
 ```
 
-skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 9`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`CLAUDE.md`의 Consumer contract 체크리스트 참고).
+skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 10`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`CLAUDE.md`의 Consumer contract 체크리스트 참고).
 
 설계 문서: `docs/superpowers/specs/`, 구현 계획: `docs/superpowers/plans/`, 실동작 검증 기록: `docs/blindspot/`
