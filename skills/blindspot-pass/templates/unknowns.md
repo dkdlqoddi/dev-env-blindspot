@@ -1,4 +1,4 @@
-# [주제] Unknown Unknowns
+# [주제] 미지 영역 (Unknown Unknowns)
 
 - 날짜: YYYY-MM-DD
 - 입력: (requirements 문서 링크, 없으면 "없음")

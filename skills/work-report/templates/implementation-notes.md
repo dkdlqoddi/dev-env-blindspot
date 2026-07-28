@@ -3,7 +3,7 @@
 - 시작일: YYYY-MM-DD
 - 연관 문서: (requirements / unknowns / explainer 링크, 없으면 "없음")
 
-<!-- 결정 시점마다 아래 형식으로 append. 사후 재구성 금지. -->
+<!-- Append one entry per decision, in the format below, at decision time. Never reconstruct after the fact. -->
 
 ## YYYY-MM-DD HH:MM — [결정 제목]
 

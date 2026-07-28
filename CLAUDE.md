@@ -19,6 +19,7 @@ Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `p
 ## Conventions
 
 - Model-facing instruction files (`SKILL.md`, `agents/*.md`, `MANDATE.md`): English. User-facing deliverables the skills generate: Korean. Do not mix.
+- Templates (`skills/*/templates/*`): deliverable text and placeholders Korean; instruction comments addressed to the generating model (`<!-- -->`, `//`) English. Cross-referenced identifiers (lens names, `Human/Agent 섹션` labels, quadrant terms) keep their established English form, glossed in Korean where a reader first meets them.
 - Skill frontmatter `description` is the trigger condition — always "Use when ...".
 - Every SKILL.md has a `## Gotchas` section. Append recurring failure points there; never delete entries or create separate gotcha docs.
 - Agents are read-only by design — they never edit files. Keep `tools` minimal (`Bash` only where git inspection or running the project's standard checks is required, with read-only instructions in the body).
