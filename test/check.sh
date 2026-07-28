@@ -51,4 +51,10 @@ cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
   [[ "$(grep -cxF '@.claude/shared/MANDATE.md' CLAUDE.md)" == 1 ]] || { echo "CLAUDE.md import missing or duplicated"; exit 1; }
 ) || fail "install idempotency check failed"
 
+# --- 6. countable readability limits: checker runs clean on the shipped templates ---
+python3 "$ROOT/skills/work-report/scripts/quiz_check.py" \
+  "$ROOT/skills/work-report/templates/quiz.html" \
+  "$ROOT/skills/work-report/templates/report.md" >/dev/null \
+  || fail "quiz_check.py reported violations on the work-report templates"
+
 echo "OK: all checks passed"

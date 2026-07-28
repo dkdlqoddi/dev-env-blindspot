@@ -123,7 +123,7 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 | `codebase-scanner` | 렌즈(conventions/similar-features/integration-points/edge-cases)별 코드 탐색, `파일:라인` 근거 반환 |
 | `domain-researcher` | 코드 밖 도메인 지식 웹 리서치 — 핵심 개념·품질 기준·함정을 출처 URL 근거와 함께 반환 |
 | `doc-verifier` | 산출 문서의 placeholder·모순·모호성·범위 검사 |
-| `change-analyzer` | base 대비 diff 분석: 변경 요약, 위험 지점, 테스트 유무, 퀴즈 후보 |
+| `change-analyzer` | base 대비 diff 분석: 변경 요약, 위험 지점(의심 결함 포함), 계획 대비 이탈, 테스트 유무, 퀴즈 후보 |
 | `check-runner` | 프로젝트 표준 검사(테스트·린트·빌드) 실행 — 실패만 증류해 반환, 전체 로그는 반환 안 함 |
 
 ## 6. 규칙

@@ -20,7 +20,7 @@ Trigger: implementation starts, OR you make a non-obvious decision, pick a conse
 
 Trigger: work complete, pre-merge, or the user asks for a report.
 
-1. **Analyze.** Spawn IN PARALLEL (one message, two Agent calls): `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with the default branch — main, else master), and `check-runner` (subagent_type: `check-runner`) with the project's standard check commands if known.
+1. **Analyze.** Spawn IN PARALLEL (one message, two Agent calls): `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with the default branch — main, else master) plus the explainer/plan doc path when one exists (it reports 계획 대비 이탈 from it), and `check-runner` (subagent_type: `check-runner`) with the project's standard check commands if known.
 2. **Merge sources.** change-analyzer output + check-runner 검증 결과 + `<slug>-implementation-notes.md` + the explainer/plan if present.
 3. **Write the report** following `templates/report.md`, Korean, to `docs/blindspot/YYYY-MM-DD-<slug>-report.md`. Keep the two audiences strictly separate:
    - Human 섹션 — 3–5문장 요약, 스크린샷/데모 자리, 리뷰 포인트(파일:라인). The 요약 is read by non-developers: apply the sentence rules from step 4 to it — one fact per sentence, ≤25 어절 each, split anything longer; what happened and what it means for users, never how the code looks; no code syntax, identifiers, file paths, or arrow shorthand; unavoidable technical terms plain Korean first with the term in parentheses. 리뷰 포인트 is for code reviewers — keep it technical; 파일:라인 references are its job.
@@ -33,6 +33,7 @@ Trigger: work complete, pre-merge, or the user asks for a report.
    - Every question gets an `explain` field: 2–3 plain Korean sentences (same ≤25 어절 bar) on why the answer is right and why the most tempting wrong option is wrong. Technical terms and file paths belong here (in parentheses), not in questions.
    - The summary block follows the same sentence rules: user-visible changes only, no commit hashes, no arrows — and it must state every fact the questions rely on.
    - Before saving, self-check every question: could someone who read only the 변경 요약 answer it? Is every sentence one fact within 25 어절, every option within 40 characters? If not, rewrite.
+   - Then run the countable check on both files: `python3 <this skill's folder>/scripts/quiz_check.py <quiz html> <report md>` (installed at `.claude/skills/work-report/scripts/quiz_check.py` in consumer projects). Fix every reported violation before the gate.
 5. **Gate.** First present any 사용자 확인 필요 items queued in the implementation notes as batched Korean questions — their answers may amend the report. Then tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing.
 
 ## Gotchas
@@ -45,3 +46,4 @@ Trigger: work complete, pre-merge, or the user asks for a report.
 - Clean vocabulary does not equal readable: a 40+ 어절 sentence with nested clauses locks out the same readers even with zero jargon — the one-fact / ≤25 어절 bar is part of the standard.
 - A quiz that needs report-internals recall is an exam, not a gate; if the 변경 요약 cannot support the answer, fix the summary or drop the question.
 - Stopping mid-work to ask about a reversible choice trades flow for false safety — conservative default + note + checkpoint batch keeps the decision visible without blocking. Immediate questions are reserved for irreversible or destructive choices.
+- Self-check alone has let over-length sentences slip through; sentence and option length are countable, so `scripts/quiz_check.py` is the enforcement — eyeballing is not.

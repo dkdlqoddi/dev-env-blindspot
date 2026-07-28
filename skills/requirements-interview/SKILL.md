@@ -15,11 +15,12 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
    - Unknown Knowns — preferences the user likely holds but hasn't said (naming, style, existing patterns)
    - Unknown Unknowns — territory nobody has looked at; note candidates, leave the digging to `blindspot-pass`
 
-2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
+2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Include `docs/blindspot/` in its scan targets: past requirements/unknowns/report docs on adjacent topics record decisions the user already made. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
 
 3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
    - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do. One fact per sentence, ≤25 어절 each.
    - Order by architecture impact: answers that change the design come first.
+   - Never re-ask what a past `docs/blindspot/` deliverable already answers — cite the earlier decision and move on.
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
    - Record every question, answer, and its architecture impact.
 
@@ -36,3 +37,4 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 - One decision per question. Batched questions get half-answers.
 - A question the user cannot parse gets a guessed answer; guessed answers become wrong requirements. Every question and every document sentence must survive the "reader has never seen the code" test.
 - Clean vocabulary does not equal readable: a 40+ 어절 sentence with nested clauses locks out the same readers even with zero jargon — the one-fact / ≤25 어절 bar is part of the standard.
+- A question the user answered in a past cycle wastes the budget twice — the scanner covers `docs/blindspot/` history precisely so the interview can cite instead of re-ask.

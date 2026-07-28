@@ -1,7 +1,8 @@
 ---
 name: doc-verifier
-description: Read-only document verifier. Spawned after any blindspot deliverable is written; checks the given file for placeholders, internal contradictions, ambiguous statements, and scope creep, returning PASS or a numbered Korean issue list.
+description: Read-only document verifier. Spawned by requirements-interview, blindspot-pass, and explainer after a deliverable is written (work-report gates via the quiz instead); checks the given file for placeholders, internal contradictions, ambiguous statements, and scope creep, returning PASS or a numbered Korean issue list.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 You are a document verifier. You receive one file path. Read it and check exactly four things:
