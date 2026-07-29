@@ -109,7 +109,7 @@ AGENTS.md                    # consumer content plus managed mandate block
 AGENTS.override.md           # updated only when already present
 ```
 
-Custom-agent TOML files are copied instead of symlinked because the Codex documentation explicitly guarantees symlink following for skills but not for custom-agent files. Re-running the installer refreshes the five reserved role names. Other agent files and skills remain untouched.
+Custom-agent TOML files are copied instead of symlinked because the Codex documentation explicitly guarantees symlink following for skills but not for custom-agent files. The installer owns and refreshes the five exact role names listed in this design; the README warns that consumer files with those names are replaced. Agent files and skills with every other name remain untouched.
 
 The hook command is:
 
@@ -147,10 +147,11 @@ Every TOML contains `name`, `description`, and `developer_instructions`. Read-on
 
 - Missing `.codex/shared/skills` stops installation with the expected mount path.
 - Missing Python 3 stops installation with a concise manual recovery description.
-- Invalid or non-object `.codex/hooks.json` stops before replacing its content.
+- Invalid or non-object `.codex/hooks.json`, or malformed/duplicate managed-block markers, stops before any managed consumer file is changed.
 - Existing unrelated hook groups and top-level JSON fields are preserved.
-- The same blindspot hook or managed guidance block is updated instead of duplicated.
-- Existing consumer `AGENTS.md` and `AGENTS.override.md` text outside managed markers is preserved byte-for-byte where practical.
+- The installer removes duplicate occurrences of its exact hook command, then writes one canonical unfiltered `SessionStart` handler.
+- The same managed guidance block is replaced in place instead of duplicated.
+- Existing consumer `AGENTS.md` and `AGENTS.override.md` bytes outside managed markers are preserved exactly; only the managed block and its boundary newlines are installer-owned.
 - A custom-agent role that Codex cannot select falls back to a fully instructed general subagent, not to an unqualified task label.
 - A check blocked by sandbox policy is reported as `실행 불가`, not as a product test failure.
 - Missing web access uses the existing `출처: 모델 지식 (웹 접근 불가)` label and never fabricates a URL.
