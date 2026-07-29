@@ -4,6 +4,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 skill_names=(blindspot-flow blindspot-pass explainer requirements-interview work-report)
 agent_names=(change_analyzer check_runner codebase_scanner doc_verifier domain_researcher)
+support_assets=(
+  requirements-interview/templates/requirements.md
+  blindspot-pass/templates/unknowns.md
+  explainer/templates/explainer.md
+  work-report/templates/implementation-notes.md
+  work-report/templates/report.md
+  work-report/templates/quiz.html
+  work-report/scripts/quiz_check.py
+)
 assert_reserved_absent() {
   local consumer="$1" allowed_skill="${2:-}" allowed_agent="${3:-}"
   local name
@@ -17,6 +26,98 @@ assert_reserved_absent() {
       [[ ! -e "$consumer/.codex/agents/$name.toml" && ! -L "$consumer/.codex/agents/$name.toml" ]] || fail "unexpected managed agent after failed install: $name"
     fi
   done
+}
+managed_document_snapshot() {
+  python3 - "$1" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import stat
+import sys
+
+root = Path(sys.argv[1])
+
+def describe(path):
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return {"type": "absent"}
+    mode = info.st_mode
+    result = {"mode": stat.S_IMODE(mode), "inode": info.st_ino}
+    if stat.S_ISLNK(mode):
+        result.update(type="symlink", target=str(path.readlink()))
+    elif stat.S_ISREG(mode):
+        result.update(type="regular", sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    elif stat.S_ISDIR(mode):
+        result.update(
+            type="directory",
+            entries={child.name: describe(child) for child in sorted(path.iterdir())},
+        )
+    elif stat.S_ISFIFO(mode):
+        result["type"] = "fifo"
+    elif stat.S_ISSOCK(mode):
+        result["type"] = "socket"
+    elif stat.S_ISCHR(mode):
+        result.update(type="character-device", device=info.st_rdev)
+    elif stat.S_ISBLK(mode):
+        result.update(type="block-device", device=info.st_rdev)
+    else:
+        result["type"] = "other"
+    return result
+
+print(json.dumps({
+    relative: describe(root / relative)
+    for relative in (
+        ".codex/hooks.json",
+        "AGENTS.md",
+        "AGENTS.override.md",
+        "preserve.txt",
+    )
+}, sort_keys=True))
+PY
+}
+expect_managed_document_node_failure() {
+  local consumer="$1" label="$2" before after status
+  before="$(managed_document_snapshot "$consumer")"
+  set +e
+  python3 - "$consumer" <<'PY' >"$consumer/install.out" 2>"$consumer/install.err"
+import os
+from pathlib import Path
+import signal
+import subprocess
+import sys
+
+consumer = Path(sys.argv[1])
+process = subprocess.Popen(
+    ["bash", ".codex/shared/install.sh"],
+    cwd=consumer,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    start_new_session=True,
+    text=True,
+)
+try:
+    stdout, stderr = process.communicate(timeout=2)
+except subprocess.TimeoutExpired:
+    os.killpg(process.pid, signal.SIGKILL)
+    stdout, stderr = process.communicate()
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+    raise SystemExit(124)
+sys.stdout.write(stdout)
+sys.stderr.write(stderr)
+raise SystemExit(0 if process.returncode == 0 else 1)
+PY
+  status=$?
+  set -e
+  [[ "$status" -ne 0 ]] || fail "$label was accepted"
+  [[ "$status" -ne 124 ]] || fail "$label blocked while reading an unsupported node"
+  rg -q -F 'must be absent or a regular file' "$consumer/install.err" || fail "$label did not report the managed document type"
+  after="$(managed_document_snapshot "$consumer")"
+  [[ "$before" == "$after" ]] || fail "$label changed a managed document"
+  [[ ! -e "$consumer/.agents" && ! -L "$consumer/.agents" ]] || fail "$label created .agents"
+  [[ ! -e "$consumer/.codex/agents" && ! -L "$consumer/.codex/agents" ]] || fail "$label created agents"
+  assert_reserved_absent "$consumer"
 }
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -69,6 +170,12 @@ for name in "${skill_names[@]}"; do
   [[ -L "$proj/.agents/skills/$name" ]] || fail "missing skill link $name"
   [[ -f "$proj/.agents/skills/$name/SKILL.md" ]] || fail "broken skill link $name"
   [[ "$(readlink "$proj/.agents/skills/$name")" == "../../.codex/shared/skills/$name" ]] || fail "wrong skill link target $name"
+done
+for relative in "${support_assets[@]}"; do
+  installed="$proj/.agents/skills/$relative"
+  source="$proj/.codex/shared/skills/$relative"
+  [[ -f "$installed" ]] || fail "installed skill support asset is unreachable: $relative"
+  cmp -s "$installed" "$source" || fail "installed skill support asset differs from source: $relative"
 done
 for name in "${agent_names[@]}"; do
   [[ -f "$proj/.codex/agents/$name.toml" && ! -L "$proj/.codex/agents/$name.toml" ]] || fail "agent $name is not a real file"
@@ -131,6 +238,41 @@ mkdir -p "$no_override/.codex/shared"
 cp -a "$ROOT/." "$no_override/.codex/shared/"
 (cd "$no_override" && bash .codex/shared/install.sh >/dev/null)
 [[ ! -e "$no_override/AGENTS.override.md" ]] || fail "absent override was created"
+
+for managed_relative in .codex/hooks.json AGENTS.md AGENTS.override.md; do
+  managed_label="${managed_relative//\//-}"
+  for node_kind in symlink-to-fifo fifo socket directory; do
+    managed_case="$tmp/managed-${managed_label}-${node_kind}"
+    managed_target="$managed_case/$managed_relative"
+    mkdir -p "$managed_case/.codex/shared" "$(dirname "$managed_target")"
+    cp -a "$ROOT/." "$managed_case/.codex/shared/"
+    printf '%s\n' 'keep managed document failure state' > "$managed_case/preserve.txt"
+    case "$node_kind" in
+      symlink-to-fifo)
+        mkfifo "$managed_case/linked-fifo"
+        ln -s "$managed_case/linked-fifo" "$managed_target"
+        ;;
+      fifo)
+        mkfifo "$managed_target"
+        ;;
+      socket)
+        python3 - "$managed_target" <<'PY'
+import socket
+import sys
+
+node = socket.socket(socket.AF_UNIX)
+node.bind(sys.argv[1])
+node.close()
+PY
+        ;;
+      directory)
+        mkdir "$managed_target"
+        printf '%s\n' 'keep directory sentinel' > "$managed_target/sentinel"
+        ;;
+    esac
+    expect_managed_document_node_failure "$managed_case" "$managed_relative $node_kind"
+  done
+done
 
 bad="$tmp/bad"
 mkdir -p "$bad/.codex/shared" "$bad/.codex"
@@ -229,6 +371,15 @@ expect_source_failure() {
   [[ ! -e "$consumer/.codex/hooks.json" ]] || fail "$label created hooks.json"
   [[ ! -e "$consumer/AGENTS.override.md" ]] || fail "$label created AGENTS.override.md"
 }
+
+for relative in "${support_assets[@]}"; do
+  asset_label="${relative//\//-}"
+  missing_asset="$tmp/missing-asset-$asset_label"
+  mkdir -p "$missing_asset/.codex/shared"
+  cp -a "$ROOT/." "$missing_asset/.codex/shared/"
+  mv "$missing_asset/.codex/shared/skills/$relative" "$missing_asset/.codex/shared/skills/$relative.missing"
+  expect_source_failure "$missing_asset" "missing skill support asset $relative"
+done
 
 bad_toml="$tmp/bad-toml"
 mkdir -p "$bad_toml/.codex/shared"

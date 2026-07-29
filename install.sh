@@ -45,6 +45,15 @@ AGENTS = (
     "doc_verifier",
     "domain_researcher",
 )
+SKILL_SUPPORT_ASSETS = (
+    "requirements-interview/templates/requirements.md",
+    "blindspot-pass/templates/unknowns.md",
+    "explainer/templates/explainer.md",
+    "work-report/templates/implementation-notes.md",
+    "work-report/templates/report.md",
+    "work-report/templates/quiz.html",
+    "work-report/scripts/quiz_check.py",
+)
 
 
 class InstallError(Exception):
@@ -260,6 +269,20 @@ def validate_replaceable_destination(path, description):
     raise InstallError(f"refusing to replace {description}: {path}")
 
 
+def validate_optional_regular_file(path, description):
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return False
+    except OSError as exc:
+        raise InstallError(f"cannot inspect {description} at {path}: {exc}") from exc
+    if not stat.S_ISREG(mode):
+        raise InstallError(
+            f"{description} must be absent or a regular file: {path}"
+        )
+    return True
+
+
 def validate_and_render():
     mandate_path = SHARED / "MANDATE.md"
     if not mandate_path.is_file():
@@ -282,6 +305,11 @@ def validate_and_render():
         if not skill_file.is_file():
             raise InstallError(f"missing skill entry point: {skill_file}")
         read_bytes(skill_file, "skill entry point")
+    for relative in SKILL_SUPPORT_ASSETS:
+        asset = SHARED / "skills" / relative
+        if not asset.is_file():
+            raise InstallError(f"missing skill support asset: {asset}")
+        read_bytes(asset, "skill support asset")
 
     agent_sources = {}
     for name in AGENTS:
@@ -294,7 +322,13 @@ def validate_and_render():
         parse_agent_profile(content, source, name)
         agent_sources[name] = (content, stat.S_IMODE(source.stat().st_mode))
 
-    if HOOKS_PATH.exists():
+    hooks_existed = validate_optional_regular_file(HOOKS_PATH, "hooks JSON")
+    agents_existed = validate_optional_regular_file(AGENTS_PATH, "AGENTS guidance")
+    override_existed = validate_optional_regular_file(
+        OVERRIDE_PATH, "AGENTS override guidance"
+    )
+
+    if hooks_existed:
         hooks_text = read_text(HOOKS_PATH, "hooks JSON")
         try:
             hooks_data = json.loads(hooks_text)
@@ -327,9 +361,8 @@ def validate_and_render():
                     f"{handler_number} must be a JSON object"
                 )
 
-    agents_text = read_bytes(AGENTS_PATH, "AGENTS guidance") if AGENTS_PATH.exists() else b""
+    agents_text = read_bytes(AGENTS_PATH, "AGENTS guidance") if agents_existed else b""
     validate_guidance(AGENTS_PATH, agents_text)
-    override_existed = OVERRIDE_PATH.exists()
     override_text = (
         read_bytes(OVERRIDE_PATH, "AGENTS override guidance") if override_existed else None
     )
