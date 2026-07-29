@@ -24,7 +24,7 @@ One document a zero-context reader can use to understand what is being built, wh
 
 3. **Save** to `docs/blindspot/YYYY-MM-DD-<slug>-explainer.md`.
 
-4. **Verify.** Spawn IN PARALLEL (one message, two Agent calls): `doc-verifier` (subagent_type: `doc-verifier`) on the file, and `codebase-scanner` (subagent_type: `codebase-scanner`) with lens `integration-points`, the saved file's path, and instructions to cross-check the design against code reality — every integration point the document assumes (APIs, schemas, configs, files) must exist and match, mismatches cited as `file:line`. Fix every issue from both, re-save. Skip the cross-check only when the project has no code.
+4. **Verify.** Submit the independent roles together and use all runtime concurrency available: run the custom agent `doc_verifier` on the file, and the custom agent `codebase_scanner` with lens `integration-points`, the saved file's path, and instructions to cross-check the design against code reality — every integration point the document assumes (APIs, schemas, configs, files) must exist and match, mismatches cited as `file:line`. For each role, select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. If Codex queues work because of a thread cap, retain every lens and wait for all results before synthesis. Fix every issue from both, re-save. Skip the cross-check only when the project has no code.
 
 5. **Hand off.** Tell the user (Korean): 구현 시작 시 `work-report` 노트 모드로.
 

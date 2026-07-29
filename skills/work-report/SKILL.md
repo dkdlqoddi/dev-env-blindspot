@@ -1,6 +1,6 @@
 ---
 name: work-report
-description: "Use in two modes — (a) notes mode the moment implementation starts and whenever a non-obvious decision or plan deviation happens mid-work: log it immediately; (b) report mode when work completes or before merge: analyze the diff via change-analyzer, write a Korean report with separate Human/Agent sections, and generate a self-contained pre-merge quiz HTML the user must pass before merging."
+description: "Use when in two modes — (a) notes mode the moment implementation starts and whenever a non-obvious decision or plan deviation happens mid-work: log it immediately; (b) report mode when work completes or before merge: analyze the diff via change_analyzer, write a Korean report with separate Human/Agent sections, and generate a self-contained pre-merge quiz HTML the user must pass before merging."
 ---
 
 # Work Report
@@ -20,8 +20,8 @@ Trigger: implementation starts, OR you make a non-obvious decision, pick a conse
 
 Trigger: work complete, pre-merge, or the user asks for a report.
 
-1. **Analyze.** Spawn IN PARALLEL (one message, two Agent calls): `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with the default branch — main, else master) plus the explainer/plan doc path when one exists (it reports 계획 대비 이탈 from it), and `check-runner` (subagent_type: `check-runner`) with the project's standard check commands if known.
-2. **Merge sources.** change-analyzer output + check-runner 검증 결과 + `<slug>-implementation-notes.md` + the explainer/plan if present.
+1. **Analyze.** Submit the independent roles together and use all runtime concurrency available: run the custom agent `change_analyzer` with the base ref (default: merge-base with the default branch — main, else master) plus the explainer/plan doc path when one exists (it reports 계획 대비 이탈 from it), and the custom agent `check_runner` with the project's standard check commands if known. For each role, select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. If Codex queues work because of a thread cap, retain every lens and wait for all results before synthesis.
+2. **Merge sources.** change_analyzer output + check_runner 검증 결과 + `<slug>-implementation-notes.md` + the explainer/plan if present.
 3. **Write the report** following `templates/report.md`, Korean, to `docs/blindspot/YYYY-MM-DD-<slug>-report.md`. Keep the two audiences strictly separate:
    - Human 섹션 — 3–5문장 요약, 스크린샷/데모 자리, 리뷰 포인트(파일:라인). The 요약 is read by non-developers: apply the sentence rules from step 4 to it — one fact per sentence, ≤25 어절 each, split anything longer; what happened and what it means for users, never how the code looks; no code syntax, identifiers, file paths, or arrow shorthand; unavoidable technical terms plain Korean first with the term in parentheses. 리뷰 포인트 is for code reviewers — keep it technical; 파일:라인 references are its job.
    - Agent 섹션 — 의도, 제약, 검토한 엣지케이스, 의도적 범위 제외 (structured for a future agent to consume; technical language is correct here — do not simplify it)
@@ -33,7 +33,7 @@ Trigger: work complete, pre-merge, or the user asks for a report.
    - Every question gets an `explain` field: 2–3 plain Korean sentences (same ≤25 어절 bar) on why the answer is right and why the most tempting wrong option is wrong. Technical terms and file paths belong here (in parentheses), not in questions.
    - The summary block follows the same sentence rules: user-visible changes only, no commit hashes, no arrows — and it must state every fact the questions rely on.
    - Before saving, self-check every question: could someone who read only the 변경 요약 answer it? Is every sentence one fact within 25 어절, every option within 40 characters? If not, rewrite.
-   - Then run the countable check on both files: `python3 <this skill's folder>/scripts/quiz_check.py <quiz html> <report md>` (installed at `.claude/skills/work-report/scripts/quiz_check.py` in consumer projects). Fix every reported violation before the gate.
+   - Then run the countable check on both files: `python3 <this skill's folder>/scripts/quiz_check.py <quiz html> <report md>` (installed at `.agents/skills/work-report/scripts/quiz_check.py` in consumer projects). Fix every reported violation before the gate.
 5. **Gate.** First present any 사용자 확인 필요 items queued in the implementation notes as batched Korean questions — their answers may amend the report. Then tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing.
 
 ## Gotchas

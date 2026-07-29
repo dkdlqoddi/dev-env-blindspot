@@ -15,9 +15,9 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
    - Unknown Knowns — preferences the user likely holds but hasn't said (naming, style, existing patterns)
    - Unknown Unknowns — territory nobody has looked at; note candidates, leave the digging to `blindspot-pass`
 
-2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Include `docs/blindspot/` in its scan targets: past requirements/unknowns/report docs on adjacent topics record decisions the user already made. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
+2. **Ground before asking.** Run the custom agent `codebase_scanner` with lens `conventions` and the task description BEFORE writing questions. Select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. Include `docs/blindspot/` in its scan targets: past requirements/unknowns/report docs on adjacent topics record decisions the user already made. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
 
-3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
+3. **Interview.** Ask exactly one Korean question per turn. Use `request_user_input` with one question and no auto-resolution when available and when 2–3 options cover the decision; otherwise end the turn with one direct Korean question. Use direct text when four meaningful options are required.
    - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do. One fact per sentence, ≤25 어절 each.
    - Order by architecture impact: answers that change the design come first.
    - Never re-ask what a past `docs/blindspot/` deliverable already answers — cite the earlier decision and move on.
@@ -26,7 +26,7 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 
 4. **Write the document.** Follow `templates/requirements.md` in this skill's folder. Fill every section in Korean, for a reader who has never seen the code: no arrow shorthand (A→B) or unexplained jargon; unavoidable technical terms plain Korean first with the term in parentheses; one fact per sentence, ≤25 어절 each — split long compound sentences. Evidence links and 관련 문서 paths stay as they are. Before saving, self-check every sentence: could someone who has never seen code follow it, and is it one fact within 25 어절? Save to `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md` (slug = kebab-case topic, date = today).
 
-5. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the saved file. Fix every reported issue, re-save. Do not skip on PASS-looking drafts — verification is not optional.
+5. **Verify.** Run the custom agent `doc_verifier` on the saved file. Select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. Fix every reported issue, re-save. Do not skip on PASS-looking drafts — verification is not optional.
 
 6. **Hand off.** Tell the user (Korean): 다음 단계는 `blindspot-pass`로 Unknown Unknowns를 구체화하는 것.
 
