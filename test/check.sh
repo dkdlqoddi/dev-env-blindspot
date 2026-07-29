@@ -21,8 +21,8 @@ if python3 "$ROOT/skills/work-report/scripts/quiz_check.py" \
   "$ROOT/test/fixtures/invalid-report.md" >"$tmp/invalid.out" 2>&1; then
   fail "quiz_check.py accepted over-limit fixtures"
 fi
-for expected in '변경 요약' 'Q1 question' 'Q1 option' 'Q1 explain' '요약'; do
-  rg -q -F "$expected" "$tmp/invalid.out" || fail "negative fixture missed $expected"
+for expected in '^[^:]+: 변경 요약:' '^[^:]+: Q1 question:' '^[^:]+: Q1 option has ' '^[^:]+: Q1 explain:' '^[^:]+: 요약:'; do
+  rg -q "$expected" "$tmp/invalid.out" || fail "negative fixture missed $expected"
 done
 
 bash "$ROOT/test/check_codex.sh"

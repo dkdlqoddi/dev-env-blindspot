@@ -39,7 +39,8 @@ fi
 
 rg -q -F 'Blindspot Mandate' "$stdout" || fail "Codex prompt omitted Blindspot Mandate"
 for skill in blindspot-flow blindspot-pass explainer requirements-interview work-report; do
-  rg -q -F "$skill" "$stdout" || fail "Codex prompt omitted skill $skill"
+  rg -q -F -- "- $skill:" "$stdout" || fail "Codex prompt omitted skill catalog entry $skill"
+  rg -q -F -- "/skills/$skill/SKILL.md" "$stdout" || fail "Codex prompt omitted skill catalog location $skill"
 done
 
 warning='(warn(ing)?[^[:cntrl:]]*(pars(e|er)|custom[- ]agent)|(pars(e|er)|custom[- ]agent)[^[:cntrl:]]*warn(ing)?)'
