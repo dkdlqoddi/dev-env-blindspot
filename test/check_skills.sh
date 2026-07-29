@@ -50,8 +50,23 @@ assert_thread_cap_contract() {
   done
 }
 
+assert_single_role_fallback() {
+  local section="$1" label="$2" required
+  for required in \
+    'If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent.' \
+    'Thread-cap handling is mandatory.' \
+    'Keep a rejected role pending.' \
+    'Wait for a subagent slot to become available, then retry it.' \
+    'Never continue to the next step or drop the role.' \
+    'If subagent spawning remains unavailable, run the required role in the parent using that exact profile'"'"'s complete `developer_instructions` and the same task input; do not skip it.'
+  do
+    rg -q -F "$required" <<<"$section" || fail "$label: missing single-role fallback: $required"
+  done
+}
+
 blindspot_pass="$ROOT/skills/blindspot-pass/SKILL.md"
 explainer="$ROOT/skills/explainer/SKILL.md"
+requirements_interview="$ROOT/skills/requirements-interview/SKILL.md"
 work_report="$ROOT/skills/work-report/SKILL.md"
 assert_thread_cap_contract \
   "$(sed -n '/^2\. \*\*Fan out scanners\.\*\*/,/^3\. \*\*Synthesize\.\*\*/p' "$blindspot_pass")" \
@@ -65,5 +80,18 @@ assert_thread_cap_contract \
 assert_thread_cap_contract \
   "$(sed -n '/^1\. \*\*Analyze\.\*\*/,/^2\. \*\*Merge sources\.\*\*/p' "$work_report")" \
   "$work_report analysis"
+assert_single_role_fallback \
+  "$(sed -n '/^2\. \*\*Ground before asking\.\*\*/,/^3\. \*\*Interview\.\*\*/p' "$requirements_interview")" \
+  "$requirements_interview grounding"
+assert_single_role_fallback \
+  "$(sed -n '/^5\. \*\*Verify\.\*\*/,/^6\. \*\*Hand off\.\*\*/p' "$requirements_interview")" \
+  "$requirements_interview verification"
+assert_single_role_fallback \
+  "$(sed -n '/^6\. \*\*Verify\.\*\*/,/^7\. \*\*Hand off\.\*\*/p' "$blindspot_pass")" \
+  "$blindspot_pass verification"
+
+rg -q -F \
+  'Parent execution with the complete designated profile'"'"'s `developer_instructions` and the same task input is the only exception when subagent spawning is unavailable.' \
+  "$ROOT/MANDATE.md" || fail "$ROOT/MANDATE.md: missing unavailable-subagent exception"
 
 echo "OK: skill host contract"

@@ -283,6 +283,17 @@ def validate_optional_regular_file(path, description):
     return True
 
 
+def validate_managed_directory(path):
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        raise InstallError(f"cannot inspect managed directory path at {path}: {exc}") from exc
+    if not stat.S_ISDIR(mode):
+        raise InstallError(f"managed directory path must be a real directory: {path}")
+
+
 def validate_and_render():
     mandate_path = SHARED / "MANDATE.md"
     if not mandate_path.is_file():
@@ -369,14 +380,12 @@ def validate_and_render():
     if override_text is not None:
         validate_guidance(OVERRIDE_PATH, override_text)
 
+    for destination_root in (Path(".agents/skills"), Path(".codex/agents")):
+        for candidate in (destination_root.parent, destination_root):
+            validate_managed_directory(candidate)
     for name in SKILLS:
         destination = Path(".agents/skills") / name
         validate_replaceable_destination(destination, "consumer skill destination")
-
-    for destination_root in (Path(".agents/skills"), Path(".codex/agents")):
-        for candidate in (destination_root.parent, destination_root):
-            if os.path.lexists(candidate) and not candidate.is_dir():
-                raise InstallError(f"managed directory path is not a directory: {candidate}")
     for name in AGENTS:
         destination = Path(".codex/agents") / f"{name}.toml"
         validate_replaceable_destination(destination, "Codex agent destination")

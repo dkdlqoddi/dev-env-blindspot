@@ -76,6 +76,29 @@ print(json.dumps({
 }, sort_keys=True))
 PY
 }
+managed_node_snapshot() {
+  python3 - "$1" <<'PY'
+import json
+import os
+from pathlib import Path
+import stat
+import sys
+
+path = Path(sys.argv[1])
+try:
+    info = path.lstat()
+except FileNotFoundError:
+    print(json.dumps({"type": "absent"}, sort_keys=True))
+else:
+    mode = info.st_mode
+    print(json.dumps({
+        "ctime_ns": info.st_ctime_ns,
+        "inode": info.st_ino,
+        "mode": mode,
+        "target": os.readlink(path) if stat.S_ISLNK(mode) else None,
+    }, sort_keys=True))
+PY
+}
 expect_managed_document_node_failure() {
   local consumer="$1" label="$2" before after status
   before="$(managed_document_snapshot "$consumer")"
@@ -118,6 +141,24 @@ PY
   [[ ! -e "$consumer/.agents" && ! -L "$consumer/.agents" ]] || fail "$label created .agents"
   [[ ! -e "$consumer/.codex/agents" && ! -L "$consumer/.codex/agents" ]] || fail "$label created agents"
   assert_reserved_absent "$consumer"
+}
+expect_managed_directory_symlink_failure() {
+  local consumer="$1" managed_root="$2" sentinel="$3" label="$4"
+  local allowed_skill="${5:-}" allowed_agent="${6:-}" before after
+  local root_before
+  root_before="$(managed_node_snapshot "$managed_root")"
+  before="$(sha256sum "$sentinel")"
+  local documents_before
+  documents_before="$(managed_document_snapshot "$consumer")"
+  if (cd "$consumer" && bash .codex/shared/install.sh >install.out 2>install.err); then
+    fail "$label was accepted"
+  fi
+  rg -q -F 'managed directory path must be a real directory' "$consumer/install.err" || fail "$label did not report the managed directory type"
+  after="$(sha256sum "$sentinel")"
+  [[ "$before" == "$after" ]] || fail "$label replaced an external-target sentinel"
+  [[ "$root_before" == "$(managed_node_snapshot "$managed_root")" ]] || fail "$label changed the managed-root symlink"
+  [[ "$documents_before" == "$(managed_document_snapshot "$consumer")" ]] || fail "$label changed a managed document"
+  assert_reserved_absent "$consumer" "$allowed_skill" "$allowed_agent"
 }
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -238,6 +279,68 @@ mkdir -p "$no_override/.codex/shared"
 cp -a "$ROOT/." "$no_override/.codex/shared/"
 (cd "$no_override" && bash .codex/shared/install.sh >/dev/null)
 [[ ! -e "$no_override/AGENTS.override.md" ]] || fail "absent override was created"
+
+symlinked_agents="$tmp/symlinked-agents"
+symlinked_agents_target="$tmp/symlinked-agents-target"
+mkdir -p "$symlinked_agents/.codex/shared" "$symlinked_agents_target/skills"
+cp -a "$ROOT/." "$symlinked_agents/.codex/shared/"
+printf '%s\n' 'keep symlinked .agents sentinel' > "$symlinked_agents_target/skills/blindspot-flow"
+printf '%s\n' 'keep symlinked .agents guidance state' > "$symlinked_agents/preserve.txt"
+ln -s "$symlinked_agents_target" "$symlinked_agents/.agents"
+expect_managed_directory_symlink_failure \
+  "$symlinked_agents" "$symlinked_agents/.agents" \
+  "$symlinked_agents_target/skills/blindspot-flow" \
+  'symlinked .agents' blindspot-flow
+
+symlinked_skills="$tmp/symlinked-skills"
+symlinked_skills_target="$tmp/symlinked-skills-target"
+mkdir -p "$symlinked_skills/.codex/shared" "$symlinked_skills/.agents" "$symlinked_skills_target"
+cp -a "$ROOT/." "$symlinked_skills/.codex/shared/"
+printf '%s\n' 'keep symlinked .agents/skills sentinel' > "$symlinked_skills_target/blindspot-flow"
+printf '%s\n' 'keep symlinked .agents/skills guidance state' > "$symlinked_skills/preserve.txt"
+ln -s "$symlinked_skills_target" "$symlinked_skills/.agents/skills"
+expect_managed_directory_symlink_failure \
+  "$symlinked_skills" "$symlinked_skills/.agents/skills" \
+  "$symlinked_skills_target/blindspot-flow" \
+  'symlinked .agents/skills' blindspot-flow
+
+symlinked_codex="$tmp/symlinked-codex"
+symlinked_codex_target="$tmp/symlinked-codex-target"
+mkdir -p "$symlinked_codex" "$symlinked_codex_target/shared" "$symlinked_codex_target/agents"
+cp -a "$ROOT/." "$symlinked_codex_target/shared/"
+printf '%s\n' 'keep symlinked .codex sentinel' > "$symlinked_codex_target/agents/change_analyzer.toml"
+printf '%s\n' 'keep symlinked .codex guidance state' > "$symlinked_codex/preserve.txt"
+ln -s "$symlinked_codex_target" "$symlinked_codex/.codex"
+expect_managed_directory_symlink_failure \
+  "$symlinked_codex" "$symlinked_codex/.codex" \
+  "$symlinked_codex_target/agents/change_analyzer.toml" \
+  'symlinked .codex' '' change_analyzer
+
+symlinked_codex_agents="$tmp/symlinked-codex-agents"
+symlinked_codex_agents_target="$tmp/symlinked-codex-agents-target"
+mkdir -p "$symlinked_codex_agents/.codex/shared" "$symlinked_codex_agents_target"
+cp -a "$ROOT/." "$symlinked_codex_agents/.codex/shared/"
+printf '%s\n' 'keep symlinked .codex/agents sentinel' > "$symlinked_codex_agents_target/change_analyzer.toml"
+printf '%s\n' 'keep symlinked .codex/agents guidance state' > "$symlinked_codex_agents/preserve.txt"
+ln -s "$symlinked_codex_agents_target" "$symlinked_codex_agents/.codex/agents"
+expect_managed_directory_symlink_failure \
+  "$symlinked_codex_agents" "$symlinked_codex_agents/.codex/agents" \
+  "$symlinked_codex_agents_target/change_analyzer.toml" \
+  'symlinked .codex/agents' '' change_analyzer
+
+symlinked_shared="$tmp/symlinked-shared"
+symlinked_shared_source="$tmp/symlinked-shared-source"
+mkdir -p "$symlinked_shared/.codex" "$symlinked_shared_source"
+cp -a "$ROOT/." "$symlinked_shared_source/"
+ln -s "$symlinked_shared_source" "$symlinked_shared/.codex/shared"
+(cd "$symlinked_shared" && bash .codex/shared/install.sh >/dev/null)
+[[ -L "$symlinked_shared/.codex/shared" ]] || fail "symlinked .codex/shared source mount was replaced"
+for name in "${skill_names[@]}"; do
+  [[ -L "$symlinked_shared/.agents/skills/$name" ]] || fail "symlinked source mount install missed skill $name"
+done
+for name in "${agent_names[@]}"; do
+  [[ -f "$symlinked_shared/.codex/agents/$name.toml" && ! -L "$symlinked_shared/.codex/agents/$name.toml" ]] || fail "symlinked source mount install missed agent $name"
+done
 
 for managed_relative in .codex/hooks.json AGENTS.md AGENTS.override.md; do
   managed_label="${managed_relative//\//-}"
