@@ -19,6 +19,7 @@ python3 - <<'PY'
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import tempfile
 
@@ -62,6 +63,117 @@ def read_bytes(path, description):
         return path.read_bytes()
     except OSError as exc:
         raise InstallError(f"cannot read {description} at {path}: {exc}") from exc
+
+
+def validate_multiline_basic_string(value, key):
+    if '\"\"\"' in value:
+        raise ValueError(f"invalid multiline delimiter in {key!r}")
+    position = 0
+    while position < len(value):
+        character = value[position]
+        codepoint = ord(character)
+        if codepoint == 0x7F or codepoint < 0x20 and character not in {"\t", "\n"}:
+            raise ValueError(f"invalid control character in {key!r}")
+        if character != "\\":
+            position += 1
+            continue
+        position += 1
+        if position == len(value):
+            raise ValueError(f"trailing escape in {key!r}")
+        escape = value[position]
+        if escape in {'b', 't', 'n', 'f', 'r', '"', '\\'}:
+            position += 1
+            continue
+        if escape in {'u', 'U'}:
+            width = 4 if escape == 'u' else 8
+            digits = value[position + 1 : position + 1 + width]
+            if len(digits) != width or any(
+                digit not in "0123456789abcdefABCDEF" for digit in digits
+            ):
+                raise ValueError(f"invalid Unicode escape in {key!r}")
+            escaped_codepoint = int(digits, 16)
+            if escaped_codepoint > 0x10FFFF or 0xD800 <= escaped_codepoint <= 0xDFFF:
+                raise ValueError(f"invalid Unicode scalar in {key!r}")
+            position += width + 1
+            continue
+        while position < len(value) and value[position] in {" ", "\t"}:
+            position += 1
+        if position == len(value) or value[position] != "\n":
+            raise ValueError(f"invalid escape in multiline string {key!r}")
+        position += 1
+        while position < len(value) and value[position] in {" ", "\t", "\n"}:
+            position += 1
+
+
+def parse_string_only_toml(text):
+    """Parse the top-level basic-string subset used by Codex agent profiles."""
+    for position, character in enumerate(text):
+        codepoint = ord(character)
+        if codepoint == 0x7F or codepoint < 0x20 and character not in {"\t", "\n", "\r"}:
+            raise ValueError("invalid literal control character")
+        if character == "\r" and text[position + 1 : position + 2] != "\n":
+            raise ValueError("bare carriage return")
+    values = {}
+    lines = [line[:-1] if line.endswith("\r") else line for line in text.split("\n")]
+    line_number = 0
+    while line_number < len(lines):
+        line = lines[line_number]
+        line_number += 1
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        match = re.fullmatch(
+            r"([A-Za-z_][A-Za-z0-9_-]*)[ \t]*=[ \t]*(.*)", line
+        )
+        if match is None:
+            raise ValueError(f"invalid assignment on line {line_number}")
+        key, encoded_value = match.groups()
+        if key in values:
+            raise ValueError(f"duplicate key {key!r}")
+        if encoded_value == '\"\"\"':
+            body = []
+            while line_number < len(lines) and lines[line_number] != '\"\"\"':
+                body.append(lines[line_number])
+                line_number += 1
+            if line_number == len(lines):
+                raise ValueError(f"unterminated multiline string for {key!r}")
+            line_number += 1
+            value = "\n".join(body)
+            validate_multiline_basic_string(value, key)
+        else:
+            if "\\/" in encoded_value:
+                raise ValueError(f"invalid TOML escape in {key!r}")
+            try:
+                value = json.loads(encoded_value)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"invalid basic string for {key!r}: {exc}") from exc
+            if not isinstance(value, str):
+                raise ValueError(f"{key!r} must be a string")
+            if any(0xD800 <= ord(character) <= 0xDFFF for character in value):
+                raise ValueError(f"invalid Unicode scalar in {key!r}")
+        values[key] = value
+    return values
+
+
+def parse_agent_profile(content, source, expected_name):
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise InstallError(f"Codex agent profile is not valid UTF-8: {source}") from exc
+    try:
+        try:
+            import tomllib
+        except ImportError:
+            profile = parse_string_only_toml(text)
+        else:
+            profile = tomllib.loads(text)
+    except ValueError as exc:
+        raise InstallError(f"Codex agent profile is not valid TOML: {source}: {exc}") from exc
+    if profile.get("name") != expected_name:
+        raise InstallError(f"Codex agent profile has wrong name: {source}")
+    for field in ("description", "developer_instructions"):
+        if not isinstance(profile.get(field), str) or not profile[field].strip():
+            raise InstallError(f"Codex agent profile is missing nonempty {field}: {source}")
 
 
 def validate_guidance(path, text):
@@ -138,6 +250,16 @@ def existing_mode(path, default=0o644):
         return default
 
 
+def validate_replaceable_destination(path, description):
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return
+    if stat.S_ISLNK(mode) or stat.S_ISREG(mode):
+        return
+    raise InstallError(f"refusing to replace {description}: {path}")
+
+
 def validate_and_render():
     mandate_path = SHARED / "MANDATE.md"
     if not mandate_path.is_file():
@@ -145,6 +267,12 @@ def validate_and_render():
     mandate = read_bytes(mandate_path, "mandate")
     if not mandate:
         raise InstallError(f"mandate file is empty: {mandate_path}")
+    try:
+        mandate.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise InstallError(f"mandate file is not valid UTF-8: {mandate_path}") from exc
+    if START.encode("utf-8") in mandate or END.encode("utf-8") in mandate:
+        raise InstallError(f"mandate file contains managed marker: {mandate_path}")
 
     for name in SKILLS:
         skill_path = SHARED / "skills" / name
@@ -163,6 +291,7 @@ def validate_and_render():
         content = read_bytes(source, "Codex agent profile")
         if not content:
             raise InstallError(f"Codex agent profile is empty: {source}")
+        parse_agent_profile(content, source, name)
         agent_sources[name] = (content, stat.S_IMODE(source.stat().st_mode))
 
     if HOOKS_PATH.exists():
@@ -209,10 +338,7 @@ def validate_and_render():
 
     for name in SKILLS:
         destination = Path(".agents/skills") / name
-        if destination.is_dir() and not destination.is_symlink():
-            raise InstallError(
-                f"refusing to replace consumer skill directory: {destination}"
-            )
+        validate_replaceable_destination(destination, "consumer skill destination")
 
     for destination_root in (Path(".agents/skills"), Path(".codex/agents")):
         for candidate in (destination_root.parent, destination_root):
@@ -220,10 +346,7 @@ def validate_and_render():
                 raise InstallError(f"managed directory path is not a directory: {candidate}")
     for name in AGENTS:
         destination = Path(".codex/agents") / f"{name}.toml"
-        if destination.is_dir() and not destination.is_symlink():
-            raise InstallError(
-                f"refusing to replace directory with Codex agent profile: {destination}"
-            )
+        validate_replaceable_destination(destination, "Codex agent destination")
 
     rendered_groups = []
     for group in session_start:
