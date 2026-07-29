@@ -51,7 +51,8 @@ assert_thread_cap_contract() {
 }
 
 assert_single_role_fallback() {
-  local section="$1" label="$2" required
+  local section="$1" label="$2" invocation="$3" required
+  rg -q -F "$invocation" <<<"$section" || fail "$label: missing designated role or task input: $invocation"
   for required in \
     'If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent.' \
     'Thread-cap handling is mandatory.' \
@@ -82,16 +83,23 @@ assert_thread_cap_contract \
   "$work_report analysis"
 assert_single_role_fallback \
   "$(sed -n '/^2\. \*\*Ground before asking\.\*\*/,/^3\. \*\*Interview\.\*\*/p' "$requirements_interview")" \
-  "$requirements_interview grounding"
+  "$requirements_interview grounding" \
+  'Run the custom agent `codebase_scanner` with lens `conventions` and the task description BEFORE writing questions.'
 assert_single_role_fallback \
   "$(sed -n '/^5\. \*\*Verify\.\*\*/,/^6\. \*\*Hand off\.\*\*/p' "$requirements_interview")" \
-  "$requirements_interview verification"
+  "$requirements_interview verification" \
+  'Run the custom agent `doc_verifier` on the saved file.'
 assert_single_role_fallback \
   "$(sed -n '/^6\. \*\*Verify\.\*\*/,/^7\. \*\*Hand off\.\*\*/p' "$blindspot_pass")" \
-  "$blindspot_pass verification"
+  "$blindspot_pass verification" \
+  'Run the custom agent `doc_verifier` on the file.'
 
+mandate_rule="$(sed -n '/^## Hard rules$/,/^## Question policy$/p' "$ROOT/MANDATE.md" | sed -n '/^2\./p')"
 rg -q -F \
-  'Parent execution with the complete designated profile'"'"'s `developer_instructions` and the same task input is the only exception when subagent spawning is unavailable.' \
-  "$ROOT/MANDATE.md" || fail "$ROOT/MANDATE.md: missing unavailable-subagent exception"
+  'Skills MUST delegate exploration and verification to their designated agents (`codebase_scanner`, `domain_researcher`, `doc_verifier`, `change_analyzer`, `check_runner`).' \
+  <<<"$mandate_rule" || fail "$ROOT/MANDATE.md: missing mandatory designated-profile delegation"
+rg -q -F \
+  'Parent execution with the complete designated profile'"'"'s `developer_instructions` and the same task input is the only exception when subagent spawning remains unavailable after the skill retains rejected work, waits for a subagent slot, and retries every pending role.' \
+  <<<"$mandate_rule" || fail "$ROOT/MANDATE.md: missing post-retry unavailable-subagent exception"
 
 echo "OK: skill host contract"
