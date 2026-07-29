@@ -20,7 +20,9 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
    Select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent.
 
-   If domain territory exists, add ONE custom agent `domain_researcher` to the same batch, with: the domain topic, the task description, and what the user already knows. Select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. When web access is unavailable, preserve the exact fallback `출처: 모델 지식 (웹 접근 불가)` and never invent a URL. If Codex queues work because of a thread cap, retain every lens and wait for all results before synthesis.
+   If domain territory exists, add ONE custom agent `domain_researcher` to the same batch, with: the domain topic, the task description, and what the user already knows. Select the named custom-agent profile, not merely the same task label. If this Codex surface cannot select it, read that exact file under `.codex/agents/` and include its complete `developer_instructions` with the task input in a general subagent. When web access is unavailable, preserve the exact fallback `출처: 모델 지식 (웹 접근 불가)` and never invent a URL.
+
+If Codex queues work because of a thread cap, retain every lens and wait for all results before synthesis.
 
 3. **Synthesize.** Merge findings yourself (plain reasoning, no extra agent). For each finding: restate it as a concrete, decidable question ("X를 어떻게 할지", not "X 주의") written for someone who has never seen the code — unavoidable technical terms plain Korean first with the term in parentheses, code identifiers only after a plain description, one fact per sentence, ≤25 어절 each. Assign a quadrant, sort by architecture impact. Keep evidence attached — `file:line` for code findings, source URL for domain findings; evidence stays technical.
 
