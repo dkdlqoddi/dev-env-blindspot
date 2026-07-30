@@ -1003,7 +1003,7 @@ Replace the entire file content with:
 ```markdown
 # ANTIGRAVITY.md
 
-This file provides guidance to Antigravity (antigravity.ai/code) when working with code in this repository.
+This file provides guidance to Antigravity (antigravity.google) when working with code in this repository.
 
 ## What this repo is
 

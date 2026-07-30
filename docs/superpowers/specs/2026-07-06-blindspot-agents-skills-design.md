@@ -150,10 +150,10 @@ dev-env-blindspot/
 
 | Agent | 입력 | 출력 | tools |
 |---|---|---|---|
-| `codebase-scanner` | 렌즈(관점) + 과제 설명 | `파일:라인` 근거가 달린 구조화된 발견 목록 (마크다운) | Read, Grep, Glob, Bash(읽기 전용 git 명령) |
+| `codebase-scanner` | 렌즈(관점) + 과제 설명 | `파일:라인` 근거가 달린 구조화된 발견 목록 (마크다운) | Read, Grep, Glob, run_command(읽기 전용 git 명령) |
 | `domain-researcher` | 도메인 주제 + 과제 설명 + 사용자가 이미 아는 것 | 핵심 개념(교육용) + 출처 URL 근거가 달린 발견 목록 | WebSearch, WebFetch |
 | `doc-verifier` | 문서 경로 | placeholder/모순/모호성/범위 이슈 목록, 없으면 PASS | Read, Grep, Glob |
-| `change-analyzer` | base ref (기본 main) | 변경 요약, 파일별 핵심 변경, 위험 지점, 테스트 존재 여부 | Read, Grep, Glob, Bash(git diff/log) |
+| `change-analyzer` | base ref (기본 main) | 변경 요약, 파일별 핵심 변경, 위험 지점, 테스트 존재 여부 | Read, Grep, Glob, run_command(git diff/log) |
 
 Agent 반환 형식은 각 agent 정의에 명시해 skill이 파싱 없이 그대로 활용 가능하게 한다.
 
