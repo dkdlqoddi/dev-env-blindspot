@@ -33,7 +33,7 @@ Trigger: work complete, pre-merge, or the user asks for a report.
    - Every question gets an `explain` field: 2–3 plain Korean sentences (same ≤25 어절 bar) on why the answer is right and why the most tempting wrong option is wrong. Technical terms and file paths belong here (in parentheses), not in questions.
    - The summary block follows the same sentence rules: user-visible changes only, no commit hashes, no arrows — and it must state every fact the questions rely on.
    - Before saving, self-check every question: could someone who read only the 변경 요약 answer it? Is every sentence one fact within 25 어절, every option within 40 characters? If not, rewrite.
-   - Then run the countable check on both files: `python3 <this skill's folder>/scripts/quiz_check.py <quiz html> <report md>` (installed at `.claude/skills/work-report/scripts/quiz_check.py` in consumer projects). Fix every reported violation before the gate.
+   - Then run the countable check on both files: `python3 <this skill's folder>/scripts/quiz_check.py <quiz html> <report md>` (installed at `.antigravity/skills/work-report/scripts/quiz_check.py` in consumer projects). Fix every reported violation before the gate.
 5. **Gate.** First present any 사용자 확인 필요 items queued in the implementation notes as batched Korean questions — their answers may amend the report. Then tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing.
 
 ## Gotchas

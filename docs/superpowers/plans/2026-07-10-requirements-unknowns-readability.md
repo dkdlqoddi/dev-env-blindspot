@@ -10,14 +10,14 @@
 
 ## Global Constraints
 
-- Model-facing instruction files are **English** (Korean fragments where the spec shows them — transcribe verbatim); template placeholder text is **Korean**. Do not mix. (CLAUDE.md)
-- `## Gotchas` sections: append only, never delete or reorder existing entries. (CLAUDE.md)
+- Model-facing instruction files are **English** (Korean fragments where the spec shows them — transcribe verbatim); template placeholder text is **Korean**. Do not mix. (ANTIGRAVITY.md)
+- `## Gotchas` sections: append only, never delete or reorder existing entries. (ANTIGRAVITY.md)
 - No files added or removed under `skills/*/SKILL.md` or `agents/*.md` — `test/check.sh` asserts exactly 9. (spec §4)
 - Audience split (spec §2): requirements = whole document + interview questions/options; unknowns = 구체화된 질문·결정·보류 이유 columns only, with 발견/근거 columns and 스캔 원본 요약 explicitly kept technical ("do not simplify it").
 - `skills/blindspot-pass/templates/unknowns.md` must NOT change. (spec §2/§5)
 - Exactly 3 files may change: `skills/requirements-interview/SKILL.md`, `skills/requirements-interview/templates/requirements.md`, `skills/blindspot-pass/SKILL.md`.
 - Commit messages end with:
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+  `Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>`
 - Do NOT push — the push happens after the final whole-branch review (controller step).
 
 ---
@@ -154,7 +154,7 @@ Expected: `OK: all checks passed` (frontmatter untouched, file count still 9).
 git add skills/requirements-interview/SKILL.md skills/requirements-interview/templates/requirements.md skills/blindspot-pass/SKILL.md
 git commit -m "feat: non-developer readability rules for requirements interview and blindspot pass
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 The push to `origin main` happens after the final whole-branch review (controller step), not in this task.

@@ -1,10 +1,10 @@
-# CLAUDE.md
+# ANTIGRAVITY.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Antigravity (antigravity.ai/code) when working with code in this repository.
 
 ## What this repo is
 
-Shared Claude Code skills/agents that other projects consume as a git submodule mounted at `.claude/shared/`, wired up by `install.sh` (individual relative symlinks into `.claude/skills` and `.claude/agents`, a SessionStart hook running `hooks/mandate.sh`, and a `@.claude/shared/MANDATE.md` import in the consumer's CLAUDE.md). It implements Thariq's "Finding Your Unknowns" lifecycle: `requirements-interview` → `blindspot-pass` → `explainer` → `work-report`, orchestrated by `blindspot-flow`.
+Shared Antigravity skills/agents that other projects consume as a git submodule mounted at `.antigravity/shared/`, wired up by `install.sh` (individual relative symlinks into `.antigravity/skills` and `.antigravity/agents`, a SessionStart hook running `hooks/mandate.sh`, and a `@.antigravity/shared/MANDATE.md` import in the consumer's ANTIGRAVITY.md). It implements Thariq's "Finding Your Unknowns" lifecycle: `requirements-interview` → `blindspot-pass` → `explainer` → `work-report`, orchestrated by `blindspot-flow`.
 
 ## Test
 
@@ -12,7 +12,7 @@ Shared Claude Code skills/agents that other projects consume as a git submodule 
 bash test/check.sh
 ```
 
-Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 10 files (5 skills + 5 agents), skill→agent `subagent_type` reference integrity (every referenced agent file exists), readability-standard marker (`25 어절`) present in exactly 4 SKILL.md files, `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged), and `quiz_check.py` running clean on the work-report templates.
+Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 10 files (5 skills + 5 agents), skill→agent `subagent_type` reference integrity (every referenced agent file exists), readability-standard marker (`25 어절`) present in exactly 4 SKILL.md files, `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/ANTIGRAVITY.md unchanged), and `quiz_check.py` running clean on the work-report templates.
 
 Quiz HTML browser verification: Playwright MCP blocks `file://` — serve via `python3 -m http.server` and use localhost.
 
@@ -33,7 +33,7 @@ Renaming or moving any of these breaks consumer projects — update `install.sh`
 
 - `skills/<name>/` directory names (= installed skill names, referenced in `MANDATE.md`)
 - `agents/*.md` filenames (= `subagent_type` values referenced inside SKILL.md files)
-- `hooks/mandate.sh`, `MANDATE.md` paths (referenced by consumer `settings.json` and CLAUDE.md import line)
+- `hooks/mandate.sh`, `MANDATE.md` paths (referenced by consumer `settings.json` and ANTIGRAVITY.md import line)
 
 ## Design docs
 

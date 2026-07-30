@@ -1,6 +1,6 @@
 # dev-env-blindspot
 
-모든 프로젝트가 공통으로 쓰는 Claude Code Agent/Skill 모음 — 사용자 요구사항 이해, Unknown Unknowns 구체화, 문서 작성, 작업사항 보고.
+모든 프로젝트가 공통으로 쓰는 Antigravity Agent/Skill 모음 — 사용자 요구사항 이해, Unknown Unknowns 구체화, 문서 작성, 작업사항 보고.
 
 Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x.com/trq212/article/2073100352921215386) 라이프사이클과 ["How We Use Skills"](https://x.com/trq212/status/2033949937936085378)의 skill 설계 원칙을 따른다.
 
@@ -11,32 +11,32 @@ Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x
 소비하려는 프로젝트의 루트에서 두 명령을 실행한다:
 
 ```bash
-git submodule add https://github.com/dkdlqoddi/dev-env-blindspot.git .claude/shared
-bash .claude/shared/install.sh
+git submodule add https://github.com/dkdlqoddi/dev-env-blindspot.git .antigravity/shared
+bash .antigravity/shared/install.sh
 ```
 
 `install.sh`가 하는 일 (멱등 — 몇 번을 재실행해도 안전):
 
-1. `.claude/skills/`, `.claude/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
-2. `.claude/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑) 주입
-3. 프로젝트 `CLAUDE.md`에 `@.claude/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
+1. `.antigravity/skills/`, `.antigravity/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
+2. `.antigravity/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑) 주입
+3. 프로젝트 `ANTIGRAVITY.md`에 `@.antigravity/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
 
 설치가 잘 됐는지 확인:
 
 ```bash
-ls .claude/skills/            # blindspot-flow 등 5개 심링크가 보여야 함
-bash .claude/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가 출력되어야 함
+ls .antigravity/skills/            # blindspot-flow 등 5개 심링크가 보여야 함
+bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가 출력되어야 함
 ```
 
-마지막으로 생성/변경된 파일들(`.gitmodules`, `.claude/`, `CLAUDE.md`)을 커밋하면 팀원들도 같은 환경을 받는다.
+마지막으로 생성/변경된 파일들(`.gitmodules`, `.antigravity/`, `ANTIGRAVITY.md`)을 커밋하면 팀원들도 같은 환경을 받는다.
 
 ## 2. 사용법
 
-설치 후 **새로 시작하는 Claude Code 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙을 Claude에게 주입한다.
+설치 후 **새로 시작하는 Antigravity 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙을 Antigravity에게 주입한다.
 
 ### 방법 A — 그냥 평소처럼 말하기 (자동 트리거)
 
-작업 유형을 인식하면 Claude가 해당 skill을 스스로 호출한다:
+작업 유형을 인식하면 Antigravity가 해당 skill을 스스로 호출한다:
 
 | 이렇게 말하면 | 발동하는 skill | 무슨 일이 일어나나 |
 |---|---|---|
@@ -93,15 +93,15 @@ docs/blindspot/
 이 저장소가 갱신되면, 소비 프로젝트에서:
 
 ```bash
-git submodule update --remote .claude/shared
-bash .claude/shared/install.sh
+git submodule update --remote .antigravity/shared
+bash .antigravity/shared/install.sh
 ```
 
 이미 submodule이 등록된 소비 프로젝트를 새로 clone한 경우에는 먼저 초기화가 필요하다:
 
 ```bash
 git submodule update --init --recursive
-bash .claude/shared/install.sh
+bash .antigravity/shared/install.sh
 ```
 
 ## 4. 제공 Skill (라이프사이클 순)
@@ -137,9 +137,9 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 
 | 증상 | 원인/해결 |
 |---|---|
-| `install.sh`가 "not valid JSON" 에러로 실패 | 기존 `.claude/settings.json`이 깨져 있음 — 파일을 고치거나 지운 뒤 재실행 |
+| `install.sh`가 "not valid JSON" 에러로 실패 | 기존 `.antigravity/settings.json`이 깨져 있음 — 파일을 고치거나 지운 뒤 재실행 |
 | `install.sh`가 python3 없다고 실패 | python3 설치 (`sudo apt install python3`), 또는 에러 메시지에 출력된 hook JSON을 settings.json에 수동 추가 |
-| clone 직후 `.claude/skills/` 심링크가 깨져 있음 | submodule 미초기화 — `git submodule update --init --recursive` 후 `install.sh` 재실행 |
+| clone 직후 `.antigravity/skills/` 심링크가 깨져 있음 | submodule 미초기화 — `git submodule update --init --recursive` 후 `install.sh` 재실행 |
 | skill이 자동으로 발동하지 않음 | 설치 후 시작한 **새 세션**인지 확인. 그래도 안 되면 skill 이름을 직접 언급 ("blindspot-pass 실행해줘") |
 | 네이티브 Windows에서 심링크 오류 | 지원 범위 밖 — Linux / WSL / macOS에서 사용 |
 
@@ -149,6 +149,6 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 bash test/check.sh   # mandate hook + frontmatter lint + skill→agent 참조 무결성 + readability 표준 동기화 + installer 멱등성
 ```
 
-skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 10`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`CLAUDE.md`의 Consumer contract 체크리스트 참고).
+skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 10`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`ANTIGRAVITY.md`의 Consumer contract 체크리스트 참고).
 
 설계 문서: `docs/superpowers/specs/`, 구현 계획: `docs/superpowers/plans/`, 실동작 검증 기록: `docs/blindspot/`

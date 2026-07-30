@@ -18,7 +18,7 @@ AI가 만들어 주는 다섯 가지 작업 문서(요구사항, 사각지대 �
 
 ### 리뷰 포인트 (개발자용)
 
-- `skills/work-report/SKILL.md:24-33` — 기준 원문. 다른 4곳(explainer §2, requirements-interview §3–4, blindspot-pass §3–5)은 자기완결을 위한 의도적 사본 — 수정 시 5곳 동시 갱신 (CLAUDE.md Conventions에 명문화)
+- `skills/work-report/SKILL.md:24-33` — 기준 원문. 다른 4곳(explainer §2, requirements-interview §3–4, blindspot-pass §3–5)은 자기완결을 위한 의도적 사본 — 수정 시 5곳 동시 갱신 (ANTIGRAVITY.md Conventions에 명문화)
 - `skills/blindspot-pass/SKILL.md:27` — "both tables (구체화된 질문·질문·결정·보류 이유)" 열↔표 매핑이 산문 지시. 최종 리뷰가 미해소 표 `질문` 칸 누락을 잡아 9318100에서 일반화
 - `skills/work-report/templates/quiz.html:45` — `it.explain` 무가드 렌더: 누락 시 "undefined" 노출 (지침 필수 규정만이 방어)
 - `skills/work-report/templates/quiz.html:55` — `answer` 인덱스 범위 무가드 (QUESTIONS 계약상 유효 보장, 수용된 minor)
@@ -46,7 +46,7 @@ AI가 만들어 주는 다섯 가지 작업 문서(요구사항, 사각지대 �
 | 미해소 표의 `질문` 칸이 규칙 열거에서 누락 | 최종 리뷰 발견 → "두 표의 질문·결정·보류 이유 칸 전체"로 일반화 (9318100) |
 | 정답 보기만 유독 긴 문항 (Q5, 47자 vs 32자×3) | 길이 재균형 [42,46,41,42] (680c24c) — 길이가 정답 힌트가 되지 않도록 |
 | explain 필드 누락 | 런타임 가드 없음 — "undefined" 노출 (수용; SKILL.md 필수 규정 + 자가 점검이 방어) |
-| Playwright가 file:// 차단 | 동일 파일을 localhost HTTP로 서빙해 동등 검증 (CLAUDE.md Test 섹션에 기록) |
+| Playwright가 file:// 차단 | 동일 파일을 localhost HTTP로 서빙해 동등 검증 (ANTIGRAVITY.md Test 섹션에 기록) |
 | 재작성 요약의 사실 정확성 | "보조 조사원 세 가지"를 당시 스냅샷 기준으로 유지 (현재는 4종 — 무심코 갱신하면 역사 왜곡) |
 
 ### 의도적 범위 제외

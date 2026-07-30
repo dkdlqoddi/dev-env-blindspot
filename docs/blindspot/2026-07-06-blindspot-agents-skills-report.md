@@ -44,7 +44,7 @@
 | install.sh 재실행 (submodule 업데이트 후) | 전 단계 멱등: `ln -sfn`, hook 존재 조회 후 append, `grep -qxF` 가드. check.sh가 2회 실행으로 검증 |
 | 기존 settings.json이 깨진 JSON | jq 분기: 명시적 에러 + exit 1 (`install.sh:26`, 최종 리뷰 수정). python3 분기: traceback으로 실패(비대칭 UX, 수용) |
 | jq 없음 | python3 폴백; 둘 다 없으면 수동 병합 안내 후 exit 1 |
-| CLAUDE.md 없음 / 개행 없이 끝남 | 파일 생성 / `printf '\n%s\n'`으로 안전 append |
+| ANTIGRAVITY.md 없음 / 개행 없이 끝남 | 파일 생성 / `printf '\n%s\n'`으로 안전 append |
 | 프로젝트 자체 skill과 공존 | 디렉토리 통째가 아닌 개별 심링크 |
 | greenfield 프로젝트에서 blindspot-pass | 3렌즈로 축소 + 문서에서 similar-features 섹션 생략 (최종 리뷰 수정) |
 | 퀴즈 문항에 HTML 특수문자 | 미이스케이프(innerHTML) — 로컬 단일 사용자·agent 작성 콘텐츠라 수용 |

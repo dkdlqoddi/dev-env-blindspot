@@ -10,13 +10,13 @@
 
 ## Global Constraints
 
-- Model-facing instruction files are **English**; deliverables (quiz HTML content) are **Korean**. Do not mix. (CLAUDE.md)
-- `## Gotchas` sections: append only, never delete entries. (CLAUDE.md)
-- Quiz path contract unchanged: `docs/blindspot/quiz/YYYY-MM-DD-<slug>.html`. (CLAUDE.md)
+- Model-facing instruction files are **English**; deliverables (quiz HTML content) are **Korean**. Do not mix. (ANTIGRAVITY.md)
+- `## Gotchas` sections: append only, never delete entries. (ANTIGRAVITY.md)
+- Quiz path contract unchanged: `docs/blindspot/quiz/YYYY-MM-DD-<slug>.html`. (ANTIGRAVITY.md)
 - No files added or removed under `skills/*/SKILL.md` or `agents/*.md` — `test/check.sh` asserts exactly 9. (spec §5)
 - Quiz sentence rules (spec §3.1): reader is a non-developer; no code syntax / identifiers / file paths / shell fragments / arrow shorthand / unexplained jargon in question or option sentences; technical terms plain-Korean-first with the term in parentheses; every question has `explain`; summary block plain-language, no commit hashes, no arrows.
 - Commit after every task. Commit messages end with:
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+  `Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>`
 - Push to `origin main` only in the final task.
 
 ---
@@ -68,7 +68,7 @@ Expected: `OK: all checks passed` (frontmatter untouched, file count still 9).
 git add skills/work-report/SKILL.md
 git commit -m "feat: quiz generation rules for non-developer readers in work-report
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -176,7 +176,7 @@ Expected: `OK: all checks passed` (templates are not linted; nothing else change
 git add skills/work-report/templates/quiz.html
 git commit -m "feat: per-question explanations revealed on grading in quiz template
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -244,7 +244,7 @@ const QUESTIONS = [
       "설치 프로그램이 AI가 실행하는 모든 명령을 가로채서 검사하는 감시 장치를 등록한다",
       "AI가 응답을 낼 때마다 설정 파일이 규칙 위반 여부를 하나하나 검사해서 걸러낸다"
     ], answer: 1,
-    explain: "이 저장소의 강제 장치는 '자동으로 읽혀 주기'입니다. 작업 세션이 시작될 때마다 실행되는 장치(SessionStart hook)가 규칙 문서(MANDATE.md)를 AI의 작업 맥락에 넣어 주고, 프로젝트 안내문(CLAUDE.md)도 같은 문서를 참조해 이중으로 보여줍니다. 차단이나 검사 같은 기계적 강제는 없으므로, 규칙을 지키는 것 자체는 AI의 행동에 달려 있습니다 — 이것이 이 방식의 한계이자 전제입니다." },
+    explain: "이 저장소의 강제 장치는 '자동으로 읽혀 주기'입니다. 작업 세션이 시작될 때마다 실행되는 장치(SessionStart hook)가 규칙 문서(MANDATE.md)를 AI의 작업 맥락에 넣어 주고, 프로젝트 안내문(ANTIGRAVITY.md)도 같은 문서를 참조해 이중으로 보여줍니다. 차단이나 검사 같은 기계적 강제는 없으므로, 규칙을 지키는 것 자체는 AI의 행동에 달려 있습니다 — 이것이 이 방식의 한계이자 전제입니다." },
   { q: "이 도구 모음을 프로젝트에 붙이는 설치 프로그램은 '여러 번 실행해도 안전하다'고 안내합니다. 설치를 두 번 실행해도 시작 알림 장치가 두 개로 늘어나지 않는 이유는 무엇일까요?",
     options: [
       "설치할 때마다 설정 파일을 처음부터 완전히 새로 만들어 덮어쓰기 때문이다",
@@ -344,7 +344,7 @@ Expected: `OK: all checks passed`
 git add docs/blindspot/quiz/2026-07-06-blindspot-agents-skills.html
 git commit -m "docs: regenerate 2026-07-06 pre-merge quiz under non-developer readability rules
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 git push origin main
 ```
 

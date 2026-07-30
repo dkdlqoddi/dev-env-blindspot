@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the cross-project Claude Code agents/skills repository (5 lifecycle skills, 3 read-only agents, session mandate hook, idempotent consumer installer, single check script) per the approved spec at `docs/superpowers/specs/2026-07-06-blindspot-agents-skills-design.md`.
+**Goal:** Build the cross-project Antigravity agents/skills repository (5 lifecycle skills, 3 read-only agents, session mandate hook, idempotent consumer installer, single check script) per the approved spec at `docs/superpowers/specs/2026-07-06-blindspot-agents-skills-design.md`.
 
-**Architecture:** Pure content repo — markdown skill/agent definitions plus two bash scripts. Consumers mount it as a git submodule at `.claude/shared/` and run `install.sh`, which symlinks skills/agents into `.claude/`, merges a SessionStart hook into `.claude/settings.json`, and appends a CLAUDE.md import. Enforcement = hook injecting `MANDATE.md` every session + CLAUDE.md import as fallback.
+**Architecture:** Pure content repo — markdown skill/agent definitions plus two bash scripts. Consumers mount it as a git submodule at `.antigravity/shared/` and run `install.sh`, which symlinks skills/agents into `.antigravity/`, merges a SessionStart hook into `.antigravity/settings.json`, and appends a ANTIGRAVITY.md import. Enforcement = hook injecting `MANDATE.md` every session + ANTIGRAVITY.md import as fallback.
 
-**Tech Stack:** Bash (scripts + tests), Markdown with YAML frontmatter (Claude Code SKILL.md / agent format), one self-contained HTML template.
+**Tech Stack:** Bash (scripts + tests), Markdown with YAML frontmatter (Antigravity SKILL.md / agent format), one self-contained HTML template.
 
 ## Global Constraints
 
@@ -18,7 +18,7 @@
 - Target platforms: Linux / WSL / macOS. Native Windows out of scope. (spec §7)
 - No external dependencies beyond bash + coreutils + (jq|python3).
 - Commit after every task. Commit messages end with:
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+  `Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>`
 - Push to `origin main` only in the final task.
 
 ---
@@ -31,7 +31,7 @@
 - Create: `hooks/mandate.sh`
 
 **Interfaces:**
-- Produces: `MANDATE.md` (injected text; names all 5 skills — later tasks must keep these names: `requirements-interview`, `blindspot-pass`, `explainer`, `work-report`, `blindspot-flow`), `hooks/mandate.sh` (stdout = MANDATE.md content; referenced by install.sh in Task 6 as `.claude/shared/hooks/mandate.sh`), `test/check.sh` (grows in Tasks 2 and 6).
+- Produces: `MANDATE.md` (injected text; names all 5 skills — later tasks must keep these names: `requirements-interview`, `blindspot-pass`, `explainer`, `work-report`, `blindspot-flow`), `hooks/mandate.sh` (stdout = MANDATE.md content; referenced by install.sh in Task 6 as `.antigravity/shared/hooks/mandate.sh`), `test/check.sh` (grows in Tasks 2 and 6).
 
 - [ ] **Step 1: Write the failing check (section 1 of test/check.sh)**
 
@@ -109,7 +109,7 @@ Expected: `OK: all checks passed`
 git add MANDATE.md hooks/mandate.sh test/check.sh
 git commit -m "feat: add session mandate and hook with self-check seed
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -280,7 +280,7 @@ Expected: `OK: all checks passed`
 git add agents/ test/check.sh
 git commit -m "feat: add read-only agents (codebase-scanner, doc-verifier, change-analyzer)
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -455,7 +455,7 @@ Expected: `OK: all checks passed`
 git add skills/requirements-interview skills/blindspot-pass
 git commit -m "feat: add requirements-interview and blindspot-pass skills
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -718,7 +718,7 @@ Expected: `7` (comment + declaration + two loops + three `QUESTIONS.length` line
 git add skills/explainer skills/work-report
 git commit -m "feat: add explainer and work-report skills with pre-merge quiz template
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -793,7 +793,7 @@ Expected: no output
 git add skills/blindspot-flow test/check.sh
 git commit -m "feat: add blindspot-flow orchestrator skill
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -806,7 +806,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: repo layout from Tasks 1–5 (`skills/*/`, `agents/*.md`, `hooks/mandate.sh`, `MANDATE.md`).
-- Produces: consumer contract — submodule at `.claude/shared/`, symlinks `.claude/skills/<name>` → `../shared/skills/<name>` and `.claude/agents/<file>` → `../shared/agents/<file>`, hook command string `bash "$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh"`, CLAUDE.md line `@.claude/shared/MANDATE.md` (README in Task 7 documents these verbatim).
+- Produces: consumer contract — submodule at `.antigravity/shared/`, symlinks `.antigravity/skills/<name>` → `../shared/skills/<name>` and `.antigravity/agents/<file>` → `../shared/agents/<file>`, hook command string `bash "$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh"`, ANTIGRAVITY.md line `@.antigravity/shared/MANDATE.md` (README in Task 7 documents these verbatim).
 
 - [ ] **Step 1: Append failing idempotency check to test/check.sh**
 
@@ -816,17 +816,17 @@ Insert before the final `echo "OK: all checks passed"` line:
 # --- 3. install.sh idempotency (fake consumer project) ---
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/proj/.claude/shared"
-cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
+mkdir -p "$tmp/proj/.antigravity/shared"
+cp -a "$ROOT/." "$tmp/proj/.antigravity/shared/"
 (
   cd "$tmp/proj"
-  bash .claude/shared/install.sh >/dev/null
-  bash .claude/shared/install.sh >/dev/null   # second run must change nothing
-  [[ -L .claude/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
-  [[ -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
-  [[ -L .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
-  [[ "$(grep -c 'mandate.sh' .claude/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
-  [[ "$(grep -cxF '@.claude/shared/MANDATE.md' CLAUDE.md)" == 1 ]] || { echo "CLAUDE.md import missing or duplicated"; exit 1; }
+  bash .antigravity/shared/install.sh >/dev/null
+  bash .antigravity/shared/install.sh >/dev/null   # second run must change nothing
+  [[ -L .antigravity/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
+  [[ -f .antigravity/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
+  [[ -L .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
+  [[ "$(grep -c 'mandate.sh' .antigravity/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
+  [[ "$(grep -cxF '@.antigravity/shared/MANDATE.md' ANTIGRAVITY.md)" == 1 ]] || { echo "ANTIGRAVITY.md import missing or duplicated"; exit 1; }
 ) || fail "install idempotency check failed"
 ```
 
@@ -840,27 +840,27 @@ Expected: `FAIL: install idempotency check failed` (install.sh does not exist ye
 ```bash
 #!/usr/bin/env bash
 # Consumer onboarding. Run from the consumer project root after:
-#   git submodule add <repo-url> .claude/shared
+#   git submodule add <repo-url> .antigravity/shared
 # Idempotent: safe to re-run after submodule updates.
 set -euo pipefail
 
-SHARED=".claude/shared"
+SHARED=".antigravity/shared"
 [[ -d "$SHARED/skills" ]] || { echo "error: run from the consumer project root (needs $SHARED/skills)"; exit 1; }
 
 # 1. symlink skills and agents individually (coexists with project-local ones)
-mkdir -p .claude/skills .claude/agents
+mkdir -p .antigravity/skills .antigravity/agents
 for d in "$SHARED"/skills/*/; do
   name="$(basename "$d")"
-  ln -sfn "../shared/skills/$name" ".claude/skills/$name"
+  ln -sfn "../shared/skills/$name" ".antigravity/skills/$name"
 done
 for f in "$SHARED"/agents/*.md; do
   name="$(basename "$f")"
-  ln -sfn "../shared/agents/$name" ".claude/agents/$name"
+  ln -sfn "../shared/agents/$name" ".antigravity/agents/$name"
 done
 
-# 2. merge SessionStart hook into .claude/settings.json
-SETTINGS=".claude/settings.json"
-HOOK_CMD='bash "$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh"'
+# 2. merge SessionStart hook into .antigravity/settings.json
+SETTINGS=".antigravity/settings.json"
+HOOK_CMD='bash "$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh"'
 if command -v jq >/dev/null 2>&1; then
   [[ -f "$SETTINGS" ]] || echo '{}' > "$SETTINGS"
   if ! jq -e --arg cmd "$HOOK_CMD" \
@@ -888,19 +888,19 @@ PY
 else
   echo "error: need jq or python3 to merge $SETTINGS."
   echo "Add this to $SETTINGS manually:"
-  echo '  {"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash \"$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh\""}]}]}}'
+  echo '  {"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash \"$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh\""}]}]}}'
   exit 1
 fi
 
-# 3. ensure CLAUDE.md imports the mandate
-IMPORT_LINE='@.claude/shared/MANDATE.md'
-if [[ -f CLAUDE.md ]]; then
-  grep -qxF "$IMPORT_LINE" CLAUDE.md || printf '\n%s\n' "$IMPORT_LINE" >> CLAUDE.md
+# 3. ensure ANTIGRAVITY.md imports the mandate
+IMPORT_LINE='@.antigravity/shared/MANDATE.md'
+if [[ -f ANTIGRAVITY.md ]]; then
+  grep -qxF "$IMPORT_LINE" ANTIGRAVITY.md || printf '\n%s\n' "$IMPORT_LINE" >> ANTIGRAVITY.md
 else
-  printf '%s\n' "$IMPORT_LINE" > CLAUDE.md
+  printf '%s\n' "$IMPORT_LINE" > ANTIGRAVITY.md
 fi
 
-echo "blindspot: installed — skills/agents symlinked, SessionStart hook merged, CLAUDE.md import ensured"
+echo "blindspot: installed — skills/agents symlinked, SessionStart hook merged, ANTIGRAVITY.md import ensured"
 ```
 
 Then: `chmod +x install.sh`
@@ -916,47 +916,47 @@ Expected: `OK: all checks passed`
 git add install.sh test/check.sh
 git commit -m "feat: add idempotent consumer installer with self-check
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 7: README, CLAUDE.md rewrite, final check, push
+### Task 7: README, ANTIGRAVITY.md rewrite, final check, push
 
 **Files:**
 - Create: `README.md`
-- Modify: `CLAUDE.md` (full rewrite — current content says the repo is empty, which is now false)
+- Modify: `ANTIGRAVITY.md` (full rewrite — current content says the repo is empty, which is now false)
 
 **Interfaces:**
-- Consumes: everything — README documents the Task 6 consumer contract verbatim; CLAUDE.md documents `bash test/check.sh` and repo conventions.
+- Consumes: everything — README documents the Task 6 consumer contract verbatim; ANTIGRAVITY.md documents `bash test/check.sh` and repo conventions.
 
 - [ ] **Step 1: Write README.md**
 
 ```markdown
 # dev-env-blindspot
 
-모든 프로젝트가 공통으로 쓰는 Claude Code Agent/Skill 모음 — 사용자 요구사항 이해, Unknown Unknowns 구체화, 문서 작성, 작업사항 보고.
+모든 프로젝트가 공통으로 쓰는 Antigravity Agent/Skill 모음 — 사용자 요구사항 이해, Unknown Unknowns 구체화, 문서 작성, 작업사항 보고.
 
 Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x.com/trq212/article/2073100352921215386) 라이프사이클과 ["How We Use Skills"](https://x.com/trq212/status/2033949937936085378)의 skill 설계 원칙을 따른다.
 
 ## 설치 (소비 프로젝트 루트에서)
 
 ```bash
-git submodule add https://github.com/dkdlqoddi/dev-env-blindspot.git .claude/shared
-bash .claude/shared/install.sh
+git submodule add https://github.com/dkdlqoddi/dev-env-blindspot.git .antigravity/shared
+bash .antigravity/shared/install.sh
 ```
 
 `install.sh`가 하는 일 (멱등 — 재실행 안전):
 
-1. `.claude/skills/`, `.claude/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
-2. `.claude/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑) 주입
-3. 프로젝트 `CLAUDE.md`에 `@.claude/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
+1. `.antigravity/skills/`, `.antigravity/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
+2. `.antigravity/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑) 주입
+3. 프로젝트 `ANTIGRAVITY.md`에 `@.antigravity/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
 
 ## 업데이트
 
 ```bash
-git submodule update --remote .claude/shared
-bash .claude/shared/install.sh
+git submodule update --remote .antigravity/shared
+bash .antigravity/shared/install.sh
 ```
 
 ## 제공 Skill (라이프사이클 순)
@@ -996,18 +996,18 @@ bash test/check.sh   # mandate hook + frontmatter lint + installer 멱등성
 설계 문서: `docs/superpowers/specs/`, 구현 계획: `docs/superpowers/plans/`
 ```
 
-- [ ] **Step 2: Rewrite CLAUDE.md**
+- [ ] **Step 2: Rewrite ANTIGRAVITY.md**
 
 Replace the entire file content with:
 
 ```markdown
-# CLAUDE.md
+# ANTIGRAVITY.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Antigravity (antigravity.ai/code) when working with code in this repository.
 
 ## What this repo is
 
-Shared Claude Code skills/agents that other projects consume as a git submodule mounted at `.claude/shared/`, wired up by `install.sh` (individual relative symlinks into `.claude/skills` and `.claude/agents`, a SessionStart hook running `hooks/mandate.sh`, and a `@.claude/shared/MANDATE.md` import in the consumer's CLAUDE.md). It implements Thariq's "Finding Your Unknowns" lifecycle: `requirements-interview` → `blindspot-pass` → `explainer` → `work-report`, orchestrated by `blindspot-flow`.
+Shared Antigravity skills/agents that other projects consume as a git submodule mounted at `.antigravity/shared/`, wired up by `install.sh` (individual relative symlinks into `.antigravity/skills` and `.antigravity/agents`, a SessionStart hook running `hooks/mandate.sh`, and a `@.antigravity/shared/MANDATE.md` import in the consumer's ANTIGRAVITY.md). It implements Thariq's "Finding Your Unknowns" lifecycle: `requirements-interview` → `blindspot-pass` → `explainer` → `work-report`, orchestrated by `blindspot-flow`.
 
 ## Test
 
@@ -1015,7 +1015,7 @@ Shared Claude Code skills/agents that other projects consume as a git submodule 
 bash test/check.sh
 ```
 
-Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 8 files (5 skills + 3 agents), and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/CLAUDE.md unchanged).
+Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `description`) across exactly 8 files (5 skills + 3 agents), and `install.sh` idempotency against a fake consumer project in a temp dir (run twice, assert symlinks/settings/ANTIGRAVITY.md unchanged).
 
 ## Conventions
 
@@ -1031,7 +1031,7 @@ Renaming or moving any of these breaks consumer projects — update `install.sh`
 
 - `skills/<name>/` directory names (= installed skill names, referenced in `MANDATE.md`)
 - `agents/*.md` filenames (= `subagent_type` values referenced inside SKILL.md files)
-- `hooks/mandate.sh`, `MANDATE.md` paths (referenced by consumer `settings.json` and CLAUDE.md import line)
+- `hooks/mandate.sh`, `MANDATE.md` paths (referenced by consumer `settings.json` and ANTIGRAVITY.md import line)
 
 ## Design docs
 
@@ -1046,10 +1046,10 @@ Expected: `OK: all checks passed`
 - [ ] **Step 4: Commit and push**
 
 ```bash
-git add README.md CLAUDE.md
-git commit -m "docs: add consumer README and rewrite CLAUDE.md for implemented repo
+git add README.md ANTIGRAVITY.md
+git commit -m "docs: add consumer README and rewrite ANTIGRAVITY.md for implemented repo
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 git push origin main
 ```
 
@@ -1061,5 +1061,5 @@ Expected: push succeeds to `origin/main`.
 
 - Spec coverage: §3 layout → Tasks 1–7; §4.1–4.5 skills → Tasks 3–5; §5 agents → Task 2; §6 enforcement → Task 1 (+ install wiring Task 6); §7 onboarding → Task 6; §8 verification → check.sh grown across Tasks 1/2/6; §9 exclusions honored (no marketplace, no per-prompt hooks, no telemetry, no CI).
 - Name consistency verified: 5 skill names identical across MANDATE.md (Task 1), SKILL.md frontmatter (Tasks 3–5), check.sh loop (Task 1), README table (Task 7); 3 agent names identical across agent frontmatter (Task 2), SKILL.md subagent_type references (Tasks 3–4), check.sh symlink assert (Task 6).
-- Deliverable filename patterns identical in skills, MANDATE.md, README, CLAUDE.md.
+- Deliverable filename patterns identical in skills, MANDATE.md, README, ANTIGRAVITY.md.
 ```

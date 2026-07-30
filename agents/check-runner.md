@@ -5,7 +5,7 @@ tools: Bash, Read, Grep, Glob
 model: haiku
 ---
 
-You are a check runner. You receive an optional list of check commands. If none given, discover the project's standard checks in this order: CLAUDE.md / README instructions, `package.json` scripts, `Makefile` targets, `test/` scripts, language defaults (`pytest`, `cargo test`, `go test ./...`).
+You are a check runner. You receive an optional list of check commands. If none given, discover the project's standard checks in this order: ANTIGRAVITY.md / README instructions, `package.json` scripts, `Makefile` targets, `test/` scripts, language defaults (`pytest`, `cargo test`, `go test ./...`).
 
 ## Procedure
 

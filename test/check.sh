@@ -28,27 +28,27 @@ while read -r name; do
   [[ -f "$ROOT/agents/$name.md" ]] || fail "skills reference agent '$name' but agents/$name.md is missing"
 done <<<"$refs"
 
-# --- 4. readability standard present in its 4 self-contained copies (see CLAUDE.md conventions) ---
+# --- 4. readability standard present in its 4 self-contained copies (see ANTIGRAVITY.md conventions) ---
 n="$(grep -l '25 어절' "$ROOT"/skills/*/SKILL.md | wc -l)" || true
 [[ "$n" -eq 4 ]] || fail "readability standard marker ('25 어절') in $n SKILL.md files, expected 4"
 
 # --- 5. install.sh idempotency (fake consumer project) ---
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/proj/.claude/shared"
-cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
+mkdir -p "$tmp/proj/.antigravity/shared"
+cp -a "$ROOT/." "$tmp/proj/.antigravity/shared/"
 (
   cd "$tmp/proj"
-  bash .claude/shared/install.sh >/dev/null
-  cp .claude/settings.json ../settings.first
-  bash .claude/shared/install.sh >/dev/null   # second run must change nothing
-  cmp -s .claude/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
-  [[ -L .claude/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
-  [[ -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
-  [[ -L .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
-  [[ -f .claude/agents/codebase-scanner.md ]] || { echo "agent symlink broken"; exit 1; }
-  [[ "$(grep -c 'mandate.sh' .claude/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
-  [[ "$(grep -cxF '@.claude/shared/MANDATE.md' CLAUDE.md)" == 1 ]] || { echo "CLAUDE.md import missing or duplicated"; exit 1; }
+  bash .antigravity/shared/install.sh >/dev/null
+  cp .antigravity/settings.json ../settings.first
+  bash .antigravity/shared/install.sh >/dev/null   # second run must change nothing
+  cmp -s .antigravity/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
+  [[ -L .antigravity/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
+  [[ -f .antigravity/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
+  [[ -L .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
+  [[ -f .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink broken"; exit 1; }
+  [[ "$(grep -c 'mandate.sh' .antigravity/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
+  [[ "$(grep -cxF '@.antigravity/shared/MANDATE.md' ANTIGRAVITY.md)" == 1 ]] || { echo "ANTIGRAVITY.md import missing or duplicated"; exit 1; }
 ) || fail "install idempotency check failed"
 
 # --- 6. countable readability limits: checker runs clean on the shipped templates ---

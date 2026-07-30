@@ -10,13 +10,13 @@
 
 ## Global Constraints
 
-- Model-facing instruction files are **English** (Korean fragments where the spec shows them — transcribe verbatim); deliverables and template placeholder text are **Korean**. Do not mix. (CLAUDE.md)
-- `## Gotchas` sections: append only, never delete or reorder existing entries. (CLAUDE.md)
+- Model-facing instruction files are **English** (Korean fragments where the spec shows them — transcribe verbatim); deliverables and template placeholder text are **Korean**. Do not mix. (ANTIGRAVITY.md)
+- `## Gotchas` sections: append only, never delete or reorder existing entries. (ANTIGRAVITY.md)
 - No files added or removed under `skills/*/SKILL.md` or `agents/*.md` — `test/check.sh` asserts exactly 9. (spec §4)
 - Per-section audience rule (spec §2): 요약 = non-developer; 리뷰 포인트 = code reviewers (파일:라인 stays); Agent 섹션 = future agent (technical language stays). Only the 요약 gets the non-developer bar in the report.
 - In `docs/blindspot/2026-07-06-blindspot-agents-skills-report.md`, ONLY the `### 요약` body paragraph changes — everything else byte-identical, including the acceptance-record meta lines and the `기준: dc45220 (초기 커밋) → a8e8740 (HEAD)` line (metadata, spec §5). (spec §3.5)
 - Commit after every task. Commit messages end with:
-  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+  `Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>`
 - Do NOT push in any task — the push happens after the final whole-branch review (controller step).
 
 ---
@@ -135,7 +135,7 @@ Expected: `OK: all checks passed` (frontmatter untouched, file count still 9).
 git add skills/work-report/SKILL.md skills/work-report/templates/report.md skills/explainer/SKILL.md skills/explainer/templates/explainer.md
 git commit -m "feat: non-developer readability rules for report 요약 and explainer
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -154,7 +154,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 In `docs/blindspot/2026-07-06-blindspot-agents-skills-report.md`, under `### 요약`, replace this exact paragraph:
 
 ```markdown
-빈 저장소 위에 모든 프로젝트가 공유하는 Claude Code Agent/Skill 저장소를 처음부터 구축했다. Thariq의 "Finding Your Unknowns" 라이프사이클을 skill 5종(requirements-interview → blindspot-pass → explainer → work-report, 그리고 전체를 잇는 blindspot-flow)과 읽기 전용 agent 3종으로 구현했고, 소비 프로젝트는 submodule + `install.sh` 한 번으로 심링크·SessionStart hook·CLAUDE.md import가 자동 연결된다. 실행 코드는 bash 스크립트 3개뿐이며 나머지는 전부 모델/사용자 대상 문서다. 태스크별 리뷰 7회 + 최종 전체 리뷰 + 수정 재리뷰를 모두 통과했고 `test/check.sh`가 멱등성까지 검증한다.
+빈 저장소 위에 모든 프로젝트가 공유하는 Antigravity Agent/Skill 저장소를 처음부터 구축했다. Thariq의 "Finding Your Unknowns" 라이프사이클을 skill 5종(requirements-interview → blindspot-pass → explainer → work-report, 그리고 전체를 잇는 blindspot-flow)과 읽기 전용 agent 3종으로 구현했고, 소비 프로젝트는 submodule + `install.sh` 한 번으로 심링크·SessionStart hook·ANTIGRAVITY.md import가 자동 연결된다. 실행 코드는 bash 스크립트 3개뿐이며 나머지는 전부 모델/사용자 대상 문서다. 태스크별 리뷰 7회 + 최종 전체 리뷰 + 수정 재리뷰를 모두 통과했고 `test/check.sh`가 멱등성까지 검증한다.
 ```
 
 with:
@@ -190,7 +190,7 @@ Expected: `OK: all checks passed`
 git add docs/blindspot/2026-07-06-blindspot-agents-skills-report.md
 git commit -m "docs: rewrite 2026-07-06 report 요약 for non-developer readers
 
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 ```
 
 The push to `origin main` happens after the final whole-branch review (controller step), not in this task.
