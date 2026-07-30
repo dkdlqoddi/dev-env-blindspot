@@ -38,7 +38,7 @@
 Replace this exact block:
 
 ```markdown
-3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
+3. **Interview.** In Korean, ONE question per message, via sk_question tool with 2–4 concrete options where possible.
    - Order by architecture impact: answers that change the design come first.
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
    - Record every question, answer, and its architecture impact.
@@ -47,7 +47,7 @@ Replace this exact block:
 with:
 
 ```markdown
-3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
+3. **Interview.** In Korean, ONE question per message, via sk_question tool with 2–4 concrete options where possible.
    - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do.
    - Order by architecture impact: answers that change the design come first.
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
@@ -109,13 +109,13 @@ with:
 Replace this exact block:
 
 ```markdown
-4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+4. **Resolve with the user.** Present questions in Korean via sk_question tool, architecture-changing first. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 ```
 
 with:
 
 ```markdown
-4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. Questions, options, and the primer follow the same non-developer bar as step 3. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+4. **Resolve with the user.** Present questions in Korean via sk_question tool, architecture-changing first. Questions, options, and the primer follow the same non-developer bar as step 3. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 ```
 
 - [ ] **Step 7: Replace step 5 of `skills/blindspot-pass/SKILL.md`**

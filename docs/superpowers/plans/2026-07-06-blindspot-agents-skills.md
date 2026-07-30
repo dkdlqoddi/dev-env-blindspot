@@ -319,7 +319,7 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 
 2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
 
-3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
+3. **Interview.** In Korean, ONE question per message, via sk_question tool with 2–4 concrete options where possible.
    - Order by architecture impact: answers that change the design come first.
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
    - Record every question, answer, and its architecture impact.
@@ -389,7 +389,7 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
 1. **Collect input.** The task description, plus `docs/blindspot/*-requirements.md` for this topic if it exists — read it; do not re-ask what it already answers.
 
-2. **Fan out scanners.** Spawn `codebase-scanner` agents IN PARALLEL (one message, multiple Agent calls, subagent_type: `codebase-scanner`), one per lens:
+2. **Fan out scanners.** Spawn `codebase-scanner` agents IN PARALLEL (one message, multiple invoke_subagent tool calls, subagent_type: `codebase-scanner`), one per lens:
    - `conventions`
    - `similar-features`
    - `integration-points`
@@ -398,7 +398,7 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
 3. **Synthesize.** Merge findings yourself (plain reasoning, no extra agent). For each finding: restate it as a concrete, decidable question ("X를 어떻게 할지", not "X 주의"), assign a quadrant, sort by architecture impact.
 
-4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+4. **Resolve with the user.** Present questions in Korean via sk_question tool, architecture-changing first. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 
 5. **Document.** Follow `templates/unknowns.md` in this skill's folder. Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`.
 
@@ -747,7 +747,7 @@ Thin orchestrator. All real logic lives in the four lifecycle skills — this sk
 
 ## Workflow
 
-Run the stages below in order, invoking each with the Skill tool by name. Before each stage, check `docs/blindspot/` for an existing deliverable for this topic; if found, tell the user (Korean) and offer reuse or redo. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
+Run the stages below in order, invoking each with the loaded skill tools by name. Before each stage, check `docs/blindspot/` for an existing deliverable for this topic; if found, tell the user (Korean) and offer reuse or redo. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
 
 1. `requirements-interview` → requirements doc
 2. `blindspot-pass` → unknowns doc

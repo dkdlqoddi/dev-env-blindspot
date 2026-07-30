@@ -9,7 +9,7 @@
 
 비전문가 문장 기준이 퀴즈·보고서 요약·explainer에는 적용됐지만 라이프사이클의 앞 단계 산출물(requirements, unknowns)에는 없다. 특히:
 
-- 두 스킬 모두 **살아있는 인터뷰 단계**(AskUserQuestion)가 있고, 질문이 그대로 문서의 인터뷰 기록에 남는다. 사용자가 못 읽는 질문은 추측 답변을 낳고, 추측 답변은 잘못된 요구사항이 된다.
+- 두 스킬 모두 **살아있는 인터뷰 단계**(sk_question tool)가 있고, 질문이 그대로 문서의 인터뷰 기록에 남는다. 사용자가 못 읽는 질문은 추측 답변을 낳고, 추측 답변은 잘못된 요구사항이 된다.
 - unknowns 문서는 두 얼굴이다: 구체화된 질문·결정(사용자가 읽고 답하는 칸) vs 발견 근거 파일:라인·출처 URL·스캔 원본 요약(증거·기술 정찰 기록, 후속 단계인 explainer가 소비).
 
 ## 2. 확정된 결정사항 (인터뷰)
@@ -30,7 +30,7 @@
 
 **3단계(Interview)** — 첫 불릿으로 질문 문구 규칙 추가 (기존 세 불릿은 그대로 뒤에 유지):
 
-> 3. **Interview.** In Korean, ONE question per message, via AskUserQuestion with 2–4 concrete options where possible.
+> 3. **Interview.** In Korean, ONE question per message, via sk_question tool with 2–4 concrete options where possible.
 >    - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do.
 >    - Order by architecture impact: answers that change the design come first.
 >    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
@@ -61,10 +61,10 @@
 **4단계(Resolve with the user)** — 교체:
 
 기존:
-> 4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+> 4. **Resolve with the user.** Present questions in Korean via sk_question tool, architecture-changing first. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 
 신규:
-> 4. **Resolve with the user.** Present questions in Korean via AskUserQuestion, architecture-changing first. Questions, options, and the primer follow the same non-developer bar as step 3. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
+> 4. **Resolve with the user.** Present questions in Korean via sk_question tool, architecture-changing first. Questions, options, and the primer follow the same non-developer bar as step 3. If domain findings exist, open with a short primer (5–10 lines in Korean, from the researcher's 핵심 개념) — the user must understand the concepts to answer the questions. Questions the findings already answer: decide yourself and mark 자체 해소 with the evidence.
 
 **5단계(Document)** — 교체:
 

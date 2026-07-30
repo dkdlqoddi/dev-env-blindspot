@@ -22,8 +22,8 @@ for f in "${files[@]}"; do
 done
 
 # --- 3. skill → agent reference integrity (agent rename tripwire) ---
-refs="$(grep -ho 'subagent_type: `[a-z-]*`' "$ROOT"/skills/*/SKILL.md | sed 's/.*`\([a-z-]*\)`.*/\1/' | sort -u)" || true
-[[ -n "$refs" ]] || fail "no subagent_type references found in any SKILL.md — pattern drift?"
+refs="$(grep -ho '`TypeName: [a-z-]*`' "$ROOT"/skills/*/SKILL.md | sed 's/.*`TypeName: \([a-z-]*\)`.*/\1/' | sort -u)" || true
+[[ -n "$refs" ]] || fail "no TypeName references found in any SKILL.md — pattern drift?"
 while read -r name; do
   [[ -f "$ROOT/agents/$name.md" ]] || fail "skills reference agent '$name' but agents/$name.md is missing"
 done <<<"$refs"

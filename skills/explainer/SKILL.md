@@ -24,7 +24,7 @@ One document a zero-context reader can use to understand what is being built, wh
 
 3. **Save** to `docs/blindspot/YYYY-MM-DD-<slug>-explainer.md`.
 
-4. **Verify.** Spawn IN PARALLEL (one message, two Agent calls): `doc-verifier` (subagent_type: `doc-verifier`) on the file, and `codebase-scanner` (subagent_type: `codebase-scanner`) with lens `integration-points`, the saved file's path, and instructions to cross-check the design against code reality — every integration point the document assumes (APIs, schemas, configs, files) must exist and match, mismatches cited as `file:line`. Fix every issue from both, re-save. Skip the cross-check only when the project has no code.
+4. **Verify.** Spawn IN PARALLEL (one message, two `invoke_subagent` tool calls): `doc-verifier` (`TypeName: doc-verifier`) on the file, and `codebase-scanner` (`TypeName: codebase-scanner`) with lens `integration-points`, the saved file's path, and instructions to cross-check the design against code reality — every integration point the document assumes (APIs, schemas, configs, files) must exist and match, mismatches cited as `file:line`. Fix every issue from both, re-save. Skip the cross-check only when the project has no code.
 
 5. **Hand off.** Tell the user (Korean): 구현 시작 시 `work-report` 노트 모드로.
 

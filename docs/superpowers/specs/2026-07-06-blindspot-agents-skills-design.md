@@ -82,7 +82,7 @@ dev-env-blindspot/
 - **워크플로우**:
   1. 요청을 4분면으로 초기 분류 (명시된 것 / 답 필요한 질문 / 암묵적 선호 후보 / 미지 영역)
   2. 질문 생성 **전에** `codebase-scanner` agent를 스폰해 관련 코드 현실 파악 — 질문이 코드 사실에 근거하도록
-  3. 인터뷰: 한 번에 한 질문, 아키텍처를 바꾸는 질문 우선, 객관식 우선 (AskUserQuestion 활용)
+  3. 인터뷰: 한 번에 한 질문, 아키텍처를 바꾸는 질문 우선, 객관식 우선 (sk_question tool 활용)
   4. `templates/requirements.md` 기반으로 요구사항 문서 작성 — 4분면 표, 확정 요구사항, 미해결 질문 포함
   5. `doc-verifier` agent로 검증 후 저장
 - **산출물**: `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md`
@@ -101,7 +101,7 @@ dev-env-blindspot/
 
      도메인 영역이 있으면 같은 병렬 배치에 `domain-researcher` 1개 추가 스폰 (웹 리서치: 핵심 개념·품질 기준·함정·결정 후보, 출처 URL 근거). 코드를 전혀 건드리지 않는 순수 도메인 과제면 코드 렌즈 생략
   3. 결과 종합: Unknown Unknown을 "결정 가능한 구체적 질문"으로 변환, 4분면 재배치
-  4. 아키텍처 영향 큰 순으로 사용자에게 확인 (AskUserQuestion)
+  4. 아키텍처 영향 큰 순으로 사용자에게 확인 (sk_question tool)
   5. 해소 결과 포함해 문서화, `doc-verifier` 검증
 - **산출물**: `docs/blindspot/YYYY-MM-DD-<slug>-unknowns.md`
 - **다음 단계 안내**: explainer 또는 구현 시작 시 work-report(노트 모드)
