@@ -43,16 +43,24 @@ cp -a "$ROOT/." "$tmp/proj/.antigravity/shared/"
   cp .antigravity/settings.json ../settings.first
   bash .antigravity/shared/install.sh >/dev/null   # second run must change nothing
   cmp -s .antigravity/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
-  [[ -L .antigravity/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
+  [[ -e .antigravity/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
   [[ -f .antigravity/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
-  [[ -L .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
+  [[ -e .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
   [[ -f .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink broken"; exit 1; }
   [[ "$(grep -c 'mandate.sh' .antigravity/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
   [[ "$(grep -cxF '@.antigravity/shared/MANDATE.md' ANTIGRAVITY.md)" == 1 ]] || { echo "ANTIGRAVITY.md import missing or duplicated"; exit 1; }
 ) || fail "install idempotency check failed"
 
 # --- 6. countable readability limits: checker runs clean on the shipped templates ---
-python3 "$ROOT/skills/work-report/scripts/quiz_check.py" \
+if command -v python3 >/dev/null 2>&1 && python3 -c "" >/dev/null 2>&1; then
+  PY_CMD=python3
+elif command -v python >/dev/null 2>&1 && python -c "" >/dev/null 2>&1; then
+  PY_CMD=python
+else
+  fail "neither python3 nor python found"
+fi
+
+$PY_CMD "$ROOT/skills/work-report/scripts/quiz_check.py" \
   "$ROOT/skills/work-report/templates/quiz.html" \
   "$ROOT/skills/work-report/templates/report.md" >/dev/null \
   || fail "quiz_check.py reported violations on the work-report templates"

@@ -12,23 +12,29 @@ SHARED=".antigravity/shared"
 mkdir -p .antigravity/skills .antigravity/agents
 for d in "$SHARED"/skills/*/; do
   name="$(basename "$d")"
+  rm -rf ".antigravity/skills/$name"
   ln -sfn "../shared/skills/$name" ".antigravity/skills/$name"
 done
 for f in "$SHARED"/agents/*.md; do
   name="$(basename "$f")"
+  rm -f ".antigravity/agents/$name"
   ln -sfn "../shared/agents/$name" ".antigravity/agents/$name"
 done
 
 # 2. merge SessionStart hook into .antigravity/settings.json
 SETTINGS=".antigravity/settings.json"
 HOOK_CMD='bash "$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh"'
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "error: need python3 to merge $SETTINGS."
+if command -v python3 >/dev/null 2>&1 && python3 -c "" >/dev/null 2>&1; then
+  PY_CMD=python3
+elif command -v python >/dev/null 2>&1 && python -c "" >/dev/null 2>&1; then
+  PY_CMD=python
+else
+  echo "error: need python3 or python to merge $SETTINGS."
   echo "Add this to $SETTINGS manually:"
   echo '  {"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash \"$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh\""}]}]}}'
   exit 1
 fi
-python3 - "$SETTINGS" "$HOOK_CMD" <<'PY'
+$PY_CMD - "$SETTINGS" "$HOOK_CMD" <<'PY'
 import json, os, sys
 path, cmd = sys.argv[1], sys.argv[2]
 data = {}
