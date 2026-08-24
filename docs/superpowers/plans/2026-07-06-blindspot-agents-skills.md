@@ -13,7 +13,7 @@
 - Model-facing instruction files (`SKILL.md`, `agents/*.md`, `MANDATE.md`) are written in **English**; all deliverables the skills generate for users are **Korean**. (spec §2)
 - Skill deliverable paths in consumer projects: `docs/blindspot/YYYY-MM-DD-<slug>-{requirements,unknowns,explainer,report}.md`, quiz at `docs/blindspot/quiz/YYYY-MM-DD-<slug>.html`. Exception: `docs/blindspot/<slug>-implementation-notes.md` has no date prefix. (spec §4)
 - Skill frontmatter `description` states the **trigger condition** ("Use when ..."). Every SKILL.md has a `## Gotchas` section. (spec §4)
-- Agents are read-only: tools limited to `Read, Grep, Glob` (+ `Bash` only where git commands are needed, with read-only instruction). (spec §5)
+- Agents are read-only: tools limited to `view_file, grep_search, find_by_name` (+ `run_command` only where git commands are needed, with read-only instruction). (spec §5)
 - `install.sh` must be idempotent — second run changes nothing. Symlinks are **relative** (`../shared/...`). Requires jq or python3 for settings merge; fails with manual instructions otherwise. (spec §7)
 - Target platforms: Linux / WSL / macOS. Native Windows out of scope. (spec §7)
 - No external dependencies beyond bash + coreutils + (jq|python3).
@@ -123,7 +123,7 @@ Co-Authored-By: Antigravity Fable 5 <noreply@anthropic.com>"
 - Modify: `test/check.sh` (append section 2 before the final `echo`)
 
 **Interfaces:**
-- Produces: agent names `codebase-scanner`, `doc-verifier`, `change-analyzer` — Tasks 3–4 reference them as `subagent_type` values verbatim. Lens names produced by scanner: `conventions`, `similar-features`, `integration-points`, `edge-cases` (blindspot-pass consumes these).
+- Produces: agent names `codebase-scanner`, `doc-verifier`, `change-analyzer` — Tasks 3–4 reference them as `TypeName` values verbatim. Lens names produced by scanner: `conventions`, `similar-features`, `integration-points`, `edge-cases` (blindspot-pass consumes these).
 
 - [ ] **Step 1: Append failing lint to test/check.sh**
 
@@ -152,7 +152,7 @@ Expected: `FAIL: expected at least 3 lintable files, got 0`
 ---
 name: codebase-scanner
 description: Read-only codebase explorer. Spawned by blindspot skills with ONE assigned lens (conventions, similar-features, integration-points, or edge-cases) plus a task description; returns structured findings with file:line evidence so exploration never pollutes the main context.
-tools: Read, Grep, Glob, Bash
+tools: view_file, grep_search, find_by_name, run_command
 ---
 
 You are a read-only codebase scanner. You receive ONE lens and a task description. Explore the repository through that lens only and return structured findings.
@@ -166,7 +166,7 @@ You are a read-only codebase scanner. You receive ONE lens and a task descriptio
 
 ## Rules
 
-- READ-ONLY. Never create, edit, or delete files. Bash is for read-only commands only (git log/show/diff, ls, wc, find).
+- READ-ONLY. Never create, edit, or delete files. run_command is for read-only commands only (git log/show/diff, ls, wc, find).
 - Every finding must cite evidence as `path:line` (or `path` for whole-file facts). No evidence, no finding.
 - Prefer depth over breadth: 3–8 solid findings beat 20 shallow ones.
 - If the repo has no code relevant to your lens, say so explicitly — that is itself a finding.
@@ -227,7 +227,7 @@ Otherwise:
 ---
 name: change-analyzer
 description: Read-only git diff analyst. Spawned by work-report (report mode) with a base ref; analyzes changes between the base and HEAD and returns a structured Korean summary with per-file changes, risk spots, test coverage presence, and quiz question candidates.
-tools: Read, Grep, Glob, Bash
+tools: view_file, grep_search, find_by_name, run_command
 ---
 
 You are a git change analyst. You receive a base ref (if none given, use `git merge-base main HEAD`; if that fails, use the first commit).
@@ -241,7 +241,7 @@ You are a git change analyst. You receive a base ref (if none given, use `git me
 
 ## Rules
 
-- READ-ONLY. Bash is for read-only git/inspection commands only.
+- READ-ONLY. run_command is for read-only git/inspection commands only.
 - Cite `path:line` for every risk spot.
 - Quiz candidates must target behavior and risk, never trivia (no "how many files changed").
 
@@ -317,7 +317,7 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
    - Unknown Knowns — preferences the user likely holds but hasn't said (naming, style, existing patterns)
    - Unknown Unknowns — territory nobody has looked at; note candidates, leave the digging to `blindspot-pass`
 
-2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (subagent_type: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
+2. **Ground before asking.** Spawn ONE `codebase-scanner` agent (TypeName: `codebase-scanner`) with lens `conventions` and the task description BEFORE writing questions. Questions that ignore the actual code waste the user's time. Skip only if the project has no code yet.
 
 3. **Interview.** In Korean, ONE question per message, via sk_question tool with 2–4 concrete options where possible.
    - Order by architecture impact: answers that change the design come first.
@@ -326,7 +326,7 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 
 4. **Write the document.** Follow `templates/requirements.md` in this skill's folder. Fill every section in Korean. Save to `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md` (slug = kebab-case topic, date = today).
 
-5. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the saved file. Fix every reported issue, re-save. Do not skip on PASS-looking drafts — verification is not optional.
+5. **Verify.** Spawn `doc-verifier` (TypeName: `doc-verifier`) on the saved file. Fix every reported issue, re-save. Do not skip on PASS-looking drafts — verification is not optional.
 
 6. **Hand off.** Tell the user (Korean): 다음 단계는 `blindspot-pass`로 Unknown Unknowns를 구체화하는 것.
 
@@ -389,7 +389,7 @@ Unknown unknowns are the failures you don't see coming. Concretize them into dec
 
 1. **Collect input.** The task description, plus `docs/blindspot/*-requirements.md` for this topic if it exists — read it; do not re-ask what it already answers.
 
-2. **Fan out scanners.** Spawn `codebase-scanner` agents IN PARALLEL (one message, multiple invoke_subagent tool calls, subagent_type: `codebase-scanner`), one per lens:
+2. **Fan out scanners.** Spawn `codebase-scanner` agents IN PARALLEL (one message, multiple invoke_subagent tool calls, TypeName: `codebase-scanner`), one per lens:
    - `conventions`
    - `similar-features`
    - `integration-points`
@@ -497,7 +497,7 @@ One document a zero-context reader can use to understand what is being built, wh
 
 3. **Save** to `docs/blindspot/YYYY-MM-DD-<slug>-explainer.md`.
 
-4. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the file; fix every issue, re-save.
+4. **Verify.** Spawn `doc-verifier` (TypeName: `doc-verifier`) on the file; fix every issue, re-save.
 
 5. **Hand off.** Tell the user (Korean): 구현 시작 시 `work-report` 노트 모드로.
 
@@ -565,7 +565,7 @@ Trigger: implementation starts, OR you make a non-obvious decision, pick a conse
 
 Trigger: work complete, pre-merge, or the user asks for a report.
 
-1. **Analyze.** Spawn `change-analyzer` (subagent_type: `change-analyzer`) with the base ref (default: merge-base with main).
+1. **Analyze.** Spawn `change-analyzer` (TypeName: `change-analyzer`) with the base ref (default: merge-base with main).
 2. **Merge sources.** change-analyzer output + `<slug>-implementation-notes.md` + the explainer/plan if present.
 3. **Write the report** following `templates/report.md`, Korean, to `docs/blindspot/YYYY-MM-DD-<slug>-report.md`. Keep the two audiences strictly separate:
    - Human 섹션 — 3–5문장 요약, 스크린샷/데모 자리, 리뷰 포인트(파일:라인)
@@ -1022,7 +1022,7 @@ Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `
 - Model-facing instruction files (`SKILL.md`, `agents/*.md`, `MANDATE.md`): English. User-facing deliverables the skills generate: Korean. Do not mix.
 - Skill frontmatter `description` is the trigger condition — always "Use when ...".
 - Every SKILL.md has a `## Gotchas` section. Append recurring failure points there; never delete entries or create separate gotcha docs.
-- Agents are read-only by design — keep `tools` minimal (`Bash` only where git inspection is required, with read-only instructions in the body).
+- Agents are read-only by design — keep `tools` minimal (`run_command` only where git inspection is required, with read-only instructions in the body).
 - Deliverable path contract baked into skills: `docs/blindspot/YYYY-MM-DD-<slug>-{requirements,unknowns,explainer,report}.md`, `docs/blindspot/quiz/*.html`, `docs/blindspot/<slug>-implementation-notes.md` (no date prefix).
 
 ## Consumer contract (breaking-change checklist)
@@ -1030,7 +1030,7 @@ Covers: mandate hook output names all 5 skills, YAML frontmatter lint (`name`, `
 Renaming or moving any of these breaks consumer projects — update `install.sh` + `test/check.sh` + `README.md` together:
 
 - `skills/<name>/` directory names (= installed skill names, referenced in `MANDATE.md`)
-- `agents/*.md` filenames (= `subagent_type` values referenced inside SKILL.md files)
+- `agents/*.md` filenames (= `TypeName` values referenced inside SKILL.md files)
 - `hooks/mandate.sh`, `MANDATE.md` paths (referenced by consumer `settings.json` and ANTIGRAVITY.md import line)
 
 ## Design docs
@@ -1060,6 +1060,6 @@ Expected: push succeeds to `origin/main`.
 ## Plan Self-Review Notes
 
 - Spec coverage: §3 layout → Tasks 1–7; §4.1–4.5 skills → Tasks 3–5; §5 agents → Task 2; §6 enforcement → Task 1 (+ install wiring Task 6); §7 onboarding → Task 6; §8 verification → check.sh grown across Tasks 1/2/6; §9 exclusions honored (no marketplace, no per-prompt hooks, no telemetry, no CI).
-- Name consistency verified: 5 skill names identical across MANDATE.md (Task 1), SKILL.md frontmatter (Tasks 3–5), check.sh loop (Task 1), README table (Task 7); 3 agent names identical across agent frontmatter (Task 2), SKILL.md subagent_type references (Tasks 3–4), check.sh symlink assert (Task 6).
+- Name consistency verified: 5 skill names identical across MANDATE.md (Task 1), SKILL.md frontmatter (Tasks 3–5), check.sh loop (Task 1), README table (Task 7); 3 agent names identical across agent frontmatter (Task 2), SKILL.md TypeName references (Tasks 3–4), check.sh symlink assert (Task 6).
 - Deliverable filename patterns identical in skills, MANDATE.md, README, ANTIGRAVITY.md.
 ```

@@ -1,7 +1,7 @@
 ---
 name: domain-researcher
 description: Read-only domain knowledge researcher. Spawned by blindspot-pass when the task needs knowledge that lives outside the codebase; researches the topic on the web and returns Korean findings — core concepts, quality criteria, pitfalls, and decisions — each cited with a source URL.
-tools: WebSearch, WebFetch
+tools: search_web, read_url_content
 model: pro
 ---
 
