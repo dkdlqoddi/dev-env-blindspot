@@ -16,9 +16,10 @@ Checks:
            at most 25 어절 (whitespace-separated words); every option has at most
            40 characters
   Tier 1 : at most 60 lines
-  Tier 2 : at most 150 lines; a 상세 명세 cell starting with specs/ must name a
-           file that exists next to the map; every specs/*.md next to the map
-           must be named by some 단위 row
+  Tier 2 : at most 150 lines; a 상세 명세 cell naming specs/<x>.md (plain,
+           backticked, or linked) must name a file that exists next to the
+           map; every specs/*.md next to the map must be named by some
+           단위 row
   Tier 3 : at most 200 lines; sentences under 목적과 배경 / 요구사항 / 동작 방식 /
            의도적 범위 제외 have at most 25 어절
 
@@ -130,8 +131,9 @@ def check_map(path, src, violations):
     for cells in table_rows(body):
         if cells[0] == "단위" or len(cells) < 4:
             continue
-        ref = cells[3]
-        if ref.startswith("specs/"):
+        m = re.search(r"specs/[^\s`|)\]]+\.md", cells[3])
+        if m:
+            ref = m.group(0)
             target = os.path.normpath(os.path.join(here, ref))
             listed.add(target)
             if not os.path.isfile(target):
@@ -155,8 +157,12 @@ def check_spec(src, violations):
 
 
 def check_file(path, violations):
-    with open(path, encoding="utf-8") as f:
-        src = f.read()
+    try:
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+    except FileNotFoundError:
+        violations.append(f"{path}: file not found")
+        return
     found = []
     if path.endswith(".html"):
         check_quiz(src, found)

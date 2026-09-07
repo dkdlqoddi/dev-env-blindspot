@@ -66,6 +66,17 @@ python3 "$ROOT/skills/work-report/scripts/docs_check.py" \
   "$ROOT/skills/explainer/templates/spec.md" >/dev/null \
   || fail "docs_check.py reported violations on the shipped templates"
 
+# --- 7. retired per-cycle paths must not survive in shipped instructions ---
+hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" || true)"
+[[ -z "$hits" ]] || fail "retired path referenced:"$'\n'"$hits"
+
+# --- 8. template heading contract: skills write sections by heading name ---
+need() { local f="$1"; shift; for h in "$@"; do grep -qxF "## $h" "$f" || fail "$f: missing heading '## $h'"; done; }
+need "$ROOT/skills/blindspot-pass/templates/rules.md" "불변 규칙" "관례" "표준 명령" "용어"
+need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "주요 흐름" "통합 지점" "알려진 위험"
+need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
+grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
+
 # --- 9. docs_check.py must fail loudly on broken tier files (negative fixture) ---
 fx="$tmp/fx/area"; mkdir -p "$fx/specs"
 printf '# r\n%.0s' $(seq 61) > "$fx/rules.md"
@@ -78,23 +89,14 @@ for msg in 'max 60' 'does not exist' 'not listed' 'max 200' '어절'; do
   grep -q "$msg" <<<"$out" || fail "docs_check.py fixture output missing '$msg'"
 done
 
-# --- 8. template heading contract: skills write sections by heading name ---
-need() { local f="$1"; shift; for h in "$@"; do grep -qxF "## $h" "$f" || fail "$f: missing heading '## $h'"; done; }
-need "$ROOT/skills/blindspot-pass/templates/rules.md" "불변 규칙" "관례" "표준 명령" "용어"
-need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "주요 흐름" "통합 지점" "알려진 위험"
-need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
-grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
-
-# --- 7. retired per-cycle paths must not survive in shipped instructions ---
-hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" || true)"
-[[ -z "$hits" ]] || fail "retired path referenced:"$'\n'"$hits"
-
 # --- 10. every templates/<file> named in a SKILL.md ships in some skill ---
+tpls="$(grep -ho 'templates/[A-Za-z0-9_.-]*' "$ROOT"/skills/*/SKILL.md | sed 's#templates/##' | sort -u || true)"
+[[ -n "$tpls" ]] || fail "no templates/<file> references found in any SKILL.md — pattern drift?"
 while read -r t; do
   found=0
   for f in "$ROOT"/skills/*/templates/"$t"; do [[ -f "$f" ]] && found=1; done
   [[ $found == 1 ]] || fail "a SKILL.md references templates/$t but no skill ships it"
-done < <(grep -ho 'templates/[A-Za-z0-9_.-]*' "$ROOT"/skills/*/SKILL.md | sed 's#templates/##' | sort -u)
+done <<<"$tpls"
 
 # --- 11. MANDATE.md is injected into every consumer session twice (hook + @import): keep it small ---
 [[ "$(wc -l < "$ROOT/MANDATE.md")" -le 60 ]] || fail "MANDATE.md over 60 lines"

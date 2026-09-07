@@ -2,7 +2,7 @@
 
 - 시작일: YYYY-MM-DD
 - 대상 spec: (docs/<영역>/specs/<단위>.md — 두 영역이면 둘 다)
-- 처리: 인수(퀴즈 통과 확인) 시 work-report가 항목을 spec으로 옮기고 이 파일을 지운다
+- 처리: 보고 모드에서 work-report가 항목을 spec으로 옮기고, 퀴즈 통과 확인 시 이 파일을 지운다
 
 <!-- Append one entry per decision, in the format below, at decision time. Never reconstruct after the fact. Never open the spec while implementing — this file is the only write target of notes mode. -->
 

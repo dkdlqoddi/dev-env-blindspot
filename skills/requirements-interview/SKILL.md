@@ -26,15 +26,15 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
    - Stop when remaining answers would no longer change what you'd build (typically 3–6 questions).
    - Keep every question, answer, and its architecture impact — they become 결정 기록 rows.
 
-4. **Write into the spec.** Target `docs/<area>/specs/<unit>.md` of the primary unit — the unit whose 위치 covers most of the files the work will touch. A feature that adds a module is a new unit: add its row to the map's 단위 table with 상세 명세 `specs/<unit>.md`. If the spec does not exist, create it from the `explainer` skill's `templates/spec.md` (`.claude/skills/explainer/templates/spec.md` in consumer projects) with every heading present and 상태 초안, then fill only your sections:
+4. **Write into the spec.** Target `docs/<area>/specs/<unit>.md` of the primary unit — the unit whose 위치 covers most of the files the work will touch. A feature that adds a module is a new unit: add its row to the map's 단위 table with 상세 명세 `specs/<unit>.md`. When you create a spec for a unit whose 단위 row says 상세 명세 `없음`, replace that cell with `specs/<unit>.md` in the same edit. If the spec does not exist, create it from the `explainer` skill's `templates/spec.md` (`.claude/skills/explainer/templates/spec.md` in consumer projects) with every heading present and 상태 초안, then fill only your sections:
    - 요구사항 — numbered, each item citing the answer that confirmed it
    - 결정 기록 — one row per answered question, one line each: 날짜 | 결정 | 근거 (the user's answer) | 기각한 대안 | 사용자
    - 열린 질문 — remaining Known Unknowns, plus Unknown Unknown candidates with 해소 계획 "blindspot-pass에서 점검"
    - 목적과 배경 — a 2–3 sentence draft only if it is empty; explainer owns it
-   An answer that binds the whole area (a convention, a prohibition) also becomes a 불변 규칙 row in `rules.md`. Never touch sections another skill owns; append rows at the end of tables.
+   An answer that binds the whole area (a convention, a prohibition) also becomes a 불변 규칙 row in `rules.md`. Never touch sections another skill owns; append rows at the end of tables. When a 결정 기록 row you write answers an existing 열린 질문 row, delete that row in the same edit.
    Write for a reader who has never seen the code: no arrow shorthand (A→B) or unexplained jargon; unavoidable technical terms plain Korean first with the term in parentheses; one fact per sentence, ≤25 어절 each — split long compound sentences. 근거 cells keep their technical form. Before saving, self-check every sentence in 요구사항 and every 결정 cell: could someone who has never seen code follow it, and is it one fact within 25 어절? Update 최종 갱신 on every file you edited.
 
-5. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the spec, naming the sections you filled (요구사항, 결정 기록, 열린 질문). Fix every reported issue, re-save. Then run `python3 .claude/skills/work-report/scripts/docs_check.py <spec path>` (the `work-report` skill's `scripts/docs_check.py`) and fix every violation. Do not skip on PASS-looking drafts — verification is not optional.
+5. **Verify.** Spawn `doc-verifier` (subagent_type: `doc-verifier`) on the spec, naming the sections you filled (요구사항, 결정 기록, 열린 질문). Fix every reported issue, re-save. Then run `python3 .claude/skills/work-report/scripts/docs_check.py <spec path> <map.md path, when you edited the map>` (the `work-report` skill's `scripts/docs_check.py`) and fix every violation. Do not skip on PASS-looking drafts — verification is not optional.
 
 6. **Hand off.** Tell the user (Korean): 다음 단계는 `blindspot-pass`로 Unknown Unknowns를 구체화하는 것.
 

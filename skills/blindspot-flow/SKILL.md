@@ -9,7 +9,7 @@ Thin orchestrator. All real logic lives in the four lifecycle skills — this sk
 
 ## Workflow
 
-Run the stages below in order, invoking each with the Skill tool by name. Before each stage, look at the touched unit's `docs/<area>/specs/<unit>.md` (found through the 단위 table of `docs/<area>/map.md`): if the section that stage fills already has content for this feature (요구사항 for stage 1, 결정 기록 rows for stage 2, 동작 방식 for stage 3), tell the user (Korean) and offer 실행 or 건너뛰기. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
+Run the stages below in order, invoking each with the Skill tool by name. Before each stage, look at the touched unit's `docs/<area>/specs/<unit>.md` (found through the 단위 table of `docs/<area>/map.md`): if the section that stage fills already has content for this feature (요구사항 for stage 1; for stage 2, no 열린 질문 row still marked blindspot-pass에서 점검; 동작 방식 for stage 3), tell the user (Korean) and offer 실행 or 건너뛰기. Between stages, confirm with the user before proceeding — they may stop or skip any stage.
 
 0. If the area has no `docs/<area>/map.md`, say so (Korean) and offer `blindspot-pass` to bootstrap Tier 1 and 2 first
 1. `requirements-interview` → 요구사항 and 결정 기록 rows in the unit spec
