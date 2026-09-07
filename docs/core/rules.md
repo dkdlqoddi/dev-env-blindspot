@@ -10,8 +10,8 @@
 |---|---|---|---|
 | 1 | 지침 파일(SKILL.md, agents, MANDATE)은 영어로, 산출물과 템플릿 본문은 한국어로 쓴다 | 모델 지침이 흔들리고 사용자가 문서를 못 읽는다 | CLAUDE.md Conventions |
 | 2 | 에이전트는 파일을 만들거나 고치지 않는다 | 탐색 결과가 저장소와 메인 컨텍스트를 오염시킨다 | agents/*.md Rules |
-| 3 | 스킬 폴더 이름, 에이전트 파일 이름, hooks/mandate.sh, MANDATE.md 경로는 소비자 계약이다 | 소비 프로젝트의 심링크와 hook이 끊긴다 | CLAUDE.md Consumer contract, install.sh:13-20 |
-| 4 | 모든 SKILL.md는 Gotchas 섹션을 유지하고 항목을 지우지 않는다 | 한 번 잡은 반복 실패가 되살아난다 | CLAUDE.md Conventions |
+| 3 | 스킬 폴더 이름, 에이전트 파일 이름, 세션 시작 훅과 규칙 파일의 경로(hooks/mandate.sh, MANDATE.md)는 소비 프로젝트와의 약속이다 | 소비 프로젝트의 심링크와 hook이 끊긴다 | CLAUDE.md Consumer contract, install.sh:13-20 |
+| 4 | 모든 스킬 지침 파일(SKILL.md)은 반복 실패 목록(Gotchas) 섹션을 유지하고 항목을 지우지 않는다 | 한 번 잡은 반복 실패가 되살아난다 | CLAUDE.md Conventions |
 | 5 | 가독성 표준(25 어절 표지)은 네 스킬에 사본으로 둔다 | 스킬을 단독으로 읽을 때 규칙이 사라진다 | test/check.sh 검사 4 |
 | 6 | 계층 문서는 줄 상한(60/150/200)을 넘기지 않는다 | 매 작업이 읽는 문서가 다시 컨텍스트 문제가 된다 | skills/work-report/scripts/docs_check.py |
 

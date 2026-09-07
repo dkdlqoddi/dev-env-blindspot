@@ -14,10 +14,10 @@
 |---|---|---|---|
 | lifecycle-skills | 요구사항 인터뷰부터 보고까지 다섯 스킬의 지침 | skills/*/SKILL.md | specs/lifecycle-skills.md |
 | templates | 스킬이 만드는 문서의 틀(계층 3종, 노트, 퀴즈) | skills/*/templates/* | 없음 |
-| agents | 스캔·리서치·검증·diff 분석·검사 실행 에이전트 5종 | agents/*.md | 없음 |
+| agents | 코드 탐색, 웹 조사, 문서 검증, 변경 내용(diff) 분석, 검사 실행을 맡는 에이전트 5종 | agents/*.md | 없음 |
 | docs-check | 퀴즈와 계층 문서의 기계 검사 | skills/work-report/scripts/docs_check.py | 없음 |
-| installer | 소비 프로젝트에 심링크·hook·import를 설치 | install.sh | 없음 |
-| mandate | 매 세션 주입되는 규칙과 그것을 출력하는 hook | MANDATE.md, hooks/mandate.sh | 없음 |
+| installer | 소비 프로젝트에 바로가기 링크(심링크), 세션 시작 훅(hook), 규칙 불러오기 줄(import)을 설치 | install.sh | 없음 |
+| mandate | 매 세션 주입되는 규칙과 그것을 출력하는 세션 시작 훅(hook) | MANDATE.md, hooks/mandate.sh | 없음 |
 | repo-check | 저장소 자체 검사 | test/check.sh | 없음 |
 
 ## 주요 흐름
@@ -39,5 +39,5 @@
 
 | 위험 | 영향 단위 | 상태 |
 |---|---|---|
-| 스킬·에이전트 이름 변경이 소비 프로젝트 심링크를 끊음 | installer, lifecycle-skills, agents | test/check.sh 검사 2·3·10이 감시 |
+| 스킬·에이전트 이름 변경이 소비 프로젝트 심링크를 끊음 | installer, lifecycle-skills, agents | test/check.sh 검사 3(에이전트 참조)과 검사 5(설치 심링크, 고정 이름 2개)가 감시 |
 | MANDATE가 hook과 @import로 두 번 주입되어 크기가 곧 비용 | mandate, installer | 60줄 상한(검사 11). 이중 주입 해소는 후속 과제 |
