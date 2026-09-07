@@ -4,7 +4,7 @@
 
 Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x.com/trq212/article/2073100352921215386) 라이프사이클과 ["How We Use Skills"](https://x.com/trq212/status/2033949937936085378)의 skill 설계 원칙을 따른다.
 
-**핵심 아이디어**: 프롬프트는 실제 요구사항의 불완전한 지도일 뿐이다("the map is not the territory"). 이 도구는 코딩을 시작하기 *전에* 당신이 모르는 것(Unknown Unknowns)을 질문으로 바꿔서 해소하고, 작업이 끝나면 리뷰어가 놓치면 안 되는 것을 퀴즈로 확인시킨다.
+**핵심 아이디어**: 프롬프트는 실제 요구사항의 불완전한 지도일 뿐이다("the map is not the territory"). 이 도구는 코딩을 시작하기 *전에* 당신이 모르는 것(Unknown Unknowns)을 질문으로 바꿔서 해소하고, 작업이 끝나면 리뷰어가 놓치면 안 되는 것을 퀴즈로 확인시킨다. 그 과정에서 알게 된 것은 기능마다 새 문서를 만들지 않고, 프로젝트의 고정된 3계층 문서에 쌓는다.
 
 ## 1. 설치 (처음 한 번)
 
@@ -17,9 +17,9 @@ bash .antigravity/shared/install.sh
 
 `install.sh`가 하는 일 (멱등 — 몇 번을 재실행해도 안전):
 
-1. `.antigravity/skills/`, `.antigravity/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
-2. `.antigravity/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑) 주입
-3. 프로젝트 `ANTIGRAVITY.md`에 `@.antigravity/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
+1. `.claude/skills/`, `.claude/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
+2. `.claude/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑 + 문서 계층 규칙) 주입
+3. 프로젝트 `CLAUDE.md`에 `@.claude/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
 
 설치가 잘 됐는지 확인:
 
@@ -32,7 +32,21 @@ bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가
 
 ## 2. 사용법
 
-설치 후 **새로 시작하는 Antigravity 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙을 Antigravity에게 주입한다.
+설치 후 **새로 시작하는 Claude Code 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙과 문서 계층 규칙을 Claude에게 주입한다.
+
+### 문서 3계층
+
+이 도구가 만드는 문서는 영역(frontend, backend)마다 세 층으로 고정되어 있고, 사이클마다 새 파일을 만들지 않고 제자리에서 갱신된다.
+
+| 계층 | 경로 | 담는 것 | 언제 읽나 |
+|---|---|---|---|
+| Tier 1 Global Rules | `docs/<영역>/rules.md` | 불변 규칙, 관례, 표준 명령, 용어 (60줄 이하) | 그 영역 코드를 바꾸기 전에 항상 |
+| Tier 2 System Map | `docs/<영역>/map.md` | 단위 목록과 위치, 주요 흐름, 통합 지점, 단위 간 위험 (150줄 이하) | 위치를 찾거나 흐름을 볼 때 |
+| Tier 3 Detail Spec | `docs/<영역>/specs/<단위>.md` | 단위 하나의 목적, 요구사항, 동작, 결정 기록, 엣지케이스, 범위 제외, 열린 질문, 변경 이력 (200줄 이하) | 작업이 닿는 단위만 |
+
+영역은 `docs/` 아래에 `map.md`를 가진 폴더다. 프론트엔드와 백엔드가 각각 세 층을 따로 가지며, 둘 다 아닌 프로젝트(CLI, 라이브러리)는 `core` 하나를 쓴다. 프로젝트 공통 규칙은 프로젝트의 CLAUDE.md가 맡는다.
+
+**첫 실행(부트스트랩)**: 영역에 `map.md`가 없으면 스킬이 `blindspot-pass`로 부트스트랩을 제안한다. 코드를 스캔해 rules.md와 map.md를 만들고 영역 판정 결과를 알려준다(애매할 때만 한 번 묻는다). 상세 명세는 미리 만들지 않고, 작업이 그 단위에 닿을 때 생긴다. 큰 리팩터링 뒤에는 "맵 갱신해줘"라고 하면 기존 문서를 받아 달라진 부분만 고친다.
 
 ### 방법 A — 그냥 평소처럼 말하기 (자동 트리거)
 
@@ -40,11 +54,11 @@ bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가
 
 | 이렇게 말하면 | 발동하는 skill | 무슨 일이 일어나나 |
 |---|---|---|
-| "로그인 기능 추가하고 싶어" | `requirements-interview` | 코드를 먼저 스캔한 뒤, 아키텍처에 영향 큰 질문부터 **한 번에 하나씩** 물어보고 요구사항 문서를 만든다 |
-| "이 코드베이스 처음인데 뭘 조심해야 하지?" / "내가 모르는 게 뭐지?" | `blindspot-pass` | 4개 관점(관례/유사기능/통합지점/엣지케이스)으로 병렬 스캔하고 — 코드 밖 도메인 지식이 필요하면 웹 리서치(domain-researcher)로 보강해서 — 놓치기 쉬운 것들을 "결정 가능한 질문"으로 바꿔 확인받는다 |
-| "지금까지 결정한 거 문서로 정리해줘" | `explainer` | 결정사항·기각한 대안·의도적으로 뺀 것까지 담긴 독립 설계 문서를 만든다 |
-| (구현을 시작하면 자동) | `work-report` 노트 모드 | 비자명한 결정을 내릴 때마다 구현 노트에 즉시 기록한다 |
-| "작업 끝났어, 보고서 만들어줘" / 머지 직전 | `work-report` 보고 모드 | diff를 분석해 보고서 + **Pre-Merge Quiz**(HTML)를 생성한다 |
+| "로그인 기능 추가하고 싶어" | `requirements-interview` | 영역 규칙·맵·과거 결정을 읽은 뒤, 아키텍처에 영향 큰 질문부터 **한 번에 하나씩** 물어보고 확정 요구사항과 결정을 단위 상세 명세에 적는다 |
+| "이 코드베이스 처음인데 뭘 조심해야 하지?" / "내가 모르는 게 뭐지?" | `blindspot-pass` | 4개 관점(관례/유사기능/통합지점/엣지케이스)으로 병렬 스캔하고 — 코드 밖 도메인 지식이 필요하면 웹 리서치(domain-researcher)로 보강해서 — 놓치기 쉬운 것들을 "결정 가능한 질문"으로 바꿔 확인받고, 발견을 규칙·맵·명세에 반영한다 |
+| "지금까지 결정한 거 문서로 정리해줘" | `explainer` | 단위 상세 명세의 목적·동작·기각한 대안·범위 제외를 완성하고 맵을 갱신한다 |
+| (구현을 시작하면 자동) | `work-report` 노트 모드 | 비자명한 결정을 내릴 때마다 `docs/notes/<slug>.md`에 즉시 기록한다 |
+| "작업 끝났어, 보고서 만들어줘" / 머지 직전 | `work-report` 보고 모드 | diff를 분석해 노트를 명세·맵에 반영하고 **Pre-Merge Quiz**(`docs/quiz.html`)를 생성한다. 사람용 요약과 리뷰 포인트는 채팅과 PR 본문에 남긴다 |
 
 ### 방법 B — 전체 라이프사이클 한 번에 (`blindspot-flow`)
 
@@ -54,39 +68,43 @@ bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가
 카테고리별 월 예산 한도 기능을 추가하고 싶어. blindspot-flow로 진행해줘.
 ```
 
-그러면 아래 순서로 진행되며, **각 단계 사이마다 계속할지 물어본다** (이미 산출물이 있는 단계는 재사용을 제안):
+그러면 아래 순서로 진행되며, **각 단계 사이마다 계속할지 물어본다** (이미 채워진 단계는 건너뛰기를 제안):
 
 ```
-① requirements-interview  코드 스캔 → 질문에 하나씩 답하면 → 요구사항 문서
-② blindspot-pass          병렬 스캔 → 놓친 결정사항 확인 → unknowns 문서
-③ explainer               설계 문서 (대안·범위 제외 포함)
-④ (구현 진행)             결정할 때마다 구현 노트 자동 기록
-⑤ work-report 보고 모드   보고서 + Pre-Merge Quiz 생성
+⓪ (맵이 없으면) blindspot-pass  코드 스캔 → 영역 rules.md·map.md 생성
+① requirements-interview  규칙·맵·과거 결정 확인 → 질문에 하나씩 답하면 → 명세에 요구사항·결정 기록
+② blindspot-pass          병렬 스캔 → 놓친 결정사항 확인 → 규칙·맵·명세에 반영
+③ explainer               명세의 목적·동작·범위 제외 완성, 맵 갱신
+④ (구현 진행)             결정할 때마다 작업 노트 자동 기록
+⑤ work-report 보고 모드   노트를 명세에 반영 + Pre-Merge Quiz 생성 → 통과하면 변경 이력 기록, 노트 삭제
 ```
 
 사용자가 할 일은 **질문에 답하는 것**뿐이다. 질문은 객관식 위주로, 한 번에 하나씩, 코드를 몰라도 답할 수 있는 문장으로 온다.
 
 ### 산출물은 어디에 생기나
 
-전부 한국어로, 프로젝트의 `docs/blindspot/` 아래에 생긴다:
+전부 한국어로, 프로젝트의 `docs/` 아래에 생긴다. 파일 수는 사이클이 늘어도 늘지 않는다:
 
 ```
-docs/blindspot/
-├── 2026-07-06-budget-limit-requirements.md   ① 요구사항 (4분면 표 포함)
-├── 2026-07-06-budget-limit-unknowns.md       ② 해소된/미해소 unknowns
-├── 2026-07-06-budget-limit-explainer.md      ③ 설계 문서
-├── budget-limit-implementation-notes.md      ④ 구현 노트 (날짜 접두사 없음)
-├── 2026-07-06-budget-limit-report.md         ⑤ 작업 보고서 (Human/Agent 섹션)
-└── quiz/2026-07-06-budget-limit.html         ⑤ Pre-Merge Quiz
+docs/
+├── frontend/
+│   ├── rules.md            # Tier 1 전역 규칙
+│   ├── map.md              # Tier 2 시스템 맵
+│   └── specs/
+│       └── budget-form.md  # Tier 3 상세 명세 (작업이 닿은 단위만)
+├── backend/                # 동일한 3계층
+├── notes/
+│   └── budget-limit.md     # 작업 중 결정 노트 — 인수 시 삭제
+└── quiz.html               # 최신 Pre-Merge Quiz — 사이클마다 덮어씀
 ```
 
 ### Pre-Merge Quiz 사용법
 
-작업 완료 시 생성되는 퀴즈는 "리뷰어가 이 변경에서 반드시 이해해야 할 것"(동작 변화·위험 지점·계획 이탈)을 묻는 객관식 4~6문항이다. 코드를 본 적 없는 사람도 읽을 수 있는 짧은 문장으로 출제되고, 답에 필요한 정보는 퀴즈 페이지의 '변경 요약' 안에 모두 담긴다 — 보고서를 외울 필요가 없다.
+작업 완료 시 생성되는 퀴즈는 "리뷰어가 이 변경에서 반드시 이해해야 할 것"(동작 변화·위험 지점·계획 이탈)을 묻는 객관식 4~6문항이다. 코드를 본 적 없는 사람도 읽을 수 있는 짧은 문장으로 출제되고, 답에 필요한 정보는 퀴즈 페이지의 '변경 요약' 안에 모두 담긴다 — 보고서를 외울 필요가 없다. 퀴즈는 `docs/quiz.html` 한 파일을 덮어쓰며, 통과 기록은 해당 단위 명세의 '변경 이력' 표에 한 줄로 남는다.
 
-1. 브라우저로 연다 — WSL이면: `explorer.exe docs/blindspot/quiz/<파일명>.html`
+1. 브라우저로 연다 — WSL이면: `explorer.exe docs/quiz.html`
 2. 문항에 답하고 **정답 확인** 버튼을 누른다 — 문항마다 해설이 나타나고 정답 보기가 강조된다
-3. **전부 맞히기 전에는 머지하지 않는다** — 틀린 문항은 해설과 보고서를 다시 읽고 재시도
+3. **전부 맞히기 전에는 머지하지 않는다** — 틀린 문항은 해설을 다시 읽고 재시도
 
 ## 3. 업데이트
 
@@ -104,14 +122,16 @@ git submodule update --init --recursive
 bash .antigravity/shared/install.sh
 ```
 
+**3계층 이전 버전에서 올라오는 경우**: 옛 `docs/blindspot/` 문서는 그대로 두면 된다. 어떤 스킬도 자동으로 읽지 않는다. 첫 스킬 실행 때 부트스트랩이 제안된다. 옛 문서의 결정을 새 명세로 옮기고 싶으면 그 파일을 지목해 "이 문서의 결정을 명세로 옮겨줘"라고 요청한다. 구현 중이던 작업의 옛 노트 파일도 자동으로 읽지 않으므로, 남은 결정을 `docs/notes/<slug>.md`로 옮겨 달라고 함께 요청하면 된다.
+
 ## 4. 제공 Skill (라이프사이클 순)
 
-| Skill | 용도 | 산출물 |
+| Skill | 용도 | 갱신하는 문서 |
 |---|---|---|
-| `requirements-interview` | 구조화된 인터뷰로 요구사항 확정 (한 번에 한 질문, 아키텍처 영향 순) | `docs/blindspot/YYYY-MM-DD-<slug>-requirements.md` |
-| `blindspot-pass` | codebase-scanner 병렬 스캔으로 Unknown Unknowns를 결정 가능한 질문으로 구체화 | `...-unknowns.md` |
-| `explainer` | 결정사항·대안·범위 제외를 담은 독립 설계 문서 | `...-explainer.md` |
-| `work-report` | (노트) 구현 중 결정 즉시 기록 / (보고) diff 분석 + Human/Agent 분리 보고서 + Pre-Merge Quiz | `...-report.md`, `quiz/*.html`, `<slug>-implementation-notes.md` |
+| `requirements-interview` | 구조화된 인터뷰로 요구사항 확정 (한 번에 한 질문, 아키텍처 영향 순) | `specs/<단위>.md` 요구사항·결정 기록·열린 질문 (영역 전체 규칙이면 `rules.md`) |
+| `blindspot-pass` | codebase-scanner 병렬 스캔으로 Unknown Unknowns를 결정 가능한 질문으로 구체화. 맵이 없으면 부트스트랩 | `rules.md`, `map.md`, `specs/<단위>.md` |
+| `explainer` | 결정사항·대안·범위 제외를 담은 단위 상세 명세 완성 | `specs/<단위>.md` 목적·동작·범위 제외, `map.md` 단위·흐름 |
+| `work-report` | (노트) 구현 중 결정 즉시 기록 / (보고) diff 분석 + 명세·맵 반영 + Pre-Merge Quiz | `docs/notes/<slug>.md`, `docs/quiz.html`, 명세 변경 이력 |
 | `blindspot-flow` | 위 전체를 순서대로 실행하는 오케스트레이터 | (하위 skill 산출물) |
 
 ## 5. 제공 Agent (모두 읽기 전용)
@@ -120,18 +140,19 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 
 | Agent | 역할 |
 |---|---|
-| `codebase-scanner` | 렌즈(conventions/similar-features/integration-points/edge-cases)별 코드 탐색, `파일:라인` 근거 반환 |
-| `domain-researcher` | 코드 밖 도메인 지식 웹 리서치 — 핵심 개념·품질 기준·함정을 출처 URL 근거와 함께 반환 |
-| `doc-verifier` | 산출 문서의 placeholder·모순·모호성·범위 검사 |
-| `change-analyzer` | base 대비 diff 분석: 변경 요약, 위험 지점(의심 결함 포함), 계획 대비 이탈, 테스트 유무, 퀴즈 후보 |
+| `codebase-scanner` | 렌즈(structure/conventions/similar-features/integration-points/edge-cases)별 코드 탐색. 기존 규칙·맵을 받으면 새 것만 `파일:라인` 근거와 반영 계층을 달아 반환 |
+| `domain-researcher` | 코드 밖 도메인 지식 웹 리서치 — 핵심 개념·품질 기준·함정을 출처 URL 근거와 반영 계층과 함께 반환 |
+| `doc-verifier` | 계층 문서의 placeholder·모순·모호성·범위·계층 위치 검사 |
+| `change-analyzer` | base 대비 diff 분석: 변경 요약, 위험 지점(의심 결함 포함), 명세 대비 이탈, 문서 갱신 필요, 테스트 유무, 퀴즈 후보 |
 | `check-runner` | 프로젝트 표준 검사(테스트·린트·빌드) 실행 — 실패만 증류해 반환, 전체 로그는 반환 안 함 |
 
 ## 6. 규칙
 
-- 산출물은 전부 한국어, `docs/blindspot/` 아래에 저장
+- 산출물은 전부 한국어. `docs/<영역>/`의 3계층 문서와 `docs/notes/`, `docs/quiz.html`에만 저장하고, 사이클마다 새 문서를 만들지 않는다
+- 새 사실은 그것을 온전히 담는 가장 낮은 계층에 한 번만 적는다. 줄 상한(60/150/200)을 넘으면 아래 계층으로 내린다
 - Pre-Merge Quiz를 전부 맞히기 전에는 머지 금지
-- 질문은 답이 설계를 바꾸는 것만 온다 — 근거로 정할 수 있는 것은 스스로 정하고 기록으로 남긴다. 한 pass에 질문이 7개를 넘으면 질문 대신 추가 스캔으로 먼저 줄인다
-- 구현 중에는 되돌릴 수 있는 결정으로 작업을 멈추지 않는다 — 보수적 기본값으로 진행, 구현 노트에 기록, 체크포인트에서 일괄 확인 (되돌리기 어려운 결정만 즉시 질문)
+- 질문은 답이 설계를 바꾸는 것만 온다 — 근거로 정할 수 있는 것은 스스로 정하고 결정 기록으로 남긴다. 한 pass에 질문이 7개를 넘으면 질문 대신 추가 스캔으로 먼저 줄인다
+- 구현 중에는 되돌릴 수 있는 결정으로 작업을 멈추지 않는다 — 보수적 기본값으로 진행, 작업 노트에 기록, 체크포인트에서 일괄 확인 (되돌리기 어려운 결정만 즉시 질문)
 
 ## 7. 문제 해결
 
@@ -141,14 +162,17 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 | `install.sh`가 python3 없다고 실패 | python3 설치 (`sudo apt install python3`), 또는 에러 메시지에 출력된 hook JSON을 settings.json에 수동 추가 |
 | clone 직후 `.antigravity/skills/` 심링크가 깨져 있음 | submodule 미초기화 — `git submodule update --init --recursive` 후 `install.sh` 재실행 |
 | skill이 자동으로 발동하지 않음 | 설치 후 시작한 **새 세션**인지 확인. 그래도 안 되면 skill 이름을 직접 언급 ("blindspot-pass 실행해줘") |
+| 병렬 브랜치 둘이 `docs/quiz.html`이나 `docs/notes/`에서 충돌 | 둘 다 일회용 — 내 브랜치 것을 유지하고 필요하면 다시 생성 |
+| `map.md`나 명세의 표에서 충돌 | 양쪽 행을 모두 취한다 — 행은 표 끝에 붙으므로 충돌이 줄 단위다 |
+| 맵이 실제 코드와 다름 | "맵 갱신해줘" — blindspot-pass가 기존 문서를 받아 달라진 부분만 고친다. 링크 무결성만 따로 보려면 `python3 .claude/skills/work-report/scripts/docs_check.py docs/<영역>/map.md` |
 | 네이티브 Windows에서 심링크 오류 | 지원 범위 밖 — Linux / WSL / macOS에서 사용 |
 
 ## 8. 이 저장소 개발
 
 ```bash
-bash test/check.sh   # mandate hook + frontmatter lint + skill→agent 참조 무결성 + readability 표준 동기화 + installer 멱등성
+bash test/check.sh   # mandate hook·계층 경로 + frontmatter lint + skill↔agent 참조 + readability 4사본 + installer 멱등성 + docs_check 템플릿·음성 fixture + 폐지 경로·헤딩 계약·템플릿 참조 + MANDATE 상한
 ```
 
 skill/agent를 추가·제거하면 `test/check.sh`의 파일 수(`-eq 10`)·skill 목록과 `MANDATE.md` 매핑표를 함께 갱신해야 한다 (`ANTIGRAVITY.md`의 Consumer contract 체크리스트 참고).
 
-설계 문서: `docs/superpowers/specs/`, 구현 계획: `docs/superpowers/plans/`, 실동작 검증 기록: `docs/blindspot/`
+설계 문서: `docs/superpowers/specs/`, 구현 계획: `docs/superpowers/plans/`. 이 저장소 자체의 3계층 문서: `docs/core/`. 3계층 이전 이력(수락된 보고서·퀴즈): `docs/blindspot/`
