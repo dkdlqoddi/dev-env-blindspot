@@ -52,9 +52,21 @@ cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
 ) || fail "install idempotency check failed"
 
 # --- 6. countable readability limits: checker runs clean on the shipped templates ---
-python3 "$ROOT/skills/work-report/scripts/quiz_check.py" \
+python3 "$ROOT/skills/work-report/scripts/docs_check.py" \
   "$ROOT/skills/work-report/templates/quiz.html" \
   "$ROOT/skills/work-report/templates/report.md" >/dev/null \
-  || fail "quiz_check.py reported violations on the work-report templates"
+  || fail "docs_check.py reported violations on the work-report templates"
+
+# --- 9. docs_check.py must fail loudly on broken tier files (negative fixture) ---
+fx="$tmp/fx/area"; mkdir -p "$fx/specs"
+printf '# r\n%.0s' $(seq 61) > "$fx/rules.md"
+printf '# m\n\n## 단위\n\n| 단위 | 하는 일 | 위치 | 상세 명세 |\n|---|---|---|---|\n| a | x | src/a | specs/missing.md |\n' > "$fx/map.md"
+{ printf '# s\n\n## 목적과 배경\n\n'; printf '%s ' $(seq 30); printf '끝.\n\n## 요구사항\n\n## 동작 방식\n\n## 의도적 범위 제외\n\n'; printf 'x\n%.0s' $(seq 200); } > "$fx/specs/orphan.md"
+if out="$(python3 "$ROOT/skills/work-report/scripts/docs_check.py" "$fx/rules.md" "$fx/map.md" "$fx/specs/orphan.md" 2>&1)"; then
+  fail "docs_check.py exited 0 on a broken fixture"
+fi
+for msg in 'max 60' 'does not exist' 'not listed' 'max 200' '어절'; do
+  grep -q "$msg" <<<"$out" || fail "docs_check.py fixture output missing '$msg'"
+done
 
 echo "OK: all checks passed"
