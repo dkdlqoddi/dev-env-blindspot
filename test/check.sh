@@ -51,11 +51,13 @@ cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
   [[ "$(grep -cxF '@.claude/shared/MANDATE.md' CLAUDE.md)" == 1 ]] || { echo "CLAUDE.md import missing or duplicated"; exit 1; }
 ) || fail "install idempotency check failed"
 
-# --- 6. countable readability limits: checker runs clean on the shipped templates ---
+# --- 6. countable limits: docs_check.py runs clean on every shipped template ---
 python3 "$ROOT/skills/work-report/scripts/docs_check.py" \
   "$ROOT/skills/work-report/templates/quiz.html" \
-  "$ROOT/skills/work-report/templates/report.md" >/dev/null \
-  || fail "docs_check.py reported violations on the work-report templates"
+  "$ROOT/skills/blindspot-pass/templates/rules.md" \
+  "$ROOT/skills/blindspot-pass/templates/map.md" \
+  "$ROOT/skills/explainer/templates/spec.md" >/dev/null \
+  || fail "docs_check.py reported violations on the shipped templates"
 
 # --- 9. docs_check.py must fail loudly on broken tier files (negative fixture) ---
 fx="$tmp/fx/area"; mkdir -p "$fx/specs"
@@ -68,5 +70,12 @@ fi
 for msg in 'max 60' 'does not exist' 'not listed' 'max 200' '어절'; do
   grep -q "$msg" <<<"$out" || fail "docs_check.py fixture output missing '$msg'"
 done
+
+# --- 8. template heading contract: skills write sections by heading name ---
+need() { local f="$1"; shift; for h in "$@"; do grep -qxF "## $h" "$f" || fail "$f: missing heading '## $h'"; done; }
+need "$ROOT/skills/blindspot-pass/templates/rules.md" "불변 규칙" "관례" "표준 명령" "용어"
+need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "주요 흐름" "통합 지점" "알려진 위험"
+need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
+grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
 
 echo "OK: all checks passed"
