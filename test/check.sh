@@ -10,6 +10,9 @@ out="$(bash "$ROOT/hooks/mandate.sh")"
 for skill in requirements-interview blindspot-pass explainer work-report blindspot-flow; do
   grep -q "$skill" <<<"$out" || fail "mandate.sh output missing $skill"
 done
+for p in 'docs/<area>/rules.md' 'docs/<area>/map.md' 'docs/<area>/specs/<unit>.md' 'docs/quiz.html' 'docs/notes/'; do
+  grep -qF "$p" <<<"$out" || fail "mandate.sh output missing tier path $p"
+done
 
 # --- 2. frontmatter lint (skills + agents) ---
 files=("$ROOT"/skills/*/SKILL.md "$ROOT"/agents/*.md)
@@ -83,7 +86,7 @@ need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항
 grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
 
 # --- 7. retired per-cycle paths must not survive in shipped instructions ---
-hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" || true)"
+hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" || true)"
 [[ -z "$hits" ]] || fail "retired path referenced:"$'\n'"$hits"
 
 # --- 10. every templates/<file> named in a SKILL.md ships in some skill ---
@@ -92,5 +95,8 @@ while read -r t; do
   for f in "$ROOT"/skills/*/templates/"$t"; do [[ -f "$f" ]] && found=1; done
   [[ $found == 1 ]] || fail "a SKILL.md references templates/$t but no skill ships it"
 done < <(grep -ho 'templates/[A-Za-z0-9_.-]*' "$ROOT"/skills/*/SKILL.md | sed 's#templates/##' | sort -u)
+
+# --- 11. MANDATE.md is injected into every consumer session twice (hook + @import): keep it small ---
+[[ "$(wc -l < "$ROOT/MANDATE.md")" -le 60 ]] || fail "MANDATE.md over 60 lines"
 
 echo "OK: all checks passed"
