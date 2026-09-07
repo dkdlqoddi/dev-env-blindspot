@@ -17,9 +17,9 @@ bash .antigravity/shared/install.sh
 
 `install.sh`가 하는 일 (멱등 — 몇 번을 재실행해도 안전):
 
-1. `.claude/skills/`, `.claude/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
-2. `.claude/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑 + 문서 계층 규칙) 주입
-3. 프로젝트 `CLAUDE.md`에 `@.claude/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
+1. `.antigravity/skills/`, `.antigravity/agents/`에 개별 상대 심링크 생성 (프로젝트 자체 skill/agent와 공존)
+2. `.antigravity/settings.json`에 SessionStart hook 병합 — 매 세션 `MANDATE.md`(작업유형→필수 skill 매핑 + 문서 계층 규칙) 주입
+3. 프로젝트 `ANTIGRAVITY.md`에 `@.antigravity/shared/MANDATE.md` import 라인 추가 (hook 실패 시 안전망)
 
 설치가 잘 됐는지 확인:
 
@@ -32,7 +32,7 @@ bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가
 
 ## 2. 사용법
 
-설치 후 **새로 시작하는 Claude Code 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙과 문서 계층 규칙을 Claude에게 주입한다.
+설치 후 **새로 시작하는 Antigravity 세션부터** 자동 적용된다. 별도 명령 없이, 매 세션 시작 시 hook이 "이런 작업에는 이 skill을 쓰라"는 규칙과 문서 계층 규칙을 Antigravity에게 주입한다.
 
 ### 문서 3계층
 
@@ -44,7 +44,7 @@ bash .antigravity/shared/hooks/mandate.sh | head -3   # "# Blindspot Mandate"가
 | Tier 2 System Map | `docs/<영역>/map.md` | 단위 목록과 위치, 주요 흐름, 통합 지점, 단위 간 위험 (150줄 이하) | 위치를 찾거나 흐름을 볼 때 |
 | Tier 3 Detail Spec | `docs/<영역>/specs/<단위>.md` | 단위 하나의 목적, 요구사항, 동작, 결정 기록, 엣지케이스, 범위 제외, 열린 질문, 변경 이력 (200줄 이하) | 작업이 닿는 단위만 |
 
-영역은 `docs/` 아래에 `map.md`를 가진 폴더다. 프론트엔드와 백엔드가 각각 세 층을 따로 가지며, 둘 다 아닌 프로젝트(CLI, 라이브러리)는 `core` 하나를 쓴다. 프로젝트 공통 규칙은 프로젝트의 CLAUDE.md가 맡는다.
+영역은 `docs/` 아래에 `map.md`를 가진 폴더다. 프론트엔드와 백엔드가 각각 세 층을 따로 가지며, 둘 다 아닌 프로젝트(CLI, 라이브러리)는 `core` 하나를 쓴다. 프로젝트 공통 규칙은 프로젝트의 ANTIGRAVITY.md가 맡는다.
 
 **첫 실행(부트스트랩)**: 영역에 `map.md`가 없으면 스킬이 `blindspot-pass`로 부트스트랩을 제안한다. 코드를 스캔해 rules.md와 map.md를 만들고 영역 판정 결과를 알려준다(애매할 때만 한 번 묻는다). 상세 명세는 미리 만들지 않고, 작업이 그 단위에 닿을 때 생긴다. 큰 리팩터링 뒤에는 "맵 갱신해줘"라고 하면 기존 문서를 받아 달라진 부분만 고친다.
 
@@ -164,7 +164,7 @@ skill들이 탐색·검증을 위임하는 하위 에이전트로, 직접 부를
 | skill이 자동으로 발동하지 않음 | 설치 후 시작한 **새 세션**인지 확인. 그래도 안 되면 skill 이름을 직접 언급 ("blindspot-pass 실행해줘") |
 | 병렬 브랜치 둘이 `docs/quiz.html`이나 `docs/notes/`에서 충돌 | 둘 다 일회용 — 내 브랜치 것을 유지하고 필요하면 다시 생성 |
 | `map.md`나 명세의 표에서 충돌 | 양쪽 행을 모두 취한다 — 행은 표 끝에 붙으므로 충돌이 줄 단위다 |
-| 맵이 실제 코드와 다름 | "맵 갱신해줘" — blindspot-pass가 기존 문서를 받아 달라진 부분만 고친다. 링크 무결성만 따로 보려면 `python3 .claude/skills/work-report/scripts/docs_check.py docs/<영역>/map.md` |
+| 맵이 실제 코드와 다름 | "맵 갱신해줘" — blindspot-pass가 기존 문서를 받아 달라진 부분만 고친다. 링크 무결성만 따로 보려면 `python3 .antigravity/skills/work-report/scripts/docs_check.py docs/<영역>/map.md` |
 | 네이티브 Windows에서 심링크 오류 | 지원 범위 밖 — Linux / WSL / macOS에서 사용 |
 
 ## 8. 이 저장소 개발

@@ -6,7 +6,7 @@
 
 ## 영역 개요
 
-이 저장소는 다른 프로젝트가 가져다 쓰는 Claude Code 스킬과 에이전트 묶음이다. 스킬은 작업 순서를 알려주는 지침서이고, 에이전트는 탐색과 검증을 대신 하는 읽기 전용 일꾼이다. 설치 스크립트가 소비 프로젝트에 이것들을 연결하고, 매 세션 시작 때 규칙(MANDATE)을 주입한다. 검사 스크립트 하나가 저장소 전체의 계약을 지킨다.
+이 저장소는 다른 프로젝트가 가져다 쓰는 Antigravity 스킬과 에이전트 묶음이다. 스킬은 작업 순서를 알려주는 지침서이고, 에이전트는 탐색과 검증을 대신 하는 읽기 전용 일꾼이다. 설치 스크립트가 소비 프로젝트에 이것들을 연결하고, 매 세션 시작 때 규칙(MANDATE)을 주입한다. 검사 스크립트 하나가 저장소 전체의 계약을 지킨다.
 
 ## 단위
 
@@ -24,7 +24,7 @@
 
 | 흐름 | 시작점 | 거치는 단위 순서 |
 |---|---|---|
-| 소비 프로젝트 설치 | bash .claude/shared/install.sh | installer → mandate |
+| 소비 프로젝트 설치 | bash .antigravity/shared/install.sh | installer → mandate |
 | 기능 라이프사이클 | 사용자 요청 (mandate 트리거) | lifecycle-skills → agents → templates → docs-check |
 | 저장소 변경 검증 | bash test/check.sh | repo-check → docs-check |
 
@@ -32,8 +32,8 @@
 
 | 상대 | 방식 | 계약 위치 | 관련 단위 |
 |---|---|---|---|
-| 소비 프로젝트 | git submodule + 상대 심링크 + SessionStart hook + CLAUDE.md @import | install.sh, README §1 | installer, mandate |
-| Claude Code | skills/agents frontmatter 규격, subagent_type 이름 | skills/*/SKILL.md, agents/*.md | lifecycle-skills, agents |
+| 소비 프로젝트 | git submodule + 상대 심링크 + SessionStart hook + ANTIGRAVITY.md @import | install.sh, README §1 | installer, mandate |
+| Antigravity | skills/agents frontmatter 규격, TypeName 이름 | skills/*/SKILL.md, agents/*.md | lifecycle-skills, agents |
 
 ## 알려진 위험
 

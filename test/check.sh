@@ -32,7 +32,7 @@ while read -r name; do
 done <<<"$refs"
 for f in "$ROOT"/agents/*.md; do
   name="$(basename "$f" .md)"
-  grep -q "subagent_type: \`$name\`" "$ROOT"/skills/*/SKILL.md || fail "agents/$name.md is not referenced by any SKILL.md"
+  grep -q "\`TypeName: $name\`" "$ROOT"/skills/*/SKILL.md || fail "agents/$name.md is not referenced by any SKILL.md"
 done
 
 # --- 4. readability standard present in its 4 self-contained copies (see ANTIGRAVITY.md conventions) ---
