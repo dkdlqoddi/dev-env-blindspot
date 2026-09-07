@@ -27,6 +27,10 @@ refs="$(grep -ho 'subagent_type: `[a-z-]*`' "$ROOT"/skills/*/SKILL.md | sed 's/.
 while read -r name; do
   [[ -f "$ROOT/agents/$name.md" ]] || fail "skills reference agent '$name' but agents/$name.md is missing"
 done <<<"$refs"
+for f in "$ROOT"/agents/*.md; do
+  name="$(basename "$f" .md)"
+  grep -q "subagent_type: \`$name\`" "$ROOT"/skills/*/SKILL.md || fail "agents/$name.md is not referenced by any SKILL.md"
+done
 
 # --- 4. readability standard present in its 4 self-contained copies (see CLAUDE.md conventions) ---
 n="$(grep -l '25 어절' "$ROOT"/skills/*/SKILL.md | wc -l)" || true
@@ -77,5 +81,16 @@ need "$ROOT/skills/blindspot-pass/templates/rules.md" "불변 규칙" "관례" "
 need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "주요 흐름" "통합 지점" "알려진 위험"
 need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
 grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
+
+# --- 7. retired per-cycle paths must not survive in shipped instructions ---
+hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" || true)"
+[[ -z "$hits" ]] || fail "retired path referenced:"$'\n'"$hits"
+
+# --- 10. every templates/<file> named in a SKILL.md ships in some skill ---
+while read -r t; do
+  found=0
+  for f in "$ROOT"/skills/*/templates/"$t"; do [[ -f "$f" ]] && found=1; done
+  [[ $found == 1 ]] || fail "a SKILL.md references templates/$t but no skill ships it"
+done < <(grep -ho 'templates/[A-Za-z0-9_.-]*' "$ROOT"/skills/*/SKILL.md | sed 's#templates/##' | sort -u)
 
 echo "OK: all checks passed"
