@@ -15,7 +15,7 @@ Run the stages below in order, invoking each with the Skill tool by name. Before
 1. `requirements-interview` → 요구사항 and 결정 기록 rows in the unit spec
 2. `blindspot-pass` → findings filed into rules, map, and spec
 3. `explainer` → 목적과 배경, 동작 방식, 의도적 범위 제외 in the spec; map updated
-4. `work-report` notes mode opens `docs/notes/<slug>.md`; implementation proceeds (implementation itself is outside this skill — only note-keeping is enforced)
+4. Implementation — offer (Korean) 이 세션에서 구현 or Antigravity 스웜으로 구현. In-session: `work-report` notes mode opens `docs/notes/<slug>.md`; implementation proceeds (implementation itself is outside this skill — only note-keeping is enforced). Swarm: `swarm-plan` writes `docs/swarm/`; the user runs `/swarm-run` in Antigravity; then `swarm-review` audits the result and either loops back to `swarm-plan` for a delta round or continues to stage 5
 5. When implementation is done: `work-report` report mode → tiers promoted, `docs/quiz.html` written; after the user passes the quiz, work-report records the 변경 이력 row and deletes the notes file
 
 Do not inline a stage's logic here; if a stage needs fixing, fix that skill.
