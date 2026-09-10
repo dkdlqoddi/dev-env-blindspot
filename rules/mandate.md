@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Blindspot Mandate
 
 Injected into every session of this project. These rules are not optional.

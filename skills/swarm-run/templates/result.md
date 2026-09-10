@@ -8,4 +8,4 @@
 - 결정: 없음 | (비자명한 선택 하나당 한 줄 — 무엇을 골랐고 왜)
 - 막힌 것: 없음 | (소유 파일 밖에 필요한 변경, 불가능하거나 모순된 지시 — 파일과 내용)
 
-<!-- Written by the swarm-worker subagent at the end of its task, replacing T01 with its id. Every bullet stays; 없음 is a valid value. Under 40 lines, no logs. swarm-run reads only the 상태 line; swarm-auditor (Claude Code) reads the rest. -->
+<!-- Written by the swarm-worker subagent at the end of its task, replacing T01 with its id. Every bullet stays; 없음 is a valid value. Under 40 lines, no logs. swarm-run reads only the 상태 line; swarm-auditor (Antigravity subagent) reads the rest. -->

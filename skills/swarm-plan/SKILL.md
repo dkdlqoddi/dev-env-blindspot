@@ -11,7 +11,7 @@ The strong model thinks once, in full context; the fast models execute many time
 
 0. **Preconditions.** Locate the touched unit's `docs/<area>/specs/<unit>.md` through the 단위 table of `docs/<area>/map.md`. It must have 요구사항 and 동작 방식 — if not, tell the user (Korean) and recommend `requirements-interview` / `explainer` first; never plan from a prompt alone. Read `docs/<area>/rules.md` (표준 명령 → 전체 검증; 관례 → what every brief must respect), the 단위 table (위치 → file ownership), and the touched specs. Record `git rev-parse --short HEAD` as the 기준 커밋; if `git status --porcelain` shows uncommitted code changes, ask the user to commit them first — the swarm's 웨이브 commits must contain only swarm work.
 
-1. **Evidence.** Spawn IN PARALLEL (one message, two Agent calls) `codebase-scanner` (subagent_type: `codebase-scanner`) with lens `integration-points` (everything the change must touch — this is the file inventory the ownership sets are cut from) and lens `similar-features` (prior art the workers will imitate — a fast model does well with a concrete `path:line` to copy and badly with a description). Both receive the task description, the tier paths, and the 위치 globs of the touched units. Skip only when the project has no code.
+1. **Evidence.** Spawn IN PARALLEL (one message, two `invoke_subagent` entries) `codebase-scanner` (`TypeName: codebase-scanner`) with lens `integration-points` (everything the change must touch — this is the file inventory the ownership sets are cut from) and lens `similar-features` (prior art the workers will imitate — a fast model does well with a concrete `path:line` to copy and badly with a description). Both receive the task description, the tier paths, and the 위치 globs of the touched units. Skip only when the project has no code.
 
 2. **Decompose.** Cut the work into tasks that satisfy all of:
    - **Self-contained** — finishable by a fast model that reads only the brief and the files it names; S–M size (roughly one file group, one behavior). Bigger → split.
@@ -24,13 +24,13 @@ The strong model thinks once, in full context; the fast models execute many time
 
 3. **Write the package.** `docs/swarm/plan.md` from `templates/plan.md` in this skill's folder; one `docs/swarm/tasks/<id>.md` per task from `templates/task.md`. Every brief: literal paths, the 참고 파일 to imitate, 완료 조건 phrased as checks ("X를 호출하면 Y를 돌려준다"), the 검증 command. Ban the words 필요하면 and 적절히 — they hand the decision to the weakest model in the chain (`swarm_check.py` rejects them). Add the 회차 row (회차 1, 범위 전체).
 
-4. **Validate.** Run `python3 .claude/skills/swarm-plan/scripts/swarm_check.py docs/swarm/plan.md` (`scripts/swarm_check.py` in this skill's folder) and fix every violation. Then spawn `doc-verifier` (subagent_type: `doc-verifier`) on `docs/swarm/plan.md` and on the two largest briefs, naming all sections as filled; fix every placeholder, contradiction, and ambiguity it reports.
+4. **Validate.** Run `python3 .agents/skills/swarm-plan/scripts/swarm_check.py docs/swarm/plan.md` (`scripts/swarm_check.py` in this skill's folder) and fix every violation. Then spawn `doc-verifier` (`TypeName: doc-verifier`) on `docs/swarm/plan.md` and on the two largest briefs, naming all sections as filled; fix every placeholder, contradiction, and ambiguity it reports.
 
-5. **Open the notes.** Ensure `docs/notes/<slug>.md` exists (the `work-report` skill's `templates/notes.md`, installed at `.claude/skills/work-report/templates/notes.md`) and append one entry: the decomposition decision (웨이브 count, what was kept out of the swarm and why) — `work-report` report mode promotes it later.
+5. **Open the notes.** Ensure `docs/notes/<slug>.md` exists (the `work-report` skill's `templates/notes.md`, installed at `.agents/skills/work-report/templates/notes.md`) and append one entry: the decomposition decision (웨이브 count, what was kept out of the swarm and why) — `work-report` report mode promotes it later.
 
-6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): Antigravity에서 `/swarm-run` 실행 — 앱이면 이 프로젝트를 열고 채팅에 `/swarm-run`; CLI면 프로젝트 루트에서
+6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): `/swarm-run` 실행 — 채팅에 `/swarm-run`을 입력하거나 CLI에서
    `agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-medium --dangerously-skip-permissions --print-timeout 60m`
-   끝나면 Claude Code에서 `swarm-review`.
+   끝나면 `swarm-review`로 감사를 진행합니다.
 
 **Re-plan round** (called from `swarm-review` with the failed, held, or deviated task ids): keep every 완료 확인 task untouched; rewrite only the named briefs — fold each 막힌 것 text in, split a task that was too big, add a 선행 where an interface was missing; append a 회차 row naming the ids; re-run step 4; tell the user to run `/swarm-run` again (it resumes from `docs/swarm/status.md` and re-dispatches only tasks that are not 완료).
 

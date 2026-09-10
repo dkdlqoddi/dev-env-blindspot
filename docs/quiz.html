@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>머지 전 퀴즈: Claude Code 계획 · Antigravity 스웜 실행 분업</title>
+<title>머지 전 퀴즈: Google Antigravity 순수 단일 하네스 일원화</title>
 <style>
   body { font-family: sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
   .q { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
@@ -19,15 +19,14 @@
 </style>
 </head>
 <body>
-<h1>머지 전 퀴즈: Claude Code 계획 · Antigravity 스웜 실행 분업</h1>
-<p class="meta">대상: docs/core/specs/swarm-handoff.md · 기준: 392598a (main)</p>
+<h1>머지 전 퀴즈: Google Antigravity 순수 단일 하네스 일원화</h1>
+<p class="meta">대상: docs/core/specs/lifecycle-skills.md, docs/core/specs/swarm-handoff.md · 기준: aed3b64</p>
 <div class="summary">
 <h2>변경 요약</h2>
-<p>구현 작업을 두 도구에 나누어 맡기는 장치가 생겼습니다. 생각이 필요한 일은 Claude Code의 강한 모델이 합니다. 인터뷰, 점검, 설계, 계획, 감사, 보고가 여기에 속합니다. 정해진 대로 고치는 일은 Antigravity의 빠른 모델 여러 개가 동시에 합니다. 두 도구는 같은 폴더의 파일로만 대화합니다.</p>
-<p>계획 스킬은 확정된 명세가 있어야만 계획을 씁니다. 요청 문장만으로는 계획을 쓰지 않습니다. 계획은 작업마다 지시서(브리프) 한 장을 만듭니다. 지시서에는 고칠 파일, 할 일, 끝났다고 볼 조건, 검사 명령이 전부 적힙니다. 동시에 도는 작업들은 서로 다른 파일만 고칩니다. 검사 스크립트가 실행 전에 이것을 확인하고 겹치면 막습니다.</p>
-<p>작업은 묶음(웨이브) 단위로 동시에 실행됩니다. 한 묶음이 끝나면 검사 에이전트가 전체 검사를 돌립니다. 검사가 실패하면 한 번 다시 시도합니다. 그래도 실패하면 거기서 멈추고 다음 묶음으로 가지 않습니다. 다시 계획하는 일은 Claude Code가 합니다. 묶음마다 변경이 커밋으로 남습니다.</p>
-<p>Antigravity 쪽 하위 에이전트는 자기 지시서에 적힌 파일만 고칩니다. 질문하지 않고, 계획을 고치지 않습니다. 지시서 밖의 파일을 고쳐야 하면 고치지 않고 결과 파일에 적고 멈춥니다. Claude Code의 검토 스킬은 하위 에이전트의 "완료" 주장을 실제 변경과 대조해 판정합니다. 하위 에이전트가 내린 선택은 작업 노트로 옮겨집니다. 그다음 기존 보고 스킬과 이 머지 전 퀴즈로 넘어갑니다.</p>
-<p>파일을 직접 고치는 에이전트는 Antigravity의 하위 에이전트 하나뿐입니다. Claude Code 쪽 에이전트는 예전처럼 파일을 고치지 않습니다. 기존 다섯 스킬과 다섯 에이전트의 이름과 수는 그대로입니다. 계획 폴더(docs/swarm)는 퀴즈 통과 뒤 작업 노트와 함께 지워집니다.</p>
+<p>계획부터 실행까지 모든 과정이 Google Antigravity 단독으로 진행되도록 통합되었습니다. Claude Code 의존성과 관련 설정 파일이 완전히 제거되었습니다. 스킬 8종과 서브에이전트 8종은 Antigravity 표준 규격으로 일원화되었습니다.</p>
+<p>판단과 설계는 Antigravity 메인 세션의 강한 모델이 맡습니다. 인터뷰, 사각지대 점검, 명세 작성, 스웜 계획이 여기에 속합니다. 구현과 검증은 Antigravity의 빠른 서브에이전트 여러 개가 병렬로 합니다.</p>
+<p>소비 프로젝트는 install.sh 한 번으로 필요한 스킬과 에이전트를 연결합니다. 프로젝트 가이드는 ANTIGRAVITY.md와 AGENTS.md로 제공됩니다.</p>
+<p>파일을 고치는 에이전트는 여전히 swarm-worker 하나뿐입니다. 그것도 자기 지시서에 적힌 소유 파일 안에서만 고칩니다. 다른 모든 탐색과 검증 에이전트는 읽기 전용입니다. 모든 과정이 끝나면 변경 사항을 계층 문서에 반영하고 퀴즈를 거쳐 머지합니다.</p>
 </div>
 <h2>퀴즈 — 전부 맞혀야 머지 가능</h2>
 <p>답을 고르는 데 필요한 내용은 위 '변경 요약'에 모두 들어 있습니다.</p>
@@ -35,54 +34,57 @@
 <button onclick="grade()">정답 확인</button>
 <div id="result"></div>
 <script>
-// QUESTIONS: work-report replaces this array with the real questions.
-// Every sentence follows the non-expert bar (work-report SKILL.md step 4 rules). explain is required — revealed after grading.
 const QUESTIONS = [
-  { q: "한 묶음의 전체 검사가 한 번 다시 시도한 뒤에도 실패했습니다. 실행 스킬은 어떻게 합니까?",
-    options: ["다음 묶음을 그대로 계속 진행한다", "거기서 멈추고 Claude Code가 다시 계획한다", "실패한 작업을 스스로 고쳐 마무리한다"], answer: 1,
-    explain: "재시도 뒤에도 실패하면 실행 스킬(swarm-run)은 진행을 끝남으로 표시하고 멈춥니다. 깨진 바탕 위에 다음 묶음을 쌓으면 실패가 이어지고 사용량만 소모되기 때문입니다. 실행 스킬은 계획을 고치지 않으므로 스스로 마무리하는 선택지는 틀렸습니다." },
-  { q: "하위 에이전트가 일하다가 자기 지시서에 없는 파일도 고쳐야 한다는 것을 알았습니다. 무엇을 해야 합니까?",
-    options: ["필요한 파일이니 그냥 고친다", "사용자에게 물어보고 기다린다", "고치지 않고 결과 파일에 적고 멈춘다"], answer: 2,
-    explain: "하위 에이전트(swarm-worker)는 지시서의 소유 파일만 고칩니다. 밖의 파일이 필요하면 부분 완료로 표시하고 막힌 것에 적습니다. 하위 에이전트는 질문하지 않도록 되어 있어 물어보고 기다리는 선택지는 틀렸습니다." },
-  { q: "사용자가 요청 문장만 주었고 확정된 명세는 아직 없습니다. 계획 스킬은 어떻게 합니까?",
-    options: ["요청 문장으로 바로 계획을 쓴다", "명세를 먼저 만들라고 안내하고 계획을 쓰지 않는다", "빠른 모델에게 명세를 쓰게 시킨다"], answer: 1,
-    explain: "계획 스킬(swarm-plan)은 명세에 요구사항과 동작 방식이 있어야만 시작합니다. 요청 문장의 빈틈이 그대로 여러 하위 에이전트에게 퍼지기 때문입니다. 명세는 인터뷰와 설계 스킬이 만들며, 빠른 모델의 일이 아닙니다." },
-  { q: "두 작업이 같은 파일을 같은 묶음에서 고치도록 계획이 짜였습니다. 무슨 일이 생깁니까?",
-    options: ["실행 전 검사 스크립트가 막는다", "두 작업이 차례로 실행된다", "나중 작업이 앞 작업을 덮어쓴다"], answer: 0,
-    explain: "검사 스크립트(swarm_check.py)가 같은 묶음 안의 소유 파일 겹침을 찾아 실행을 막습니다. 하위 에이전트들은 같은 작업 폴더를 함께 쓰므로, 검사가 없었다면 덮어쓰기가 실제로 일어났을 것입니다. 차례로 실행하는 기능은 없습니다." },
-  { q: "하위 에이전트가 결과 파일에 완료라고 적었습니다. Claude Code의 검토 스킬은 이것을 어떻게 다룹니까?",
-    options: ["완료로 믿고 바로 머지한다", "하위 에이전트에게 다시 물어본다", "실제 변경과 대조해 확인한 뒤 판정한다"], answer: 2,
-    explain: "검토 스킬(swarm-review)은 감사 에이전트(swarm-auditor)로 완료 주장을 실제 변경(diff)과 대조합니다. 하위 에이전트는 다른 작업을 볼 수 없어 완료는 주장일 뿐이기 때문입니다. 머지는 그 뒤 보고 스킬과 퀴즈를 거쳐야 합니다." },
-  { q: "이 변경으로 파일을 직접 고치는 에이전트가 처음 생겼습니다. 어느 에이전트가 어디까지 고칠 수 있습니까?",
-    options: ["Claude Code 에이전트가 필요한 파일을 모두 고친다", "Antigravity 하위 에이전트가 지시서의 파일만 고친다", "양쪽 에이전트가 모두 자유롭게 고친다"], answer: 1,
-    explain: "파일을 고치는 에이전트는 Antigravity의 하위 에이전트(swarm-worker) 하나뿐입니다. 그것도 자기 지시서에 적힌 소유 파일 안에서만 고칩니다. Claude Code 쪽 에이전트는 예전처럼 탐색과 검증만 하고 파일을 고치지 않습니다." },
+  { q: "antigravity-pure 브랜치에서 계획부터 실행까지의 모든 과정은 어디서 진행됩니까?",
+    options: ["Google Antigravity 단독으로 진행된다", "Claude Code와 Antigravity로 나누어 진행된다", "외부 서버에서 별도로 실행된다"], answer: 0,
+    explain: "antigravity-pure 브랜치는 계획부터 실행까지 전 과정을 Google Antigravity 메인 세션과 서브에이전트로 단독 완결하도록 통합했습니다." },
+  { q: "파일을 직접 만들거나 고칠 수 있는 서브에이전트는 어느 것입니까?",
+    options: ["모든 서브에이전트가 자유롭게 고친다", "swarm-worker 하나만 소유 파일 안에서 고친다", "codebase-scanner와 check-runner가 고친다"], answer: 1,
+    explain: "파일을 고치는 에이전트는 swarm-worker 하나뿐이며, 브리프에 지정된 소유 파일만 고칩니다. 다른 모든 에이전트는 읽기 전용입니다." },
+  { q: "소비 프로젝트에서 스킬과 에이전트를 설치할 때 어떤 스크립트를 사용합니까?",
+    options: ["install.sh 한 번으로 설치한다", "여러 도구의 설정창에서 수동 입력한다", "설치 스크립트 없이 파일을 직접 복사한다"], answer: 0,
+    explain: "install.sh 스크립트 하나로 .agents/{skills,agents,rules} 심링크와 안내 문서 import가 모두 멱등하게 설정됩니다." },
+  { q: "인터뷰, 사각지대 점검, 명세 작성, 스웜 계획 같은 설계 단계는 누가 맡습니까?",
+    options: ["Antigravity 메인 세션의 강한 모델이 맡는다", "빠른 서브에이전트가 알아서 결정한다", "작업 워커가 임의로 판단한다"], answer: 0,
+    explain: "판단과 설계는 메인 세션의 강한 모델이 한 번에 깊게 수행하고, 서브에이전트는 정해진 브리프대로 고속 실행만 담당합니다." },
+  { q: "변경 내용을 머지하기 전에 반드시 통과해야 하는 관문은 무엇입니까?",
+    options: ["브라우저에서 머지 전 퀴즈를 모두 맞힌다", "커밋 메시지만 작성하고 바로 머지한다", "문서 작성 없이 코드만 확인한다"], answer: 0,
+    explain: "작업 보고와 변경 사항이 3계층 문서에 반영된 후, 사람이 퀴즈를 전부 맞혀야 머지 게이트를 통과할 수 있습니다." }
 ];
 const quiz = document.getElementById("quiz");
-QUESTIONS.forEach((it, i) => {
+QUESTIONS.forEach((q, i) => {
   const d = document.createElement("div");
-  d.className = "q"; d.id = "q" + i;
-  d.innerHTML = "<p><b>Q" + (i + 1) + ".</b> " + it.q + "</p>" +
-    it.options.map((o, j) =>
-      '<label><input type="radio" name="q' + i + '" value="' + j + '"> ' + o + "</label>"
-    ).join("") +
-    '<div class="explain" hidden><b>해설.</b> ' + it.explain + "</div>";
+  d.className = "q";
+  d.id = `q${i}`;
+  d.innerHTML = `<p><strong>${i+1}. ${q.q}</strong></p>` +
+    q.options.map((opt, j) => `<label><input type="radio" name="q${i}" value="${j}"> ${opt}</label>`).join("");
   quiz.appendChild(d);
 });
 function grade() {
-  let ok = 0;
-  QUESTIONS.forEach((it, i) => {
-    const sel = document.querySelector('input[name="q' + i + '"]:checked');
-    const el = document.getElementById("q" + i);
-    const good = sel && Number(sel.value) === it.answer;
-    el.className = "q " + (good ? "correct" : "wrong");
-    el.querySelectorAll("label")[it.answer].classList.add("answer");
-    el.querySelector(".explain").hidden = false;
-    if (good) ok++;
+  let score = 0;
+  QUESTIONS.forEach((q, i) => {
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    const d = document.getElementById(`q${i}`);
+    d.querySelectorAll(".explain").forEach(e => e.remove());
+    if (sel && parseInt(sel.value, 10) === q.answer) {
+      d.className = "q correct";
+      score++;
+    } else {
+      d.className = "q wrong";
+      const exp = document.createElement("div");
+      exp.className = "explain";
+      exp.textContent = "해설: " + q.explain;
+      d.appendChild(exp);
+    }
   });
-  const r = document.getElementById("result");
-  r.textContent = ok === QUESTIONS.length
-    ? "통과 (" + ok + "/" + QUESTIONS.length + ") — 머지 가능"
-    : "미통과 (" + ok + "/" + QUESTIONS.length + ") — 오답 확인 후 재시도. 머지 금지";
+  const res = document.getElementById("result");
+  if (score === QUESTIONS.length) {
+    res.textContent = `통과 (${score}/${QUESTIONS.length})`;
+    res.style.color = "#2e7d32";
+  } else {
+    res.textContent = `불통과 (${score}/${QUESTIONS.length}) — 해설을 읽고 다시 시도하세요`;
+    res.style.color = "#c62828";
+  }
 }
 </script>
 </body>
