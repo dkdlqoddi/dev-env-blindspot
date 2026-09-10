@@ -17,7 +17,7 @@ bash test/check.sh
 Covers:
 - Mandate hook output names all 8 skills and the tier + working paths (incl. `docs/swarm/`).
 - YAML frontmatter lint (`name`, `description`) across all 8 skills (`skills/*/SKILL.md`).
-- Frontmatter contract of all 10 OpenCode subagents (`agents/*.md` with `mode: subagent`, valid `permission:` object).
+- Frontmatter contract of all 11 OpenCode subagents (`agents/*.md` with `mode: subagent`, valid `permission:` object).
 - Frontmatter contract of slash commands (`.opencode/commands/*.md`).
 - Frontmatter contract of rules (`rules/*.md` with `trigger: always_on`).
 - Skill↔agent `TypeName: <name>` reference integrity in both directions (every referenced agent exists, every agent is referenced in skills and named in `MANDATE.md` Hard Rule 2).
@@ -40,7 +40,7 @@ Covers:
 - OpenCode subagents (`agents/*.md`) use OpenCode's frontmatter: `mode: subagent` and explicit `permission:` mapping for tools (`read`, `edit`, `glob`, `grep`, `list`, `bash`, `task`, `websearch`, `webfetch`).
 - Subagent responsibilities:
   - Exploration and research: `codebase-scanner` (repo lenses), `domain-researcher` (web research).
-  - Verification and audit: `doc-verifier` (tier document quality), `change-analyzer` (diff analysis), `check-runner` (standard test/lint runner), `swarm-auditor` (swarm diff and claim audit).
+  - Verification and audit: `doc-verifier` (tier document quality), `change-analyzer` (diff analysis), `check-runner` (standard test/lint runner), `swarm-auditor` (swarm diff and claim audit), `swarm-plan-reviewer` (agent network collaboration plan audit).
   - Collaborative swarm execution: `swarm-worker` (implements single brief within owned files, collaborates with verifier and reviewer via `task` tool), `swarm-verifier` (validates implementation with tests/lints), `swarm-reviewer` (reviews diff against rules.md & brief), `swarm-checker` (verifies wave with plan command).
 - Deliverable path contract baked into skills and MANDATE: `docs/<area>/rules.md` (Tier 1, ≤60 lines), `docs/<area>/map.md` (Tier 2, ≤150 lines), `docs/<area>/specs/<unit>.md` (Tier 3, ≤200 lines), `docs/notes/<slug>.md` (deleted at acceptance), `docs/quiz.html` (overwritten each cycle), `docs/swarm/` (plan package `plan.md` + `tasks/<id>.md` written by swarm-plan, run records `status.md` + `results/<id>.md` written by swarm-run / swarm-worker; 100% deleted at acceptance leaving only the 3-layer living documents). An area is a directory under `docs/` holding `map.md`; canonical areas are `frontend` and `backend`, a single-area project uses `core`.
 - Swarm plan contract (enforced by `skills/swarm-plan/scripts/swarm_check.py`, called by swarm-plan and by swarm-run before dispatch): task ids `T01`…, one brief per id, 웨이브 numbers, 선행 ids in earlier 웨이브 only, 소유 파일 as backticked paths disjoint within a 웨이브, briefs with 목표 / 해야 할 일 / 완료 조건 / 협업 프로토콜 / 검증, no placeholders. Workers share the tree — ownership disjointness is the only thing keeping parallel writes safe.

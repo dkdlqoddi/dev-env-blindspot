@@ -34,7 +34,7 @@
 
 ## 3. 에이전트 협업 네트워크 아키텍처 (OpenCode 런타임)
 
-### 3.1 10종 서브에이전트 및 권한 매핑
+### 3.1 11종 서브에이전트 및 권한 매핑
 
 OpenCode에서는 `permission` 블록을 통해 에이전트별 도구 접근을 선언적으로 통제합니다:
 
@@ -50,6 +50,7 @@ OpenCode에서는 `permission` 블록을 통해 에이전트별 도구 접근을
 | `swarm-reviewer` | subagent | rules.md 불변규칙 및 diff 정밀 리뷰 | `read`, `glob`, `grep`, `list`, `bash` | `edit` (읽기 전용), `task` | Reasoning (DeepSeek-R1 / 32B) |
 | `swarm-checker` | subagent | 웨이브 전체 통합 검증 및 커밋 판정 | `read`, `bash` | `edit`, `task` | Fast (7B) |
 | `swarm-auditor` | subagent | 스웜 전체 diff 및 결과 파일 무결성 감사 | `read`, `glob`, `grep`, `list`, `bash` | `edit`, `task` | Reasoning / Coder (32B) |
+| `swarm-plan-reviewer` | subagent | 에이전트 네트워크 협업 계획 5대 차원 사전 감사 | `read`, `glob`, `grep`, `list`, `bash` | `edit`, `task` | Reasoning (DeepSeek-R1 / 32B) |
 
 ### 3.2 협업 라이프사이클 (Triad Squad Collaboration Flow)
 

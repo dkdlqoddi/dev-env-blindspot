@@ -1,7 +1,7 @@
 # swarm-handoff 상세 명세 (Tier 3)
 
 - 영역: core
-- 위치: skills/swarm-plan/, skills/swarm-run/, skills/swarm-review/, agents/swarm-*.md (워커: swarm-worker.md, 검증: swarm-verifier.md, 리뷰: swarm-reviewer.md, 체커: swarm-checker.md, 감사: swarm-auditor.md)
+- 위치: skills/swarm-plan/, skills/swarm-run/, skills/swarm-review/, agents/swarm-*.md (워커: swarm-worker.md, 검증: swarm-verifier.md, 리뷰: swarm-reviewer.md, 체커: swarm-checker.md, 계획 리뷰: swarm-plan-reviewer.md, 감사: swarm-auditor.md)
 - 최종 갱신: 2026-09-10
 - 상태: 확정
 - 읽는 법: '목적과 배경', '요구사항', '동작 방식', '의도적 범위 제외'는 코드를 모르는 분도 읽을 수 있게 씁니다. 그 외는 개발자와 AI를 위한 상세입니다.
@@ -17,14 +17,16 @@
 3. 작업 진행 중 생성된 중간 문서(docs/swarm/, docs/notes/)는 작업 종료 시 모두 삭제하고 최종 산출물은 3계층 문서로 고정한다. (사용자 요청 2026-09-10)
 4. 모든 과정이 오픈소스 LLM API 기반 OpenCode 단독 환경에서 완결된다.
 5. 기존 스킬과 에이전트의 계약 및 인터페이스를 보존한다. (규칙 3, 소비자 계약)
+6. 에이전트 네트워크 협업 계획을 세운 뒤 실행하기 전에 전용 검토자(swarm-plan-reviewer)가 계획 자체를 미리 검토한다. (사용자 요청 2026-09-10)
 
 ## 동작 방식
 
-설계가 끝난 명세를 바탕으로 계획 스킬(swarm-plan)이 작업을 잘게 나눕니다. 작업마다 브리프 한 장이 생기며 협업 프로토콜이 정의됩니다. 사용자가 OpenCode에서 실행 명령(/swarm-run)을 내리면 실행 스킬(swarm-run)이 작업별로 협업 스쿼드(worker, verifier, reviewer)를 띄웁니다. worker가 코드를 고치면 verifier에게 검증을 요청하고, 실패 피드백이 오면 수정합니다. 검증이 통과하면 reviewer에게 리뷰를 요청해 승인(LGTM)을 받습니다. 웨이브의 모든 스쿼드가 3회 턴 이내로 수렴하면 swarm-checker가 전체 검사를 돌리고 커밋합니다. 검토 스킬(swarm-review)이 결과를 감사하고, 최종적으로 보고 스킬(work-report)이 결정을 3계층 문서에 반영하고 퀴즈를 거친 뒤 모든 중간 문서(docs/swarm/, docs/notes/)를 삭제합니다.
+설계가 끝난 명세를 바탕으로 계획 스킬(swarm-plan)이 작업을 잘게 나눕니다. 작업마다 브리프 한 장이 생기며 협업 프로토콜이 정의됩니다. 계획 작성이 끝나면 계획 검토자(swarm-plan-reviewer)가 역할 분담, 통신 방식, 멈춤 방지, 인터페이스 일관성, 검사 격리의 5개 측면에서 계획을 꼼꼼히 점검합니다. 사용자가 OpenCode에서 실행 명령(/swarm-run)을 내리면 실행 스킬(swarm-run)이 작업별로 협업 스쿼드(worker, verifier, reviewer)를 띄웁니다. worker가 코드를 고치면 verifier에게 검증을 요청하고, 실패 피드백이 오면 수정합니다. 검증이 통과하면 reviewer에게 리뷰를 요청해 승인(LGTM)을 받습니다. 웨이브의 모든 스쿼드가 3회 턴 이내로 수렴하면 swarm-checker가 전체 검사를 돌리고 커밋합니다. 검토 스킬(swarm-review)이 결과를 감사하고, 최종적으로 보고 스킬(work-report)이 결정을 3계층 문서에 반영하고 퀴즈를 거친 뒤 모든 중간 문서(docs/swarm/, docs/notes/)를 삭제합니다.
 
 ## 결정 기록
 
 | 날짜 | 결정 | 근거 | 기각한 대안 | 결정 주체 |
+| 2026-09-10 | 에이전트 네트워크 협업 계획 사전 다각도 리뷰 단계(swarm-plan-reviewer) 신설 | 사용자 요청: 복잡한 에이전트 네트워크 협업의 실행 안전성을 위해 사전 5대 차원 심층 감사 필요 | 사후 실행 오류 발견에만 의존 | 사용자 |
 | 2026-09-10 | OpenCode 및 오픈소스 LLM API 기반 에이전트 협업 네트워크(Triad Squad)와 슬래시 커맨드/프로바이더 체계 포팅 | 사용자 요청: 오픈소스 LLM 및 OpenCode 환경에서 동일한 협업 네트워크 및 3계층 수명주기 구현 | Antigravity 단독 유지 | 사용자 |
 | 2026-09-10 | 워치독 타이머, 데드락 가드, 리뷰어·감사자 지능 상향(Pro), 타겟 핫픽스 및 지식 승격 파이프라인 도입 | 아키텍처 리뷰 승인: 무인 자율 실행 시 행 방지 및 정밀 검토·자가 치유력 강화 | 단순 Flash 고정 및 무제한 대기 | 사용자 |
 | 2026-09-10 | 작업 단위마다 구현(worker)·검증(verifier)·리뷰(reviewer) 협업 스쿼드를 구성하고 send_message로 상호 소통하도록 전환 | 사용자 요청: 에이전트 간 상호작용으로 완성도 극대화. 3라운드 턴 버짓으로 수렴 보장 | 고립형 단일 워커 유지 | 사용자 |
@@ -51,7 +53,7 @@
 | 결과 파일 없이 에이전트가 끝남 | 실패로 기록(결과 없음) | swarm-run Each 웨이브 3 |
 | Antigravity 도구 이름이 바뀜 | 에이전트 파일의 tools 허용목록이 실측 목록과 다르면 검사 2b가 실패 | test/check.sh 검사 2b |
 | 소유 파일을 폴더로 적을 때 끝에 /가 없음 | 디스크에 폴더면 폴더로 보고 경로를 정규화해 겹침을 잡는다. 글롭은 fnmatch | swarm_check.py owned(), overlaps() |
-| 브리프가 기계 검사는 통과하지만 자기완결이 아님 | 스크립트는 헤딩·머리글·소유 파일·금지어(필요하면, 적절히)까지만 본다. 나머지 품질은 계획 스킬과 doc-verifier 몫 | skills/swarm-plan/SKILL.md 3–4단계 |
+| 브리프가 기계 검사는 통과하지만 협업 정합성이 어긋남 | swarm-plan-reviewer가 5대 차원(스쿼드, 프로토콜, 데드락, 인터페이스, 검증 격리)을 사전 감사하여 결함 사전 차단 | skills/swarm-plan/SKILL.md 4단계 |
 
 ## 의도적 범위 제외
 

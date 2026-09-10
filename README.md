@@ -15,7 +15,7 @@ Thariq(Anthropic)의 ["A Field Guide to Fable: Finding Your Unknowns"](https://x
 | **판단 & 오케스트레이션** | OpenCode 메인 세션 / primary | 고성능 Coder / 추론 모델 (Qwen 2.5 Coder 32B, Llama 3.3 70B 등) | 인터뷰, 사각지대 점검, 스펙 작성, 스웜 **계획**, 결과 **감사**, 보고·퀴즈 |
 | **협업 구현 (Builder)** | `swarm-worker` subagent | 코딩 특화 모델 (Qwen 2.5 Coder 32B 등) | 브리프 기반 소유 파일 구현, 검증자·리뷰어와 `task` 도구로 협업 |
 | **검증 & 테스트 (Verifier)** | `swarm-verifier`, `swarm-checker` | 고속 모델 (Qwen 2.5 Coder 7B 등) | 테스트·린트 실행 및 에러 분석 전달, 웨이브 통합 검증 |
-| **심층 리뷰 (Reviewer)** | `swarm-reviewer`, `swarm-auditor` | 추론/규칙 대조 모델 (DeepSeek-R1 32B, Qwen 2.5 Coder 32B 등) | rules.md 불변규칙 및 diff 정밀 리뷰, 스웜 결과 감사 |
+| **심층 리뷰 (Reviewer)** | `swarm-reviewer`, `swarm-auditor`, `swarm-plan-reviewer` | 추론/규칙 대조 모델 (DeepSeek-R1 32B, Qwen 2.5 Coder 32B 등) | rules.md 불변규칙 및 diff 정밀 리뷰, 스웜 결과 감사, 에이전트 네트워크 협업 계획 사전 다각도 감사 |
 
 ```
 OpenCode 메인 세션 (강한 모델)                      OpenCode 서브에이전트 스쿼드 (task 도구 협업)
@@ -24,9 +24,9 @@ OpenCode 메인 세션 (강한 모델)                      OpenCode 서브에�
 ② blindspot-pass          ├─ 3계층 문서에 기록 (Tier 1 rules.md / Tier 2 map.md / Tier 3 specs/*.md)
 ③ explainer               ─┘
 ④ swarm-plan  ──── docs/swarm/plan.md ──────────▶ /swarm-run
-                   docs/swarm/tasks/T01.md          ├─ 웨이브 1: [worker T01 ↔ verifier ↔ reviewer] ‖ [worker T02 ↔ verifier ↔ reviewer]
-                   docs/swarm/tasks/T02.md          │            └ checker: 전체 검증 → git commit
-                   …                                ├─ 웨이브 2: [worker T03 ↔ verifier ↔ reviewer]
+   (swarm_check.py) docs/swarm/tasks/T01.md          ├─ 웨이브 1: [worker T01 ↔ verifier ↔ reviewer] ‖ [worker T02 ↔ verifier ↔ reviewer]
+   (swarm-plan-reviewer) docs/swarm/tasks/T02.md     │            └ checker: 전체 검증 → git commit
+   (doc-verifier)   …                                ├─ 웨이브 2: [worker T03 ↔ verifier ↔ reviewer]
                                                     │            └ checker → git commit
    swarm-review ◀── docs/swarm/status.md ───────────┘
    (swarm-auditor)  docs/swarm/results/*.md
@@ -174,7 +174,7 @@ bash test/check.sh
 
 검증 항목:
 1. Mandate hook 출력 및 필수 8개 스킬/3계층 경로 포함 여부
-2. Frontmatter 린트 (8개 스킬, 10개 OpenCode 서브에이전트 권한/모드, 슬래시 커맨드, 규칙)
+2. Frontmatter 린트 (8개 스킬, 11개 OpenCode 서브에이전트 권한/모드, 슬래시 커맨드, 규칙)
 3. 스킬 ↔ 에이전트 간 상호 참조 무결성 (`TypeName: <name>` 및 `MANDATE.md` 규칙 2)
 4. 가독성 표준(문장당 25 어절 이하) 정확히 4개 스킬 유지
 5. `install.sh` 및 `install-opencode.sh` 가상 프로젝트 설치 멱등성
@@ -182,4 +182,4 @@ bash test/check.sh
 7. 구버전 잔재 경로(`docs/blindspot` 등) 부재 검사
 8. 템플릿 필수 헤딩 및 불릿 규격 검사
 9. `swarm_check.py` 정상 패키지 통과 및 오염 패키지 차단 검사
-10. OpenCode 런타임 에이전트 목록(`opencode agent list`) 10종 서브에이전트 검색 검증
+10. OpenCode 런타임 에이전트 목록(`opencode agent list`) 11종 서브에이전트 검색 검증

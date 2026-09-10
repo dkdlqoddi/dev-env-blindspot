@@ -94,6 +94,10 @@
     "swarm-auditor": {
       "model": "ollama/deepseek-r1:32b",
       "description": "Swarm result auditor. Checks every task result claim against its brief and the actual git diff."
+    },
+    "swarm-plan-reviewer": {
+      "model": "ollama/deepseek-r1:32b",
+      "description": "Swarm plan reviewer. Audits the agent network collaboration plan across 5 core dimensions (squad role allocation, communication protocol contract, deadlock prevention & 3-turn convergence, cross-task interface consistency, and check command isolation) returning PASS or prioritized issues."
     }
   }
 }
