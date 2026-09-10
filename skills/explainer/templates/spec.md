@@ -6,7 +6,7 @@
 - 상태: 초안 | 확정
 - 읽는 법: '목적과 배경', '요구사항', '동작 방식', '의도적 범위 제외'는 코드를 모르는 분도 읽을 수 있게 씁니다. 그 외는 개발자와 AI를 위한 상세입니다.
 
-<!-- Section ownership (see ANTIGRAVITY.md conventions): 목적과 배경 / 동작 방식 / 의도적 범위 제외 are rewritten only by explainer; 요구사항 is appended by requirements-interview (and by blindspot-pass for domain acceptance criteria); 결정 기록 / 엣지케이스와 제약 are append-only for every skill; a 열린 질문 row is removed by the skill that records its answer; 변경 이력 is written by work-report after the user passes the quiz. A skill creating this file keeps every heading, fills only its own sections, and leaves the rest empty — empty sections are not placeholders. Non-developer sections: one fact per sentence, ≤25 어절, plain Korean first with the term in parentheses, no arrows or code syntax. -->
+<!-- Section ownership (see OPENCODE.md conventions): 목적과 배경 / 동작 방식 / 의도적 범위 제외 are rewritten only by explainer; 요구사항 is appended by requirements-interview (and by blindspot-pass for domain acceptance criteria); 결정 기록 / 엣지케이스와 제약 are append-only for every skill; a 열린 질문 row is removed by the skill that records its answer; 변경 이력 is written by work-report after the user passes the quiz. A skill creating this file keeps every heading, fills only its own sections, and leaves the rest empty — empty sections are not placeholders. Non-developer sections: one fact per sentence, ≤25 어절, plain Korean first with the term in parentheses, no arrows or code syntax. -->
 
 ## 목적과 배경
 

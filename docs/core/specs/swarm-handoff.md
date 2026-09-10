@@ -8,12 +8,12 @@
 
 ## 목적과 배경
 
-이 단위는 구현 작업을 에이전트 협업 네트워크(스쿼드)로 분할하여 병렬 실행·검증·리뷰하는 OpenCode 스웜 장치입니다. 전체 설계와 작업 분할은 Antigravity 메인 세션의 강한 모델이 한 번에 합니다. 작업별 구현은 swarm-worker, 검증은 swarm-verifier, 품질 리뷰는 swarm-reviewer가 task 도구와 프로토콜 마커로 상호 소통하며 협업하여 완성도를 극대화합니다. 작업 완료 후에는 중간 문서를 모두 삭제하고 3계층 문서만 영구 보존합니다.
+이 단위는 구현 작업을 에이전트 협업 네트워크(스쿼드)로 분할하여 병렬 실행·검증·리뷰하는 OpenCode 스웜 장치입니다. 전체 설계와 작업 분할은 OpenCode 메인 세션의 강한 모델이 한 번에 합니다. 작업별 구현은 swarm-worker, 검증은 swarm-verifier, 품질 리뷰는 swarm-reviewer가 task 도구와 프로토콜 마커로 상호 소통하며 협업하여 완성도를 극대화합니다. 작업 완료 후에는 중간 문서를 모두 삭제하고 3계층 문서만 영구 보존합니다.
 
 ## 요구사항
 
-1. 전체 전략과 작업 분할은 Antigravity 메인 세션에서 세우고 결과를 파일로 남긴다. (사용자 요청 2026-09-10)
-2. 작업마다 swarm-worker(구현), swarm-verifier(검증), swarm-reviewer(리뷰) 스쿼드를 구성해 send_message로 상호 소통한다. (사용자 요청 2026-09-10)
+1. 전체 전략과 작업 분할은 OpenCode 메인 세션에서 세우고 결과를 파일로 남긴다. (사용자 요청 2026-09-10)
+2. 작업마다 swarm-worker(구현), swarm-verifier(검증), swarm-reviewer(리뷰) 스쿼드를 구성해 task 도구로 상호 소통한다. (사용자 요청 2026-09-10)
 3. 작업 진행 중 생성된 중간 문서(docs/swarm/, docs/notes/)는 작업 종료 시 모두 삭제하고 최종 산출물은 3계층 문서로 고정한다. (사용자 요청 2026-09-10)
 4. 모든 과정이 오픈소스 LLM API 기반 OpenCode 단독 환경에서 완결된다.
 5. 기존 스킬과 에이전트의 계약 및 인터페이스를 보존한다. (규칙 3, 소비자 계약)
@@ -46,12 +46,12 @@
 
 | 상황 | 처리 | 근거 |
 |---|---|---|
-| agy print 모드에서 --add-dir 없이 실행 | 스킬·에이전트가 발견되지 않음. README와 스킬 인계 문구에 --add-dir "$PWD" 고정 | 실측 2026-09-08, README §7 |
-| print 모드 타임아웃으로 중단 | /swarm-run 재실행 시 status.md에서 재개(완료 행 유지) | antigravity/skills/swarm-run/SKILL.md Before starting 5 |
-| 하위 에이전트가 소유 파일 밖 변경이 필요함 | 고치지 않고 부분 완료 + 막힌 것에 기록. 감사에서 범위 이탈로 잡힘 | antigravity/agents/swarm-worker.md Rules |
+| OpenCode 실행 시 .opencode/ 및 .agents/ 미인식 | install.sh로 심링크 및 opencode.jsonc 설정 생성 보장 | README §1 |
+| 비동기 CLI 실행 타임아웃으로 중단 | /swarm-run 재실행 시 status.md에서 재개(완료 행 유지) | skills/swarm-run/SKILL.md Before starting 5 |
+| 하위 에이전트가 소유 파일 밖 변경이 필요함 | 고치지 않고 부분 완료 + 막힌 것에 기록. 감사에서 범위 이탈로 잡힘 | agents/swarm-worker.md Rules |
 | 웨이브 커밋에 사용자의 미커밋 변경이 섞일 위험 | 시작 전 git status가 깨끗하지 않으면 멈춤 | swarm-run Before starting 3 |
 | 결과 파일 없이 에이전트가 끝남 | 실패로 기록(결과 없음) | swarm-run Each 웨이브 3 |
-| Antigravity 도구 이름이 바뀜 | 에이전트 파일의 tools 허용목록이 실측 목록과 다르면 검사 2b가 실패 | test/check.sh 검사 2b |
+| OpenCode 도구 권한 규격이 바뀜 | 서브에이전트 권한 매핑이 OpenCode 표준과 다르면 검사 2에서 포착 | test/check.sh 검사 2 |
 | 소유 파일을 폴더로 적을 때 끝에 /가 없음 | 디스크에 폴더면 폴더로 보고 경로를 정규화해 겹침을 잡는다. 글롭은 fnmatch | swarm_check.py owned(), overlaps() |
 | 브리프가 기계 검사는 통과하지만 협업 정합성이 어긋남 | swarm-plan-reviewer가 5대 차원(스쿼드, 프로토콜, 데드락, 인터페이스, 검증 격리)을 사전 감사하여 결함 사전 차단 | skills/swarm-plan/SKILL.md 4단계 |
 

@@ -75,6 +75,26 @@
     "webfetch": "allow"
   },
   "agent": {
+    "codebase-scanner": {
+      "model": "ollama/qwen2.5-coder:32b",
+      "description": "Codebase scanner. Runs repository lens inspections across the codebase."
+    },
+    "domain-researcher": {
+      "model": "ollama/qwen2.5-coder:32b",
+      "description": "Domain researcher. Conducts targeted web searches and fetches documentation for unknown concepts."
+    },
+    "doc-verifier": {
+      "model": "ollama/qwen2.5-coder:7b",
+      "description": "Documentation verifier. Checks 3-tier living docs for line caps and readability constraints."
+    },
+    "change-analyzer": {
+      "model": "ollama/qwen2.5-coder:32b",
+      "description": "Change analyzer. Inspects git diffs against unit specs and map integration points."
+    },
+    "check-runner": {
+      "model": "ollama/qwen2.5-coder:7b",
+      "description": "Check runner. Runs standard test and lint suites and reports failures only."
+    },
     "swarm-worker": {
       "model": "ollama/qwen2.5-coder:32b",
       "description": "Swarm task builder. Implements a single brief inside its 소유 파일, collaborates with swarm-verifier and swarm-reviewer via task tool, writes docs/swarm/results/<id>.md, and reports status."

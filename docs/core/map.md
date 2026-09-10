@@ -34,7 +34,7 @@
 
 | 상대 | 방식 | 계약 위치 | 관련 단위 |
 |---|---|---|---|
-| 소비 프로젝트 | git submodule + 상대 심링크 + AGENTS.md/ANTIGRAVITY.md @import | install.sh, README §1 | installer, mandate |
+| 소비 프로젝트 | git submodule + 상대 심링크 + AGENTS.md/OPENCODE.md @import | install.sh, README §1 | installer, mandate |
 | OpenCode | .opencode/{skills,agents,commands} 및 .agents/ 자동 발견 + task 도구 서브에이전트 위임 | skills/*/SKILL.md, agents/*.md, rules/*.md | lifecycle-skills, agents, swarm-handoff |
 | 소비 프로젝트 docs/swarm/ | 계획·브리프와 상태·결과 파일 계약 | skills/swarm-plan/templates/*, skills/swarm-run/templates/*, swarm_check.py | swarm-handoff |
 
