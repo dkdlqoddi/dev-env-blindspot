@@ -1,17 +1,17 @@
 # core 전역 규칙 (Tier 1)
 
 - 최종 갱신: 2026-09-10
-- 코드 루트: . (skills/, agents/, rules/, hooks/, install.sh, install-antigravity.sh, test/, MANDATE.md)
+- 코드 루트: . (skills/, agents/, rules/, hooks/, install.sh, install-opencode.sh, opencode.jsonc, test/, MANDATE.md)
 - 읽는 법: 이 영역의 코드를 바꾸기 전에 항상 먼저 읽는다. 60줄을 넘기지 않는다.
 
 ## 불변 규칙
 
 | # | 규칙 | 깨지면 생기는 일 | 근거 |
 |---|---|---|---|
-| 1 | 지침 파일(SKILL.md, agents, MANDATE)은 영어로, 산출물과 템플릿 본문은 한국어로 쓴다 | 모델 지침이 흔들리고 사용자가 문서를 못 읽는다 | ANTIGRAVITY.md Conventions |
+| 1 | 지침 파일(SKILL.md, agents, MANDATE)은 영어로, 산출물과 템플릿 본문은 한국어로 쓴다 | 모델 지침이 흔들리고 사용자가 문서를 못 읽는다 | OPENCODE.md Conventions |
 | 2 | swarm-worker만 소유 파일 안에서 코드를 고친다. verifier·reviewer는 검증과 리뷰 피드백만 전달한다 | 탐색·리뷰 결과가 저장소를 오염시키고, 워커끼리 같은 파일을 덮어쓴다 | agents/*.md Rules |
-| 3 | 스킬 폴더 이름, 에이전트 파일 이름, rules/ 아래 이름, 훅과 규칙 파일의 경로는 소비 프로젝트와의 약속이다 | 소비 프로젝트의 심링크와 hook이 끊긴다 | ANTIGRAVITY.md Consumer contract, install.sh |
-| 4 | 모든 스킬 지침 파일(SKILL.md)은 반복 실패 목록(Gotchas) 섹션을 유지하고 항목을 지우지 않는다 | 한 번 잡은 반복 실패가 되살아난다 | ANTIGRAVITY.md Conventions |
+| 3 | 스킬 폴더 이름, 에이전트 파일 이름, rules/ 아래 이름, 훅과 규칙 파일의 경로는 소비 프로젝트와의 약속이다 | 소비 프로젝트의 심링크와 hook이 끊긴다 | OPENCODE.md Consumer contract, install.sh |
+| 4 | 모든 스킬 지침 파일(SKILL.md)은 반복 실패 목록(Gotchas) 섹션을 유지하고 항목을 지우지 않는다 | 한 번 잡은 반복 실패가 되살아난다 | OPENCODE.md Conventions |
 | 5 | 가독성 표준(25 어절 표지)은 네 스킬에 사본으로 둔다 | 스킬을 단독으로 읽을 때 규칙이 사라진다 | test/check.sh 검사 4 |
 | 6 | 계층 문서는 줄 상한(60/150/200)을 넘기지 않는다 | 매 작업이 읽는 문서가 다시 컨텍스트 문제가 된다 | skills/work-report/scripts/docs_check.py |
 | 7 | 스웜 계획은 명세에서만 나오고, 한 묶음(웨이브) 안의 소유 파일은 겹치지 않는다 | 빠른 모델이 추측으로 구현하거나 공유 트리에서 서로 덮어쓴다 | skills/swarm-plan/SKILL.md, skills/swarm-plan/scripts/swarm_check.py |
@@ -21,12 +21,12 @@
 
 | 분류 | 관례 | 근거 |
 |---|---|---|
-| 폴더 구조 | skill = skills/<name>/SKILL.md + templates/, agent = agents/<name>.md, rule = rules/<name>.md. 소비 프로젝트 .agents/에 심링크 | install.sh |
-| 협업 프로토콜 | 스쿼드(worker ↔ verifier ↔ reviewer)는 send_message로 티키타카(최대 3회) 수행 | skills/swarm-plan/templates/task.md |
-| 실행 안정성 | swarm-run은 schedule 워치독(900초)과 manage_subagents로 데드락을 방지하고, reviewer·auditor는 Pro 모델 사용 | skills/swarm-run/SKILL.md |
+| 폴더 구조 | skill = skills/<name>/SKILL.md + templates/, agent = agents/<name>.md, rule = rules/<name>.md. 소비 프로젝트 .agents/ 및 .opencode/에 심링크 | install.sh |
+| 협업 프로토콜 | 스쿼드(worker ↔ verifier ↔ reviewer)는 task 도구 및 프로토콜 마커로 티키타카(최대 3회) 수행 | skills/swarm-plan/templates/task.md |
+| 실행 안정성 | swarm-run은 타임아웃(900초) 가드와 서브에이전트 조율로 데드락을 방지하고, reviewer·auditor는 추론 모델 사용 | skills/swarm-run/SKILL.md |
 | 테스트 | bash test/check.sh 하나가 전부. 검사는 번호 붙은 블록이며 실패 시 fail 함수로 즉시 종료 | test/check.sh |
 | 의존성 | bash와 python3 표준 라이브러리만 쓴다 | install.sh, skills/work-report/scripts/docs_check.py |
-| 이름 짓기 | 스킬 description은 "Use when ..."으로 시작한다 | ANTIGRAVITY.md Conventions |
+| 이름 짓기 | 스킬 description은 "Use when ..."으로 시작한다 | OPENCODE.md Conventions |
 
 ## 표준 명령
 
@@ -34,7 +34,7 @@
 |---|---|
 | test | bash test/check.sh |
 | 퀴즈 확인 | python3 -m http.server 8765 --directory docs 후 localhost:8765/quiz.html (Playwright는 file:// 차단) |
-| 스웜 실행(소비 프로젝트) | Antigravity에서 `/swarm-run` (또는 agy CLI: `agy --add-dir "$PWD" -p '/swarm-run' ...`) |
+| 스웜 실행(소비 프로젝트) | OpenCode에서 `/swarm-run` (또는 CLI: `opencode run --command swarm-run`) |
 
 ## 용어
 

@@ -6,7 +6,7 @@
 
 ## 영역 개요
 
-이 저장소는 다른 프로젝트가 가져다 쓰는 Google Antigravity 스킬, 서브에이전트, 규칙 묶음이다. 스킬은 작업 순서를 알려주는 지침서이고, 서브에이전트는 탐색·검증·스웜 실행을 대신 하는 일꾼이다. 설치 스크립트가 소비 프로젝트의 .agents/에 이것들을 연결하고, 규칙(MANDATE)을 주입한다. 검사 스크립트 하나가 저장소 전체의 계약을 지킨다. 이 브랜치(antigravity-pure)는 계획부터 실행까지 모든 과정을 순수 Antigravity 환경에서 진행한다.
+이 저장소는 다른 프로젝트가 가져다 쓰는 OpenCode 스킬, 서브에이전트, 규칙 묶음이다. 스킬은 작업 순서를 알려주는 지침서이고, 서브에이전트는 탐색·검증·스웜 실행을 대신 하는 일꾼이다. 설치 스크립트가 소비 프로젝트의 .agents/ 및 .opencode/에 이것들을 연결하고, 규칙(MANDATE)을 주입한다. 검사 스크립트 하나가 저장소 전체의 계약을 지킨다. 이 브랜치(opencode)는 오픈소스 LLM API 기반 OpenCode 환경에서 에이전트 협업 네트워크를 가동한다.
 
 ## 단위
 
@@ -16,10 +16,10 @@
 | templates | 스킬이 만드는 문서의 틀(계층 3종, 노트, 퀴즈, 스웜 계획/결과) | skills/*/templates/* | 없음 |
 | agents | 탐색, 조사, 검증, diff 분석, 스웜 구현·검증·리뷰·감사를 맡는 서브에이전트 10종 | agents/*.md | 없음 |
 | docs-check | 퀴즈와 계층 문서의 기계 검사 | skills/work-report/scripts/docs_check.py | 없음 |
-| installer | 소비 프로젝트 .agents/에 바로가기 링크(심링크)와 규칙 불러오기 줄(import)을 설치 | install.sh, install-antigravity.sh | 없음 |
+| installer | 소비 프로젝트 .agents/ 및 .opencode/에 바로가기 링크(심링크)와 규칙 불러오기 줄(import)을 설치 | install.sh, install-opencode.sh | 없음 |
 | mandate | 매 세션 주입되는 규칙과 hook | MANDATE.md, rules/mandate.md, hooks/mandate.sh | 없음 |
 | repo-check | 저장소 자체 검사 | test/check.sh | 없음 |
-| swarm-handoff | 스웜 계획, 협업 스쿼드 병렬 실행, 결과 검토를 순수 Antigravity 안에서 맡는 스킬·서브에이전트 | skills/swarm-plan/, skills/swarm-run/, skills/swarm-review/, agents/swarm-*.md | specs/swarm-handoff.md |
+| swarm-handoff | 스웜 계획, 협업 스쿼드 병렬 실행, 결과 검토를 OpenCode 안에서 맡는 스킬·서브에이전트 | skills/swarm-plan/, skills/swarm-run/, skills/swarm-review/, agents/swarm-*.md | specs/swarm-handoff.md |
 
 ## 주요 흐름
 
@@ -35,7 +35,7 @@
 | 상대 | 방식 | 계약 위치 | 관련 단위 |
 |---|---|---|---|
 | 소비 프로젝트 | git submodule + 상대 심링크 + AGENTS.md/ANTIGRAVITY.md @import | install.sh, README §1 | installer, mandate |
-| Antigravity | .agents/{skills,agents,rules} 자동 발견 + invoke_subagent TypeName | skills/*/SKILL.md, agents/*.md, rules/*.md | lifecycle-skills, agents, swarm-handoff |
+| OpenCode | .opencode/{skills,agents,commands} 및 .agents/ 자동 발견 + task 도구 서브에이전트 위임 | skills/*/SKILL.md, agents/*.md, rules/*.md | lifecycle-skills, agents, swarm-handoff |
 | 소비 프로젝트 docs/swarm/ | 계획·브리프와 상태·결과 파일 계약 | skills/swarm-plan/templates/*, skills/swarm-run/templates/*, swarm_check.py | swarm-handoff |
 
 ## 알려진 위험
@@ -44,5 +44,5 @@
 |---|---|---|
 | 스킬·에이전트 이름 변경이 소비 프로젝트 심링크를 끊음 | installer, lifecycle-skills, agents | test/check.sh 검사 3(에이전트 참조)과 검사 5(설치 심링크)가 감시 |
 | MANDATE가 session과 @import로 주입되어 크기가 곧 비용 | mandate, installer | 60줄 상한(검사 11). 간결한 유지 |
-| Antigravity 도구 이름·발견 규칙이 바뀌면 워커 정의가 조용히 깨짐 | swarm-handoff, repo-check | 검사 2가 tools 허용목록을 실측 이름에 고정. 발견 규칙은 스모크 테스트(ANTIGRAVITY.md Test)로 확인 |
+| OpenCode 도구 규격·발견 규칙이 바뀌면 워커 정의가 조용히 깨짐 | swarm-handoff, repo-check | test/check.sh 검사 2가 서브에이전트 권한을 OpenCode 표준에 고정하고 검사 13이 런타임 발견 검증 | test/check.sh |
 | 중간 문서가 인수 시 삭제되지 않고 남을 위험 | lifecycle-skills, swarm-handoff | work-report 5단계 및 MANDATE 4규칙이 docs/swarm/과 docs/notes/ 완전 삭제 강제 |

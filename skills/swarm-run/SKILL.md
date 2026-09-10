@@ -18,17 +18,18 @@ You are the dispatcher, not the engineer. The plan was written with the full con
 ## Each 웨이브, in order
 
 1. **Pick.** Tasks of this 웨이브 whose 선행 are all 완료 → dispatch. A task with a 선행 that is 실패 or 보류 → 상태 보류, 비고 `선행 <id> 실패`, skip.
-2. **Dispatch Collaborative Squads.** Dispatch the collaborative squad for each task in this 웨이브 via the `task` tool:
+2. **Dispatch Collaborative Squads & Watchdog Guard.** Apply model tiering (Worker: Coder model e.g. Qwen 2.5 Coder 32B; Verifier: Fast model e.g. 7B; Reviewer: Reasoning model e.g. DeepSeek-R1 / 32B). Enforce a 900s watchdog timeout guard per 웨이브. Dispatch the collaborative squad for each task via the `task` tool:
    For each task, spawn:
-   - `TypeName: swarm-worker` (Builder)
+   - `TypeName: swarm-worker` (Builder, Coder model)
      Prompt: `Task brief: docs/swarm/tasks/<id>.md. Touch only 소유 파일. Collaborate with your assigned verifier (TypeName: swarm-verifier) and reviewer (TypeName: swarm-reviewer) via the task tool to run checks and review diffs. Write docs/swarm/results/<id>.md following .agents/skills/swarm-run/templates/result.md within at most 3 collaboration rounds, and reply with the 상태 line only.`
-   - `TypeName: swarm-verifier` (Verifier)
+   - `TypeName: swarm-verifier` (Verifier, Fast model)
      Prompt: `Verify task docs/swarm/tasks/<id>.md. Run the brief's 검증 command, and return [PHASE: VERIFY_RESULT] PASS or FAIL with concise error summaries.`
-   - `TypeName: swarm-reviewer` (Reviewer)
+   - `TypeName: swarm-reviewer` (Reviewer, Reasoning model)
      Prompt: `Review task docs/swarm/tasks/<id>.md. Inspect git diff against rules.md and spec criteria, and return [PHASE: REVIEW_FEEDBACK] or APPROVAL (LGTM).`
    If nested subagent invocation is restricted in your OpenCode runtime, the dispatcher coordinates the worker, verifier, and reviewer sequentially per task, passing feedback between them.
    Set the dispatched rows to 실행 중 and 시도 1.
-3. **Collect & Guard.** Collect each squad's task outcome.
+3. **Collect & Deadlock Guard.** Collect each squad's task outcome. If an execution exceeds the watchdog timeout (900s) or an agent becomes unresponsive:
+   - Mark hung tasks in `docs/swarm/status.md` as `실패`, 비고 `타임아웃(데드락 가드 발동)`.
    For each completed task, read only the `- 상태:` line of `docs/swarm/results/<id>.md` into status.md (완료 / 부분 완료 / 실패). No result file → 실패, 비고 `결과 없음`.
 4. **Verify the 웨이브.** Invoke via `task` tool: `TypeName: swarm-checker` with prompt: `Run exactly this command once and report failures only: <전체 검증>`. Write the outcome into the 웨이브 검증 table. 통과 → step 6.
 5. **Retry once (Targeted Hotfix / Micro Self-Healing).** If the failure output isolates cleanly to files owned by a single task (or a specific subset of tasks), re-dispatch (as in step 2, 시도 2) ONLY that specific task squad with the targeted error message. Otherwise, re-dispatch every task of this 웨이브 whose 상태 is 완료 or 부분 완료, appending to the prompt: `The 웨이브 verification failed after your work. Failures: <checker output>. Fix only what lies inside your 소유 파일; if nothing there is yours, change nothing and reply 상태: 완료.` Collect, then verify again. Still failing → set 진행 끝남 and 전체 검증 최종 결과 실패, leave later 웨이브 rows 대기, and go to Finish — `swarm-plan` re-plans, and `/swarm-run` resumes from status.md.

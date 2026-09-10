@@ -73,5 +73,27 @@
     "skill": "allow",
     "websearch": "allow",
     "webfetch": "allow"
+  },
+  "agent": {
+    "swarm-worker": {
+      "model": "ollama/qwen2.5-coder:32b",
+      "description": "Swarm task builder. Implements a single brief inside its 소유 파일, collaborates with swarm-verifier and swarm-reviewer via task tool, writes docs/swarm/results/<id>.md, and reports status."
+    },
+    "swarm-verifier": {
+      "model": "ollama/qwen2.5-coder:7b",
+      "description": "Swarm task test & verification engineer. Paired with swarm-worker; runs task verification commands and tests, analyzes execution failures, and sends concrete actionable error feedback or PASS verification back to swarm-worker."
+    },
+    "swarm-reviewer": {
+      "model": "ollama/deepseek-r1:32b",
+      "description": "Swarm task code & convention reviewer. Paired with swarm-worker; inspects git diffs against rules.md invariants, project conventions, edge cases, and spec acceptance criteria; sends constructive review feedback or APPROVAL (LGTM)."
+    },
+    "swarm-checker": {
+      "model": "ollama/qwen2.5-coder:7b",
+      "description": "Swarm wave verifier. Invoked by the swarm-run skill after each 웨이브 with one command; runs it exactly once and returns failures only."
+    },
+    "swarm-auditor": {
+      "model": "ollama/deepseek-r1:32b",
+      "description": "Swarm result auditor. Checks every task result claim against its brief and the actual git diff."
+    }
   }
 }
