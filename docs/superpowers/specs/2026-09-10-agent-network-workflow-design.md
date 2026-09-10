@@ -25,22 +25,50 @@ Antigravity 단일 환경에서 스웜 작업을 실행할 때, 기존의 고립
 | 4 | 중간 문서 완전 삭제 보장 | 워크플로우 종료(`work-report` 5단계) 시 `docs/swarm/` 및 `docs/notes/` 100% 삭제 | 최종 산출물을 3계층 문서로 고정하고 저장소 오염 방지 | 중간 문서 영구 보존 |
 | 5 | 살아있는 3계층 문서 영구화 | `docs/<area>/rules.md`, `map.md`, `specs/<unit>.md`에만 최종 지식 누적 | 단일 진실 공급원(Single Source of Truth) 유지 | 일회성 작업 보고서 축적 |
 | 6 | 스쿼드 간 격리 원칙 | 스쿼드 통신은 작업 스쿼드 내부로 한정, 소유 파일 분리 유지 | 병렬 실행 중 충돌 방지 및 안전한 트리 공유 | 타 작업 스쿼드와의 직접 통신 |
+| 7 | 사전 계획 다각도 리뷰 체계 | `swarm-plan` 완료 전 `swarm-plan-reviewer`를 통해 5대 차원(역할 분담, 프로토콜, 데드락/수렴성, 인터페이스, 검증 격리) 사전 감사 | 복잡한 다중 에이전트 협업 실행 시 런타임 데드락 및 인터페이스 충돌 사전 차단 | 실행 후 결과 감사(`swarm-auditor`)에만 의존 |
 
 ## 3. 에이전트 협업 네트워크 아키텍처
 
-### 3.1 10종 서브에이전트 역할 구성
+### 3.1 11종 서브에이전트 역할 구성
 - **탐색 및 조사 (2종)**: `codebase-scanner` (코드 렌즈 탐색), `domain-researcher` (외부 웹 기술 조사)
 - **문서 및 변경 검증 (2종)**: `doc-verifier` (3계층 문서 검증), `change-analyzer` (git diff 분석)
 - **일반 점검 (1종)**: `check-runner` (프로젝트 표준 테스트/린트 실행)
+- **계획 및 사전 감사 (1종)**: `swarm-plan-reviewer` (스웜 계획 및 에이전트 협업 네트워크 5대 차원 사전 감사)
 - **협업 실행 스쿼드 (3종)**:
   - `swarm-worker`: 소유 파일 내 코드 구현 및 피드백 반영, verifier/reviewer와 `send_message` 소통.
   - `swarm-verifier`: 워커의 변경분에 대한 테스트·린트·타입검사 직접 실행 및 실패 진단 전달.
   - `swarm-reviewer`: `rules.md` 컨벤션 및 브리프 완료 조건 대비 diff 검토 및 승인(LGTM)/수정 요청.
 - **웨이브 및 릴리스 감사 (2종)**: `swarm-checker` (웨이브 전체 통합 검사 및 커밋), `swarm-auditor` (스웜 실행 결과 감사)
 
-### 3.2 스쿼드 상호작용 흐름 (Triad Collaboration Lifecycle)
+### 3.2 에이전트 네트워크 협업 계획 사전 다각도 리뷰 (Pre-Execution Multi-Faceted Review)
+
+에이전트 네트워크 협업은 복수의 자율 에이전트가 트리를 공유하며 메시지를 주고받는 복잡계이므로, 실행 전 계획 단계에서 5개 차원의 사전 심층 감사를 수행합니다:
+
+1. **스쿼드 구성 및 작업 크기 (Squad Architecture & Task Sizing)**:
+   - 각 작업 브리프가 명확한 3인 스쿼드(`swarm-worker`, `swarm-verifier`, `swarm-reviewer`) 구조를 갖추었는가.
+   - 단일 웨이브 및 3턴 버짓 내에서 완결 가능한 적정 크기(S~M)로 분해되었는가.
+2. **통신 프로토콜 및 메시지 계약 (Communication Protocol & Message Contract)**:
+   - `send_message` 기반 상태 전이 태그(`[PHASE: VERIFY_REQUEST]`, `[PHASE: VERIFY_RESULT]`, `[PHASE: REVIEW_REQUEST]`, `[PHASE: REVIEW_FEEDBACK]`, `APPROVAL (LGTM)`)가 브리프에 완전하게 명시되었는가.
+3. **데드락 방지 및 3턴 수렴성 (Deadlock Prevention & Turn-Budget Convergence)**:
+   - 스쿼드 간 통신이 격리되어 순환 대기가 발생하지 않으며, 3턴 이내에 성공(승인) 또는 실패/부분완료(`results/` 기록)로 수렴하는가.
+4. **교차 태스크 인터페이스 정합성 (Cross-Task Interface Consistency)**:
+   - 복수 작업이 공유하는 함수명, 시그니처, 스키마, 타입, 파일 경로가 각 브리프에 오차 없이 일치하게(verbatim) 작성되었는가.
+5. **검증 명령 격리성 및 실행 가능성 (Check Isolation & Feasibility)**:
+   - 브리프의 `## 검증` 명령이 해당 작업의 소유 파일 변경만으로 독립 실행 가능한가 (동일 웨이브 내 미완성 타 작업 파일 의존 배제).
+
+### 3.3 사전 계획 리뷰 및 스쿼드 상호작용 흐름 (Lifecycle & Interaction Flow)
 
 ```
+[swarm-plan 계획 수립] ──(plan.md, tasks/*.md 생성)
+       │
+       ├── 1. swarm_check.py (기계적 정적 검사: 파일 겹침, 웨이브 순서, 금지어)
+       │
+       ├── 2. swarm-plan-reviewer (5대 차원 협업 네트워크 심층 사전 감사)
+       │      └── 결함 발견 시 브리프 수정 후 승인(PASS) 획득
+       │
+       ├── 3. doc-verifier (문서 린트: 플레이스홀더, 모호성, 모순 검사)
+       │
+       ▼ (패키지 커밋 및 /swarm-run 핸드오프)
 [swarm-run 오케스트레이터]
       │
       ├── 1. 작업 브리프 전달 및 스쿼드 기동 (worker, verifier, reviewer)
@@ -122,7 +150,7 @@ Antigravity 단일 환경에서 스웜 작업을 실행할 때, 기존의 고립
 ## 5. 정량적·정성적 검증 체계
 
 1. **하네스 무결성 검증 (`test/check.sh`)**:
-   - 10종 서브에이전트의 도구 허용목록 및 규격 검사 (검사 2b).
+   - 11종 서브에이전트의 도구 허용목록 및 규격 검사 (검사 2b).
    - 스킬 ↔ 에이전트 간 상호 참조 완전성 (검사 3).
    - 가독성 표준(25 어절 규칙) 유지 (검사 4).
    - 브리프 형식 및 필수 섹션(`협업 프로토콜` 포함) 유효성 (검사 8).

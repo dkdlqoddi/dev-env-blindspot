@@ -25,15 +25,18 @@ The strong model thinks once, in full context; the fast models execute many time
 
 3. **Write the package.** `docs/swarm/plan.md` from `templates/plan.md` in this skill's folder; one `docs/swarm/tasks/<id>.md` per task from `templates/task.md`. Every brief: literal paths, the 참고 파일 to imitate, the 협업 스쿼드 roles, the `## 협업 프로토콜` section, 완료 조건 phrased as checks ("X를 호출하면 Y를 돌려준다"), the 검증 command. Ban the words 필요하면 and 적절히 — they hand the decision to the weakest model in the chain (`swarm_check.py` rejects them). Add the 회차 row (회차 1, 범위 전체).
 
-4. **Validate.** Run `python3 .agents/skills/swarm-plan/scripts/swarm_check.py docs/swarm/plan.md` (`scripts/swarm_check.py` in this skill's folder) and fix every violation. Then spawn `doc-verifier` (`TypeName: doc-verifier`) on `docs/swarm/plan.md` and on the two largest briefs, naming all sections as filled; fix every placeholder, contradiction, and ambiguity it reports.
+4. **Multi-Faceted Plan & Network Review.** Validate the entire collaboration package before committing:
+   - **Mechanical checks**: Run `python3 .agents/skills/swarm-plan/scripts/swarm_check.py docs/swarm/plan.md` (`scripts/swarm_check.py` in this skill's folder) and fix every violation (path overlaps, wave sequence, missing briefs, delegating words).
+   - **Agent network collaboration audit**: Spawn `swarm-plan-reviewer` (`TypeName: swarm-plan-reviewer`, Model: `pro`, Workspace: `inherit`) with `docs/swarm/plan.md`, `docs/swarm/tasks/`, the target spec, and area rules. It audits the package across 5 core dimensions: (1) Squad architecture & task sizing, (2) `send_message` protocol contract, (3) Deadlock prevention & 3-turn convergence, (4) Cross-task interface consistency, (5) Check command isolation & feasibility. Fix every reported issue (높음/중간) before proceeding.
+   - **Document quality check**: Spawn `doc-verifier` (`TypeName: doc-verifier`) on `docs/swarm/plan.md` and on the two largest briefs, naming all sections as filled; fix every placeholder, contradiction, and ambiguity it reports.
 
-5. **Open the notes.** Ensure `docs/notes/<slug>.md` exists (the `work-report` skill's `templates/notes.md`, installed at `.agents/skills/work-report/templates/notes.md`) and append one entry: the decomposition decision (웨이브 count, what was kept out of the swarm and why) — `work-report` report mode promotes it later.
+5. **Open the notes.** Ensure `docs/notes/<slug>.md` exists (the `work-report` skill's `templates/notes.md`, installed at `.agents/skills/work-report/templates/notes.md`) and append one entry: the decomposition decision (웨이브 count, what was kept out of the swarm and why, and agent network collaboration review outcomes) — `work-report` report mode promotes it later.
 
-6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): `/swarm-run` 실행 — 채팅에 `/swarm-run`을 입력하거나 CLI에서
+6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): 에이전트 네트워크 협업 계획 및 다각도 사전 리뷰(스쿼드 분담, 프로토콜, 데드락 방지, 인터페이스 정합성, 검증 격리) 결과를 요약 제시하고 `/swarm-run` 실행을 안내합니다 — 채팅에 `/swarm-run`을 입력하거나 CLI에서
    `agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-medium --dangerously-skip-permissions --print-timeout 60m`
    끝나면 `swarm-review`로 감사를 진행합니다.
 
-**Re-plan round** (called from `swarm-review` with the failed, held, or deviated task ids): keep every 완료 확인 task untouched; rewrite only the named briefs — fold each 막힌 것 text in, split a task that was too big, add a 선행 where an interface was missing; append a 회차 row naming the ids; re-run step 4; tell the user to run `/swarm-run` again (it resumes from `docs/swarm/status.md` and re-dispatches only tasks that are not 완료).
+**Re-plan round** (called from `swarm-review` with the failed, held, or deviated task ids): keep every 완료 확인 task untouched; rewrite only the named briefs — fold each 막힌 것 text in, split a task that was too big, add a 선행 where an interface was missing; append a 회차 row naming the ids; re-run step 4 (including `swarm-plan-reviewer`); tell the user to run `/swarm-run` again (it resumes from `docs/swarm/status.md` and re-dispatches only tasks that are not 완료).
 
 ## Gotchas
 
@@ -43,3 +46,4 @@ The strong model thinks once, in full context; the fast models execute many time
 - A task without a runnable check reports 완료 by hope; the swarm's only feedback loop is the command the worker can run.
 - Interfaces described once, in one brief, are invented twice — spell them out verbatim in every brief that touches them.
 - A plan written from the prompt instead of the spec reproduces the prompt's blind spots at 8x parallelism.
+- Skipping agent network collaboration plan review leads to protocol deadlock or cross-task interface clashes mid-swarm. Always audit via `swarm-plan-reviewer` across all 5 dimensions.

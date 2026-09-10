@@ -167,13 +167,13 @@ bash .agents/shared/install.sh
 | `requirements-interview` | 구조화된 인터뷰로 요구사항 확정 | `specs/<단위>.md` 요구사항·결정 기록·열린 질문 |
 | `blindspot-pass` | 병렬 스캔으로 Unknown Unknowns를 질문으로 구체화. 맵 없으면 부트스트랩 | `rules.md`, `map.md`, `specs/<단위>.md` |
 | `explainer` | 결정·대안·범위 제외를 담은 상세 명세 완성 | `specs/<단위>.md`, `map.md` |
-| `swarm-plan` | 스펙을 웨이브·브리프로 분해, `swarm_check.py` 검사, 인계 | `docs/swarm/plan.md`, `docs/swarm/tasks/`, notes |
+| `swarm-plan` | 스펙을 웨이브·브리프로 분해, 다각도 계획 리뷰(swarm-plan-reviewer), `swarm_check.py` 검사, 인계 | `docs/swarm/plan.md`, `docs/swarm/tasks/`, notes |
 | `swarm-run` | 계획 표를 읽어 웨이브별로 워커를 동시에 띄우고 검증·커밋·기록 | `docs/swarm/status.md`, `docs/swarm/results/` |
 | `swarm-review` | 스웜 결과 감사 → 노트 반영 → 수용 / 재계획 라우팅 | `docs/notes/<slug>.md` |
 | `work-report` | 구현 중 결정 즉시 기록(노트) / diff 분석 + 명세 반영 + 퀴즈 생성(보고) | `docs/notes/`, `docs/quiz.html`, 명세 변경 이력 |
 | `blindspot-flow` | 전체 라이프사이클을 순서대로 오케스트레이션 | (하위 skill 산출물) |
 
-### Agents (10종)
+### Agents (11종)
 
 | Agent | 권한 | 역할 |
 |---|---|---|
@@ -182,6 +182,7 @@ bash .agents/shared/install.sh
 | `doc-verifier` | 읽기 전용 | 문서의 placeholder, 모순, 모호성, 스코프, 계층 적합성 검증 |
 | `change-analyzer` | 읽기 전용 | base 대비 git diff 분석 및 명세·맵 대조 |
 | `check-runner` | 읽기 전용 | 프로젝트 표준 검사(테스트, 린트) 실행 후 실패만 요약 |
+| `swarm-plan-reviewer` | 읽기 전용 | 스웜 계획 패키지(plan.md, tasks/) 사전 다각도 감사 (스쿼드 구성, 프로토콜, 데드락/수렴성, 인터페이스, 검증 격리) |
 | `swarm-auditor` | 읽기 전용 | 스웜 브리프-결과-diff 대조 감사 (범위 이탈, 미완, 검증 불일치 판정) |
 | `swarm-worker` | 쓰기 허용 | 단일 브리프 전담 구현 (소유 파일 내 수정, verifier/reviewer와 협업, 결과 파일 작성) |
 | `swarm-verifier` | 읽기 전용 | 워커 수정분에 대한 테스트/린트 검증 및 실패 피드백 (send_message) |
@@ -205,7 +206,7 @@ bash test/check.sh
 
 모든 테스트는 `test/check.sh` 스크립트 하나로 실행되며 다음을 보장합니다:
 1. 세션 주입 훅(`mandate.sh`)의 8개 스킬 및 3계층 경로 출력 검증
-2. 8개 스킬, 10개 서브에이전트, 1개 규칙의 Antigravity 규격 및 도구 허용목록 검증
+2. 8개 스킬, 11개 서브에이전트, 1개 규칙의 Antigravity 규격 및 도구 허용목록 검증
 3. 스킬↔서브에이전트 상호 참조 및 `MANDATE.md` 규칙 2의 참조 무결성
 4. 가독성 표준(`25 어절`) 4개 사본 보존 검증
 5. `install.sh` 및 `install-antigravity.sh`의 온보딩 멱등성 및 심링크 검증

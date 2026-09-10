@@ -20,7 +20,7 @@ agents=("$ROOT"/agents/*.md)
 rules=("$ROOT"/rules/*.md)
 
 [[ ${#skills[@]} -eq 8 ]] || fail "expected 8 skills, got ${#skills[@]}"
-[[ ${#agents[@]} -eq 10 ]] || fail "expected 10 agents, got ${#agents[@]}"
+[[ ${#agents[@]} -eq 11 ]] || fail "expected 11 agents, got ${#agents[@]}"
 [[ ${#rules[@]} -eq 1 ]] || fail "expected 1 rule, got ${#rules[@]}"
 
 for f in "${skills[@]}"; do
@@ -85,7 +85,7 @@ cp -a "$ROOT/." "$tmp/proj/.agents/shared/"
     [[ -L ".agents/skills/$s" ]] || { echo "skill symlink $s missing"; exit 1; }
     [[ -f ".agents/skills/$s/SKILL.md" ]] || { echo "skill symlink $s broken"; exit 1; }
   done
-  for a in codebase-scanner domain-researcher doc-verifier change-analyzer check-runner swarm-auditor swarm-worker swarm-verifier swarm-reviewer swarm-checker; do
+  for a in codebase-scanner domain-researcher doc-verifier change-analyzer check-runner swarm-auditor swarm-worker swarm-verifier swarm-reviewer swarm-checker swarm-plan-reviewer; do
     [[ -L ".agents/agents/$a.md" ]] || { echo "agent symlink $a missing"; exit 1; }
     [[ -f ".agents/agents/$a.md" ]] || { echo "agent symlink $a broken"; exit 1; }
   done
