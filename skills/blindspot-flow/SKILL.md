@@ -15,8 +15,8 @@ Run the stages below in order, invoking each with the Skill tool by name. Before
 1. `requirements-interview` → 요구사항 and 결정 기록 rows in the unit spec
 2. `blindspot-pass` → findings filed into rules, map, and spec
 3. `explainer` → 목적과 배경, 동작 방식, 의도적 범위 제외 in the spec; map updated
-4. Implementation — offer (Korean) 이 세션에서 구현 or 스웜으로 병렬 구현. In-session: `work-report` notes mode opens `docs/notes/<slug>.md`; implementation proceeds (implementation itself is outside this skill — only note-keeping is enforced). Swarm: `swarm-plan` writes `docs/swarm/`; then run `/swarm-run`; then `swarm-review` audits the result and either loops back to `swarm-plan` for a delta round or continues to stage 5
-5. When implementation is done: `work-report` report mode → tiers promoted, `docs/quiz.html` written; after the user passes the quiz, work-report records the 변경 이력 row and deletes the notes file (and `docs/swarm/` when the cycle ran as a swarm)
+4. Implementation — offer (Korean) 이 세션에서 직접 구현 or 에이전트 협업 네트워크(스웜)로 병렬 구현. In-session: `work-report` notes mode opens `docs/notes/<slug>.md`; implementation proceeds. Collaborative Network: `swarm-plan` writes `docs/swarm/` (squad briefs for worker, verifier, reviewer); then run `/swarm-run` (squads collaborate via `send_message`); then `swarm-review` audits the result and either loops back to `swarm-plan` for a delta round or continues to stage 5
+5. When implementation is done: `work-report` report mode → tiers promoted, `docs/quiz.html` written; after the user passes the quiz, work-report records the 변경 이력 row and strictly deletes all intermediate working documents (`docs/notes/<slug>.md`, `docs/swarm/`), guaranteeing only the 3-tier living documents (`rules.md`, `map.md`, `specs/*.md`) and `docs/quiz.html` remain in `docs/`.
 
 Do not inline a stage's logic here; if a stage needs fixing, fix that skill.
 

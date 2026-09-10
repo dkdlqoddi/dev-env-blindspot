@@ -33,7 +33,7 @@ Trigger: work complete, pre-merge, or the user asks for a report.
    - Before saving, self-check every question: could someone who read only the 변경 요약 answer it? Is every sentence one fact within 25 어절, every option within 40 characters? If not, rewrite.
    - Then run the countable check: `python3 .agents/skills/work-report/scripts/docs_check.py docs/quiz.html`. Fix every reported violation before the gate.
    Also print in chat (Korean) the 3–5 sentence 사람용 요약 and the 리뷰 포인트 (파일:라인 — technical, for code reviewers); put both in the PR body when the project uses pull requests.
-5. **Gate.** Tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing. When they confirm: append one 변경 이력 row to the primary spec (one per area when two areas were touched) — 날짜 | 변경 요약 in one sentence | 기준 커밋 | 검증 (the check-runner 총평) | 퀴즈 통과 date — and delete `docs/notes/<slug>.md` (and `docs/swarm/` when the cycle ran as a swarm; git keeps the plan).
+5. **Gate.** Tell the user (Korean): 퀴즈를 브라우저로 열어 전부 맞히기 전에는 머지하지 말 것. Never declare the work merged/done until the user confirms passing. When they confirm: append one 변경 이력 row to the primary spec (one per area when two areas were touched) — 날짜 | 변경 요약 in one sentence | 기준 커밋 | 검증 (the check-runner 총평) | 퀴즈 통과 date — and strictly delete ALL intermediate working documents: delete `docs/notes/<slug>.md` (and remove `docs/notes/` if empty) and delete `docs/swarm/` completely (`rm -rf docs/swarm`), ensuring ONLY the 3 tiers (`rules.md`, `map.md`, `specs/*.md`) and the latest `docs/quiz.html` remain in `docs/`.
 
 ## Gotchas
 

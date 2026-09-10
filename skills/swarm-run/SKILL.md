@@ -18,14 +18,16 @@ You are the dispatcher, not the engineer. The plan was written with the full con
 ## Each 웨이브, in order
 
 1. **Pick.** Tasks of this 웨이브 whose 선행 are all 완료 → dispatch. A task with a 선행 that is 실패 or 보류 → 상태 보류, 비고 `선행 <id> 실패`, skip.
-2. **Dispatch.** ONE `invoke_subagent` call with one entry per task (at most 동시 실행 상한 entries; more → a second call after the first batch finishes). Each entry:
-   - `TypeName: swarm-worker`
-   - Role: the task's 역할 and id from the table, e.g. `T03 테스트 작성`
-   - Model `flash`
-   - Workspace `inherit`
-   - Prompt, verbatim with the id filled in:
-     > Task brief: docs/swarm/tasks/<id>.md. Read it fully, then do the work touching only the 소유 파일 it lists. Run its 검증. Write docs/swarm/results/<id>.md following .agents/skills/swarm-run/templates/result.md and reply with the 상태 line only.
-   Set the dispatched rows to 실행 중 and 시도 1. If `invoke_subagent` answers that `swarm-worker` is not found, define it once with `define_subagent` (name `swarm-worker`, enable_write_tools true, system_prompt = the body of `.agents/agents/swarm-worker.md`) and dispatch again; likewise for `swarm-checker` with the body of `.agents/agents/swarm-checker.md` — it also needs enable_write_tools true, because `run_command` ships in that group; its system prompt forbids edits.
+2. **Dispatch Collaborative Squads.** ONE `invoke_subagent` call per batch launching the collaborative squad for each task:
+   For each task, spawn:
+   - `TypeName: swarm-worker`, Role: `<id> Builder`, Model: `flash`, Workspace: `inherit`
+     Prompt: `Task brief: docs/swarm/tasks/<id>.md. Touch only 소유 파일. Collaborate with your assigned verifier and reviewer via send_message to run checks and review diffs. Write docs/swarm/results/<id>.md following .agents/skills/swarm-run/templates/result.md within at most 3 collaboration rounds, and reply with the 상태 line only.`
+   - `TypeName: swarm-verifier`, Role: `<id> Verifier`, Model: `flash`, Workspace: `inherit`
+     Prompt: `Verify task docs/swarm/tasks/<id>.md. Wait for [PHASE: VERIFY_REQUEST] from the worker, run the brief's 검증 command, and send back [PHASE: VERIFY_RESULT] PASS or FAIL with concise error summaries via send_message.`
+   - `TypeName: swarm-reviewer`, Role: `<id> Reviewer`, Model: `flash`, Workspace: `inherit`
+     Prompt: `Review task docs/swarm/tasks/<id>.md. Wait for [PHASE: REVIEW_REQUEST] from the worker, inspect git diff against rules.md and spec criteria, and send back [PHASE: REVIEW_FEEDBACK] or APPROVAL (LGTM) via send_message.`
+   Provide each agent with their squad peers' conversation IDs.
+   Set the dispatched rows to 실행 중 and 시도 1. If any agent is not found, define it once with `define_subagent` (using `.agents/agents/swarm-*.md`) and dispatch again; likewise for `swarm-checker` with `.agents/agents/swarm-checker.md`.
 3. **Collect.** Wait for every result message. For each task, read only the `- 상태:` line of `docs/swarm/results/<id>.md` into status.md (완료 / 부분 완료 / 실패). No result file → 실패, 비고 `결과 없음`.
 4. **Verify the 웨이브.** ONE `invoke_subagent` entry: `TypeName: swarm-checker`, Role `웨이브 <n> 검증`, Model `flash`, Workspace `inherit`, Prompt: `Run exactly this command once and report failures only: <전체 검증>`. Write the outcome into the 웨이브 검증 table. 통과 → step 6.
 5. **Retry once.** Re-dispatch (as in step 2, 시도 2) every task of this 웨이브 whose 상태 is 완료 or 부분 완료, appending to the prompt: `The 웨이브 verification failed after your work. Failures: <checker output>. Fix only what lies inside your 소유 파일; if nothing there is yours, change nothing and reply 상태: 완료.` Collect, then verify again. Still failing → set 진행 끝남 and 전체 검증 최종 결과 실패, leave later 웨이브 rows 대기, and go to Finish — `swarm-plan` re-plans, and `/swarm-run` resumes from status.md.

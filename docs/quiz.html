@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>머지 전 퀴즈: Google Antigravity 순수 단일 하네스 일원화</title>
+<title>머지 전 퀴즈: 에이전트 협업 네트워크 및 중간 문서 수명주기 고정</title>
 <style>
   body { font-family: sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
   .q { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
@@ -19,14 +19,14 @@
 </style>
 </head>
 <body>
-<h1>머지 전 퀴즈: Google Antigravity 순수 단일 하네스 일원화</h1>
-<p class="meta">대상: docs/core/specs/lifecycle-skills.md, docs/core/specs/swarm-handoff.md · 기준: aed3b64</p>
+<h1>머지 전 퀴즈: 에이전트 협업 네트워크 및 중간 문서 수명주기 고정</h1>
+<p class="meta">대상: docs/core/specs/lifecycle-skills.md, docs/core/specs/swarm-handoff.md · 기준: HEAD</p>
 <div class="summary">
 <h2>변경 요약</h2>
-<p>계획부터 실행까지 모든 과정이 Google Antigravity 단독으로 진행되도록 통합되었습니다. Claude Code 의존성과 관련 설정 파일이 완전히 제거되었습니다. 스킬 8종과 서브에이전트 8종은 Antigravity 표준 규격으로 일원화되었습니다.</p>
-<p>판단과 설계는 Antigravity 메인 세션의 강한 모델이 맡습니다. 인터뷰, 사각지대 점검, 명세 작성, 스웜 계획이 여기에 속합니다. 구현과 검증은 Antigravity의 빠른 서브에이전트 여러 개가 병렬로 합니다.</p>
-<p>소비 프로젝트는 install.sh 한 번으로 필요한 스킬과 에이전트를 연결합니다. 프로젝트 가이드는 ANTIGRAVITY.md와 AGENTS.md로 제공됩니다.</p>
-<p>파일을 고치는 에이전트는 여전히 swarm-worker 하나뿐입니다. 그것도 자기 지시서에 적힌 소유 파일 안에서만 고칩니다. 다른 모든 탐색과 검증 에이전트는 읽기 전용입니다. 모든 과정이 끝나면 변경 사항을 계층 문서에 반영하고 퀴즈를 거쳐 머지합니다.</p>
+<p>작업마다 구현(swarm-worker), 검증(swarm-verifier), 리뷰(swarm-reviewer) 세 에이전트가 협업 스쿼드를 구성합니다. 에이전트들은 메시지를 주고받으며 코드와 작업의 완성도를 올립니다.</p>
+<p>구현 에이전트가 코드를 고치면 먼저 검증자에게 테스트 검증을 요청합니다. 검증을 통과한 뒤에는 리뷰어에게 규칙과 명세 부합성 검토를 받아 승인을 얻습니다.</p>
+<p>무한 루프를 방지하기 위해 스쿼드 안의 대화는 최대 3회 턴으로 제한됩니다.</p>
+<p>작업 중 생성된 계획과 결과 등의 중간 문서는 작업 완료 시 완전 삭제하여 남기지 않습니다. 최종적으로 남는 산출물은 규칙, 맵, 상세 명세로 이루어진 살아있는 3계층 문서로 고정됩니다. 모든 과정이 끝나고 퀴즈를 통과해야 최종 머지가 가능합니다.</p>
 </div>
 <h2>퀴즈 — 전부 맞혀야 머지 가능</h2>
 <p>답을 고르는 데 필요한 내용은 위 '변경 요약'에 모두 들어 있습니다.</p>
@@ -35,21 +35,21 @@
 <div id="result"></div>
 <script>
 const QUESTIONS = [
-  { q: "antigravity-pure 브랜치에서 계획부터 실행까지의 모든 과정은 어디서 진행됩니까?",
-    options: ["Google Antigravity 단독으로 진행된다", "Claude Code와 Antigravity로 나누어 진행된다", "외부 서버에서 별도로 실행된다"], answer: 0,
-    explain: "antigravity-pure 브랜치는 계획부터 실행까지 전 과정을 Google Antigravity 메인 세션과 서브에이전트로 단독 완결하도록 통합했습니다." },
-  { q: "파일을 직접 만들거나 고칠 수 있는 서브에이전트는 어느 것입니까?",
-    options: ["모든 서브에이전트가 자유롭게 고친다", "swarm-worker 하나만 소유 파일 안에서 고친다", "codebase-scanner와 check-runner가 고친다"], answer: 1,
-    explain: "파일을 고치는 에이전트는 swarm-worker 하나뿐이며, 브리프에 지정된 소유 파일만 고칩니다. 다른 모든 에이전트는 읽기 전용입니다." },
-  { q: "소비 프로젝트에서 스킬과 에이전트를 설치할 때 어떤 스크립트를 사용합니까?",
-    options: ["install.sh 한 번으로 설치한다", "여러 도구의 설정창에서 수동 입력한다", "설치 스크립트 없이 파일을 직접 복사한다"], answer: 0,
-    explain: "install.sh 스크립트 하나로 .agents/{skills,agents,rules} 심링크와 안내 문서 import가 모두 멱등하게 설정됩니다." },
-  { q: "인터뷰, 사각지대 점검, 명세 작성, 스웜 계획 같은 설계 단계는 누가 맡습니까?",
-    options: ["Antigravity 메인 세션의 강한 모델이 맡는다", "빠른 서브에이전트가 알아서 결정한다", "작업 워커가 임의로 판단한다"], answer: 0,
-    explain: "판단과 설계는 메인 세션의 강한 모델이 한 번에 깊게 수행하고, 서브에이전트는 정해진 브리프대로 고속 실행만 담당합니다." },
-  { q: "변경 내용을 머지하기 전에 반드시 통과해야 하는 관문은 무엇입니까?",
-    options: ["브라우저에서 머지 전 퀴즈를 모두 맞힌다", "커밋 메시지만 작성하고 바로 머지한다", "문서 작성 없이 코드만 확인한다"], answer: 0,
-    explain: "작업 보고와 변경 사항이 3계층 문서에 반영된 후, 사람이 퀴즈를 전부 맞혀야 머지 게이트를 통과할 수 있습니다." }
+  { q: "작업 단위마다 구성되는 협업 스쿼드는 어떤 에이전트들로 이루어집니까?",
+    options: ["구현, 검증, 리뷰 에이전트로 구성된다", "오직 하나의 구현 에이전트만 둔다", "검증 없이 리뷰 에이전트만 둔다"], answer: 0,
+    explain: "작업 단위마다 구현(swarm-worker), 검증(swarm-verifier), 리뷰(swarm-reviewer) 세 에이전트가 협업 스쿼드를 구성합니다." },
+  { q: "구현 에이전트가 코드를 고친 뒤 가장 먼저 요청하는 협업 단계는 무엇입니까?",
+    options: ["검증자에게 테스트 검증을 요청한다", "곧바로 코드를 깃에 커밋한다", "전체 작업을 즉시 중단한다"], answer: 0,
+    explain: "구현 에이전트가 코드를 고치면 먼저 검증자에게 테스트 검증을 요청합니다." },
+  { q: "에이전트 협업 스쿼드 안에서 상호 소통할 때 최대 턴 수는 몇 회입니까?",
+    options: ["최대 3회 턴으로 제한된다", "무제한으로 대화를 주고받는다", "단 1회만 말을 걸 수 있다"], answer: 0,
+    explain: "무한 루프를 방지하기 위해 스쿼드 안의 대화는 최대 3회 턴으로 제한됩니다." },
+  { q: "워크플로우 진행 중 만들어지는 중간 문서는 작업 완료 시 어떻게 처리됩니까?",
+    options: ["완전 삭제하여 남기지 않는다", "날짜별 폴더에 영구 보관한다", "외부 저장소로 백업해 둔다"], answer: 0,
+    explain: "작업 중 생성된 계획과 결과 등의 중간 문서는 작업 완료 시 완전 삭제하여 남기지 않습니다." },
+  { q: "워크플로우가 최종 종료된 후 영구히 남는 산출물은 무엇으로 고정됩니까?",
+    options: ["살아있는 3계층 문서로 고정된다", "일회성 완료 보고서로 고정된다", "임시 실행 로그로 고정된다"], answer: 0,
+    explain: "최종적으로 남는 산출물은 규칙, 맵, 상세 명세로 이루어진 살아있는 3계층 문서로 고정됩니다." }
 ];
 const quiz = document.getElementById("quiz");
 QUESTIONS.forEach((q, i) => {

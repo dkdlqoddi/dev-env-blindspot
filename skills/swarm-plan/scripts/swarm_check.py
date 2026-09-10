@@ -27,7 +27,7 @@ PLACEHOLDERS = ("[제목]", "[주제]", "YYYY-MM-DD", "TODO", "TBD", "<영역>",
 DELEGATING_WORDS = ("필요하면", "적절히")
 PLAN_HEADER = ("기준 커밋", "전체 검증", "동시 실행 상한", "대상 spec", "작업 노트")
 PLAN_SECTIONS = ("목표", "작업", "회차")
-BRIEF_SECTIONS = ("목표", "해야 할 일", "완료 조건", "검증")
+BRIEF_SECTIONS = ("목표", "해야 할 일", "협업 프로토콜", "완료 조건", "검증")
 ID_RE = re.compile(r"^T\d{2,3}$")
 
 

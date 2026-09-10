@@ -14,15 +14,16 @@ The strong model thinks once, in full context; the fast models execute many time
 1. **Evidence.** Spawn IN PARALLEL (one message, two `invoke_subagent` entries) `codebase-scanner` (`TypeName: codebase-scanner`) with lens `integration-points` (everything the change must touch — this is the file inventory the ownership sets are cut from) and lens `similar-features` (prior art the workers will imitate — a fast model does well with a concrete `path:line` to copy and badly with a description). Both receive the task description, the tier paths, and the 위치 globs of the touched units. Skip only when the project has no code.
 
 2. **Decompose.** Cut the work into tasks that satisfy all of:
-   - **Self-contained** — finishable by a fast model that reads only the brief and the files it names; S–M size (roughly one file group, one behavior). Bigger → split.
+   - **Self-contained** — finishable by a collaborative squad that reads only the brief and the files it names; S–M size (roughly one file group, one behavior). Bigger → split.
    - **Disjoint** — within one 웨이브, no two tasks own the same path. A shared file means one merged task or a later 웨이브.
-   - **Checkable** — every task names a 검증 the worker can run (one test file, a lint, a script). No such check exists → put a test-writing task in an earlier 웨이브, or state in the 목표 which 전체 검증 files cover it.
-   - **Interface-fixed** — every name two tasks both touch (function signature, file name, schema, route) is written verbatim in each of their briefs; workers cannot talk to each other.
+   - **Checkable** — every task names a 검증 the worker and verifier can run (one test file, a lint, a script). No such check exists → put a test-writing task in an earlier 웨이브, or state in the 목표 which 전체 검증 files cover it.
+   - **Squad-coordinated** — each task establishes a collaborative squad: `swarm-worker` (구현), `swarm-verifier` (검증), and `swarm-reviewer` (리뷰) interacting via `send_message` under a 3-turn convergence budget.
+   - **Interface-fixed** — every name two tasks both touch (function signature, file name, schema, route) is written verbatim in each of their briefs.
    - **Diverse** — vary the 역할: 구현, 테스트 작성, 문서 갱신, 마이그레이션, 정리, 설정. Typical 웨이브 order: contracts / scaffolds / tests → implementations → wiring, docs, cleanup.
    - **Bounded** — at most 동시 실행 상한 (default 8) tasks per 웨이브 and about 20 per round; more work → another round after `swarm-review`.
    What the swarm must not do (design decisions still open, destructive migrations, anything needing the user) stays out and is named in the plan's 목표.
 
-3. **Write the package.** `docs/swarm/plan.md` from `templates/plan.md` in this skill's folder; one `docs/swarm/tasks/<id>.md` per task from `templates/task.md`. Every brief: literal paths, the 참고 파일 to imitate, 완료 조건 phrased as checks ("X를 호출하면 Y를 돌려준다"), the 검증 command. Ban the words 필요하면 and 적절히 — they hand the decision to the weakest model in the chain (`swarm_check.py` rejects them). Add the 회차 row (회차 1, 범위 전체).
+3. **Write the package.** `docs/swarm/plan.md` from `templates/plan.md` in this skill's folder; one `docs/swarm/tasks/<id>.md` per task from `templates/task.md`. Every brief: literal paths, the 참고 파일 to imitate, the 협업 스쿼드 roles, the `## 협업 프로토콜` section, 완료 조건 phrased as checks ("X를 호출하면 Y를 돌려준다"), the 검증 command. Ban the words 필요하면 and 적절히 — they hand the decision to the weakest model in the chain (`swarm_check.py` rejects them). Add the 회차 row (회차 1, 범위 전체).
 
 4. **Validate.** Run `python3 .agents/skills/swarm-plan/scripts/swarm_check.py docs/swarm/plan.md` (`scripts/swarm_check.py` in this skill's folder) and fix every violation. Then spawn `doc-verifier` (`TypeName: doc-verifier`) on `docs/swarm/plan.md` and on the two largest briefs, naming all sections as filled; fix every placeholder, contradiction, and ambiguity it reports.
 

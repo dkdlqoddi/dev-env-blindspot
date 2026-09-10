@@ -20,7 +20,7 @@ agents=("$ROOT"/agents/*.md)
 rules=("$ROOT"/rules/*.md)
 
 [[ ${#skills[@]} -eq 8 ]] || fail "expected 8 skills, got ${#skills[@]}"
-[[ ${#agents[@]} -eq 8 ]] || fail "expected 8 agents, got ${#agents[@]}"
+[[ ${#agents[@]} -eq 10 ]] || fail "expected 10 agents, got ${#agents[@]}"
 [[ ${#rules[@]} -eq 1 ]] || fail "expected 1 rule, got ${#rules[@]}"
 
 for f in "${skills[@]}"; do
@@ -48,7 +48,7 @@ for f in "${agents[@]}"; do
   tools="$(grep -o '^  - .*' <<<"$fm" | sed 's/  - //')"
   [[ -n "$tools" ]] || fail "$f: tools allowlist is empty"
   for t in $tools; do
-    case " view_file run_command write_to_file replace_file_content find_by_name grep_search list_dir read_url_content search_web " in
+    case " view_file run_command write_to_file replace_file_content find_by_name grep_search list_dir read_url_content search_web send_message " in
       *" $t "*) ;; *) fail "$f: unknown Antigravity tool '$t'" ;;
     esac
   done
@@ -85,7 +85,7 @@ cp -a "$ROOT/." "$tmp/proj/.agents/shared/"
     [[ -L ".agents/skills/$s" ]] || { echo "skill symlink $s missing"; exit 1; }
     [[ -f ".agents/skills/$s/SKILL.md" ]] || { echo "skill symlink $s broken"; exit 1; }
   done
-  for a in codebase-scanner domain-researcher doc-verifier change-analyzer check-runner swarm-auditor swarm-worker swarm-checker; do
+  for a in codebase-scanner domain-researcher doc-verifier change-analyzer check-runner swarm-auditor swarm-worker swarm-verifier swarm-reviewer swarm-checker; do
     [[ -L ".agents/agents/$a.md" ]] || { echo "agent symlink $a missing"; exit 1; }
     [[ -f ".agents/agents/$a.md" ]] || { echo "agent symlink $a broken"; exit 1; }
   done
@@ -116,7 +116,7 @@ need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "�
 need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
 grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
 need "$ROOT/skills/swarm-plan/templates/plan.md" "목표" "작업" "회차"
-need "$ROOT/skills/swarm-plan/templates/task.md" "목표" "해야 할 일" "완료 조건" "검증"
+need "$ROOT/skills/swarm-plan/templates/task.md" "목표" "해야 할 일" "완료 조건" "검증" "협업 프로토콜"
 need "$ROOT/skills/swarm-run/templates/status.md" "작업" "웨이브 검증"
 for b in '상태' '검증' '결정' '막힌 것'; do grep -q "^- $b:" "$ROOT/skills/swarm-run/templates/result.md" || fail "result.md: missing bullet '- $b:'"; done
 
@@ -147,7 +147,7 @@ done <<<"$tpls"
 # --- 12. swarm_check.py: clean on a valid package, loud on a broken one ---
 sw="$tmp/sw/docs/swarm"; mkdir -p "$sw/tasks" "$tmp/sw/src"; : > "$tmp/sw/src/a.py"; : > "$tmp/sw/src/b.py"
 printf '# x 스웜 계획\n\n- 기준 커밋: abc1234\n- 대상 spec: docs/core/specs/x.md\n- 작업 노트: docs/notes/x.md\n- 동시 실행 상한: 8\n- 전체 검증: `true`\n\n## 목표\n\nx\n\n## 작업\n\n| id | 제목 | 역할 | 웨이브 | 선행 |\n|---|---|---|---|---|\n| T01 | a | 구현 | 1 | 없음 |\n| T02 | b | 테스트 | 2 | T01 |\n\n## 회차\n\n| 회차 | 날짜 | 범위 | 비고 |\n|---|---|---|---|\n| 1 | 2026-01-01 | 전체 | |\n' > "$sw/plan.md"
-brief() { printf '# %s x\n\n- 역할: 구현\n- 웨이브: %s\n- 선행: %s\n- 소유 파일: %s\n\n## 목표\n\nx\n\n## 해야 할 일\n\n1. x\n\n## 완료 조건\n\n- [ ] x\n\n## 검증\n\n`true`\n' "$1" "$2" "$3" "$4"; }
+brief() { printf '# %s x\n\n- 역할: 구현\n- 웨이브: %s\n- 선행: %s\n- 소유 파일: %s\n\n## 목표\n\nx\n\n## 해야 할 일\n\n1. x\n\n## 협업 프로토콜\n\nx\n\n## 완료 조건\n\n- [ ] x\n\n## 검증\n\n`true`\n' "$1" "$2" "$3" "$4"; }
 brief T01 1 없음 '`src/a.py`, `src/new.py` (신규)' > "$sw/tasks/T01.md"
 brief T02 2 T01 '`src/b.py`' > "$sw/tasks/T02.md"
 python3 "$ROOT/skills/swarm-plan/scripts/swarm_check.py" "$sw/plan.md" >/dev/null || fail "swarm_check.py rejected a valid package"
