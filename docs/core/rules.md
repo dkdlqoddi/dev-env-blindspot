@@ -23,6 +23,7 @@
 |---|---|---|
 | 폴더 구조 | skill = skills/<name>/SKILL.md + templates/, agent = agents/<name>.md, rule = rules/<name>.md. 소비 프로젝트 .agents/에 심링크 | install.sh |
 | 협업 프로토콜 | 스쿼드(worker ↔ verifier ↔ reviewer)는 send_message로 티키타카(최대 3회) 수행 | skills/swarm-plan/templates/task.md |
+| 실행 안정성 | swarm-run은 schedule 워치독(900초)과 manage_subagents로 데드락을 방지하고, reviewer·auditor는 Pro 모델 사용 | skills/swarm-run/SKILL.md |
 | 테스트 | bash test/check.sh 하나가 전부. 검사는 번호 붙은 블록이며 실패 시 fail 함수로 즉시 종료 | test/check.sh |
 | 의존성 | bash와 python3 표준 라이브러리만 쓴다 | install.sh, skills/work-report/scripts/docs_check.py |
 | 이름 짓기 | 스킬 description은 "Use when ..."으로 시작한다 | ANTIGRAVITY.md Conventions |

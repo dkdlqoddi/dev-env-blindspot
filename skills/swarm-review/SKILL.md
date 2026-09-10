@@ -11,7 +11,7 @@ The swarm hands back a working tree and a pile of claims. This skill turns the c
 
 1. **Check the run is over.** Read `docs/swarm/status.md`. If 진행 is not 끝남, tell the user (Korean) the swarm is still running or was interrupted, and stop — `/swarm-run` resumes from the status file. Read `docs/swarm/plan.md` for the 기준 커밋, the 대상 spec, and the 전체 검증 command.
 
-2. **Audit.** Spawn IN PARALLEL (one message, two `invoke_subagent` entries): `swarm-auditor` (`TypeName: swarm-auditor`) with the plan path, `docs/swarm/tasks/`, `docs/swarm/results/`, the status path, and the 기준 커밋; and `check-runner` (`TypeName: check-runner`) with the 전체 검증 command. Do not read the result files yourself — the auditor distills them.
+2. **Audit.** Spawn IN PARALLEL (one message, two `invoke_subagent` entries): `swarm-auditor` (`TypeName: swarm-auditor`, Model: `pro`, Workspace: `inherit`) with the plan path, `docs/swarm/tasks/`, `docs/swarm/results/`, the status path, and the 기준 커밋; and `check-runner` (`TypeName: check-runner`, Model: `flash`, Workspace: `inherit`) with the 전체 검증 command. Do not read the result files yourself — the auditor distills them.
 
 3. **Fold decisions into the notes.** Ensure `docs/notes/<slug>.md` exists (the 작업 노트 line of the plan names it; create it from the `work-report` skill's `templates/notes.md`, installed at `.agents/skills/work-report/templates/notes.md`, when missing). For every 결정 line the auditor returned, append one notes entry in the notes-mode format, with 결정 주체 the task id, 계획과의 이탈 from the result's 브리프와 다르게 한 것, and 사용자 확인 필요 예 when the worker chose between options the spec does not settle. 막힌 것 lines become entries too, marked 사용자 확인 필요 예. This happens before report mode so the decisions surface in the quiz.
 
