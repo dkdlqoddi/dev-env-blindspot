@@ -6,9 +6,9 @@
 - 작업 노트: docs/notes/<slug>.md
 - 동시 실행 상한: 8
 - 전체 검증: `(rules.md 표준 명령의 test 명령 — 웨이브마다 실행)`
-- 실행 방법: Antigravity에서 `/swarm-run`. 진행 상황은 docs/swarm/status.md, 작업별 결과는 docs/swarm/results/<id>.md
+- 실행 방법: OpenCode에서 `/swarm-run`. 진행 상황은 docs/swarm/status.md, 작업별 결과는 docs/swarm/results/<id>.md
 
-<!-- Written by the swarm-plan skill (Antigravity main session, strong model) and executed by the swarm-run skill (Antigravity subagents, fast model). The executor schedules from the 작업 table only and never opens a brief itself — every cell must be literal. id = T01, T02, ... = the brief file tasks/<id>.md. 웨이브 = execution round; tasks in one 웨이브 run concurrently, so their 소유 파일 (in the briefs) must not overlap — scripts/swarm_check.py enforces this. 선행 = comma-separated ids from earlier 웨이브, or 없음. A re-plan appends a 회차 row and rewrites only the briefs it names. -->
+<!-- Written by the swarm-plan skill (OpenCode main session, strong model) and executed by the swarm-run skill (OpenCode subagents, fast model). The executor schedules from the 작업 table only and never opens a brief itself — every cell must be literal. id = T01, T02, ... = the brief file tasks/<id>.md. 웨이브 = execution round; tasks in one 웨이브 run concurrently, so their 소유 파일 (in the briefs) must not overlap — scripts/swarm_check.py enforces this. 선행 = comma-separated ids from earlier 웨이브, or 없음. A re-plan appends a 회차 row and rewrites only the briefs it names. -->
 
 ## 목표
 

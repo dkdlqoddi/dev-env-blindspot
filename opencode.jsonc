@@ -1,0 +1,77 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "build",
+  "instructions": [
+    "AGENTS.md",
+    "MANDATE.md"
+  ],
+  "provider": {
+    "ollama": {
+      "name": "Ollama (Local Open Source LLM)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1"
+      }
+    },
+    "vllm": {
+      "name": "vLLM (Local / OpenAI-Compatible)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:8000/v1"
+      }
+    }
+  },
+  "skills": {
+    "paths": [
+      "skills",
+      ".agents/skills",
+      ".opencode/skills"
+    ]
+  },
+  "command": {
+    "blindspot-flow": {
+      "template": "Run the full blindspot-flow lifecycle: requirements-interview -> blindspot-pass -> explainer -> implementation (swarm or in-session) -> work-report. Feature: $ARGUMENTS",
+      "description": "Run feature through full blindspot lifecycle"
+    },
+    "requirements-interview": {
+      "template": "Run requirements-interview for: $ARGUMENTS",
+      "description": "Interview user to elicit requirements before coding"
+    },
+    "blindspot-pass": {
+      "template": "Run blindspot-pass for: $ARGUMENTS",
+      "description": "Scan codebase and domain to discover unknown unknowns"
+    },
+    "explainer": {
+      "template": "Run explainer for unit spec: $ARGUMENTS",
+      "description": "Draft or update 3-tier unit specification in place"
+    },
+    "swarm-plan": {
+      "template": "Run swarm-plan for: $ARGUMENTS",
+      "description": "Decompose unit spec into wave-based task package"
+    },
+    "swarm-run": {
+      "template": "Run swarm-run: execute planned swarm tasks with collaborative triad squads. $ARGUMENTS",
+      "description": "Execute swarm plan concurrently with worker-verifier-reviewer squads"
+    },
+    "swarm-review": {
+      "template": "Run swarm-review to audit swarm execution results. $ARGUMENTS",
+      "description": "Audit swarm changes against rules and acceptance criteria"
+    },
+    "work-report": {
+      "template": "Run work-report: mode $ARGUMENTS",
+      "description": "Record implementation decisions or generate pre-merge quiz and finalize tiers"
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": "allow",
+    "edit": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "websearch": "allow",
+    "webfetch": "allow"
+  }
+}

@@ -9,4 +9,4 @@
 - 막힌 것: 없음 | (소유 파일 밖에 필요한 변경, 불가능하거나 모순된 지시 — 파일과 내용)
 - 협업 기록: 없음 | (검증자 피드백 n회 반영, 리뷰어 승인 완료)
 
-<!-- Written by the swarm-worker subagent at the end of its task, replacing T01 with its id. Every bullet stays; 없음 is a valid value. Under 40 lines, no logs. swarm-run reads only the 상태 line; swarm-auditor (Antigravity subagent) reads the rest. -->
+<!-- Written by the swarm-worker subagent at the end of its task, replacing T01 with its id. Every bullet stays; 없음 is a valid value. Under 40 lines, no logs. swarm-run reads only the 상태 line; swarm-auditor (OpenCode subagent) reads the rest. -->

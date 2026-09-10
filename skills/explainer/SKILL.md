@@ -25,7 +25,7 @@ One spec a zero-context reader can use to understand what a unit does, what was 
 
 3. **Save** in place: set 상태 to 확정 and 최종 갱신 to today on the spec; update 최종 갱신 on the map.
 
-4. **Verify.** Spawn IN PARALLEL (one message, two `invoke_subagent` entries): `doc-verifier` (`TypeName: doc-verifier`) on the spec naming the sections you filled, and `codebase-scanner` (`TypeName: codebase-scanner`) with lens `integration-points`, the spec and map paths, and instructions to cross-check them against code reality — every integration point the spec assumes, every 통합 지점 row, and every 위치 glob of the touched units must exist and match, mismatches cited as `file:line`. Fix every issue from both (correct map rows too), re-save. Then run `python3 .agents/skills/work-report/scripts/docs_check.py <spec> <map>` (the `work-report` skill's `scripts/docs_check.py`) and fix every violation. Skip the cross-check only when the project has no code.
+4. **Verify.** Spawn via `task` tool: `doc-verifier` (`TypeName: doc-verifier`) on the spec naming the sections you filled, and `codebase-scanner` (`TypeName: codebase-scanner`) with lens `integration-points`, the spec and map paths, and instructions to cross-check them against code reality — every integration point the spec assumes, every 통합 지점 row, and every 위치 glob of the touched units must exist and match, mismatches cited as `file:line`. Fix every issue from both (correct map rows too), re-save. Then run `python3 .agents/skills/work-report/scripts/docs_check.py <spec> <map>` (the `work-report` skill's `scripts/docs_check.py`) and fix every violation. Skip the cross-check only when the project has no code.
 
 5. **Hand off.** Tell the user (Korean): 구현 시작 시 `work-report` 노트 모드로.
 

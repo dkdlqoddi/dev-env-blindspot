@@ -19,7 +19,7 @@ The user's first prompt is a lossy map of what they actually need. Recover the t
 
 2. **Ground before asking.** Pick the unit(s) the request touches from the 단위 table and read their `docs/<area>/specs/<unit>.md` if they exist. Collect past decisions across the whole area without opening every spec: `grep -h '^| 20' docs/<area>/specs/*.md` returns the one-line 결정 기록 rows. Then spawn ONE `codebase-scanner` agent (`TypeName: codebase-scanner`) with lens `conventions`, the task description, the `rules.md` and `map.md` paths, and the 위치 globs of the touched units, so it reports only what the tiers do not already say. Questions that ignore the actual code waste the user's time. Skip the scanner only if the project has no code yet.
 
-3. **Interview.** In Korean, ONE question per message, via `ask_question` (or chat message) with 2–4 concrete options where possible.
+3. **Interview.** In Korean, ONE question per message, via question tool (or chat message) with 2–4 concrete options where possible.
    - Write every question and option for someone who has never seen the code: unavoidable technical terms plain Korean first with the term in parentheses; code identifiers only after a plain description of what they do. One fact per sentence, ≤25 어절 each.
    - Order by architecture impact: answers that change the design come first.
    - Never re-ask what a `rules.md` row or a 결정 기록 row already answers — cite the row and move on.

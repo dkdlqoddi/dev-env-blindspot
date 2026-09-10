@@ -8,7 +8,7 @@
 - 소유 파일: `path/to/existing.py`, `path/to/new_file.py` (신규), `path/to/dir/`
 - 참고 파일: `path/to/pattern.py:12-40` (따라 할 기존 코드), `docs/<영역>/rules.md`
 
-<!-- One brief = one collaborative squad (builder, verifier, reviewer) operating on this task. Every path literal; every interface spelled out verbatim in 해야 할 일. 소유 파일 = the only paths this squad may modify. 참고 파일 are read-only. Collaboration between worker, verifier, and reviewer runs via send_message within a turn budget of 3 rounds. -->
+<!-- One brief = one collaborative squad (builder, verifier, reviewer) operating on this task. Every path literal; every interface spelled out verbatim in 해야 할 일. 소유 파일 = the only paths this squad may modify. 참고 파일 are read-only. Collaboration between worker, verifier, and reviewer runs via task tool and result records within a turn budget of 3 rounds. -->
 
 ## 목표
 
