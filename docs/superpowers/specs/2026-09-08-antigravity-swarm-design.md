@@ -2,7 +2,7 @@
 
 - 날짜: 2026-09-08
 - 상태: 구현·실측 완료, 사용자 검토 대기 — 자율 실행 세션이라 인터뷰 없이 결정했다. 결정마다 대안을 적었고 §12에 사용자 확인이 필요한 항목을 모았다
-- 브랜치: `antigravity-swarm` (main은 그대로)
+- 브랜치: `claude-antigravity-cowork` (2026-09-14 `antigravity-swarm`에서 이름 변경, main은 그대로)
 - 선행 스펙: `2026-09-07-three-tier-docs-design.md` (3계층 문서 계약은 그대로 유지)
 
 ## 1. 목적과 배경

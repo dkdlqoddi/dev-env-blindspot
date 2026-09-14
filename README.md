@@ -1,4 +1,4 @@
-# dev-env-blindspot — `antigravity-swarm` 브랜치
+# dev-env-blindspot — `claude-antigravity-cowork` 브랜치
 
 모든 프로젝트가 공통으로 쓰는 Claude Code Agent/Skill 모음에 **Antigravity 스웜 실행**을 더한 브랜치. 요구사항 이해, Unknown Unknowns 구체화, 문서 작성, 작업 보고는 그대로 Claude Code가 맡고, **구현만** Antigravity의 빠른 모델 여러 개가 병렬로 한다.
 
@@ -47,7 +47,7 @@ Claude Code (고성능)                          Antigravity (고속 Flash)
 소비하려는 프로젝트의 루트에서:
 
 ```bash
-git submodule add -b antigravity-swarm https://github.com/dkdlqoddi/dev-env-blindspot.git .claude/shared
+git submodule add -b claude-antigravity-cowork https://github.com/dkdlqoddi/dev-env-blindspot.git .claude/shared
 bash .claude/shared/install.sh               # Claude Code 쪽 (main과 동일)
 bash .claude/shared/install-antigravity.sh   # Antigravity 쪽
 ```

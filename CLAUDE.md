@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Shared Claude Code skills/agents that other projects consume as a git submodule mounted at `.claude/shared/`, wired up by `install.sh` (individual relative symlinks into `.claude/skills` and `.claude/agents`, a SessionStart hook running `hooks/mandate.sh`, and a `@.claude/shared/MANDATE.md` import in the consumer's CLAUDE.md). It implements Thariq's "Finding Your Unknowns" lifecycle: `requirements-interview` → `blindspot-pass` → `explainer` → `work-report`, orchestrated by `blindspot-flow`. Deliverables are a fixed set of living documents per area — three tiers, `rules.md` / `map.md` / `specs/<unit>.md` — updated in place, never dated per-cycle files.
 
-This branch (`antigravity-swarm`) splits implementation off to Antigravity: Claude Code (strong model) plans with `swarm-plan` and audits with `swarm-review` / `swarm-auditor`; Antigravity (fast Gemini Flash) executes the plan with the `swarm-run` skill and the `swarm-worker` / `swarm-checker` subagents shipped under `antigravity/` and linked into the consumer's `.agents/` by `install-antigravity.sh`. The two harnesses share one working tree and talk only through `docs/swarm/`.
+This branch (`claude-antigravity-cowork`) splits implementation off to Antigravity: Claude Code (strong model) plans with `swarm-plan` and audits with `swarm-review` / `swarm-auditor`; Antigravity (fast Gemini Flash) executes the plan with the `swarm-run` skill and the `swarm-worker` / `swarm-checker` subagents shipped under `antigravity/` and linked into the consumer's `.agents/` by `install-antigravity.sh`. The two harnesses share one working tree and talk only through `docs/swarm/`.
 
 ## Test
 
