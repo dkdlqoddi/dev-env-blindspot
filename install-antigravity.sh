@@ -22,4 +22,4 @@ for f in "$AG"/agents/*.md "$AG"/rules/*.md; do
 done
 
 [[ -f .agents/skills/swarm-run/SKILL.md ]] || { echo "error: .agents/skills/swarm-run does not resolve — is the submodule initialised?"; exit 1; }
-echo "blindspot-swarm: installed — .agents/{skills,agents,rules} symlinked; run /swarm-run in Antigravity (agy --add-dir \"\$PWD\" ...) once docs/swarm/plan.md exists"
+echo "blindspot-swarm: installed — .agents/{skills,agents,rules} symlinked; once docs/swarm/plan.md exists, run: agy --add-dir \"\$PWD\" -p '/swarm-run' --model gemini-3.8-flash-high --dangerously-skip-permissions --print-timeout 60m"
