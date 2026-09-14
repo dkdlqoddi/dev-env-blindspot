@@ -147,28 +147,29 @@ done <<<"$tpls"
 
 # --- 12. swarm_check.py: clean on a valid package and after that package's own 웨이브 commit, loud on a broken one ---
 sw="$tmp/sw"; plan="$sw/docs/swarm/plan.md"
-mkdir -p "$sw/docs/swarm/tasks" "$sw/src" "$sw/docs/core"
-: > "$sw/src/a.py"; : > "$sw/src/b.py"; printf '# m\n' > "$sw/docs/core/map.md"
+mkdir -p "$sw/docs/swarm/tasks" "$sw/src/[id]" "$sw/docs/core"
+: > "$sw/src/a.py"; : > "$sw/src/b.py"; : > "$sw/src/[id]/page.tsx"; : > "$sw/src/my file.py"; printf '# m\n' > "$sw/docs/core/map.md"
 g() { git -C "$sw" -c user.name=check -c user.email=check@localhost "$@"; }
 g init -q; g add -A; g commit -qm base
 printf '# x 스웜 계획\n\n- 기준 커밋: %s\n- 대상 spec: docs/core/specs/x.md\n- 작업 노트: docs/notes/x.md\n- 동시 실행 상한: 8\n- 전체 검증: `true`\n\n## 목표\n\nx\n\n## 작업\n\n| id | 제목 | 역할 | 웨이브 | 선행 |\n|---|---|---|---|---|\n| T01 | a | 구현 | 1 | 없음 |\n| T02 | b | 테스트 | 2 | T01 |\n\n## 웨이브별 검증\n\n| 웨이브 | 검증 | 이유 |\n|---|---|---|\n| 1 | `test -f src/a.py` | tests first |\n| 2 | 전체 검증 | |\n\n## 회차\n\n| 회차 | 날짜 | 범위 | 비고 |\n|---|---|---|---|\n| 1 | 2026-01-01 | 전체 | |\n' "$(g rev-parse --short HEAD)" > "$plan"
 brief() { printf '# %s x\n\n- 역할: 구현\n- 웨이브: %s\n- 선행: %s\n- 소유 파일: %s\n- 참고 파일: %s\n\n## 목표\n\nx\n\n## 해야 할 일\n\n1. x\n\n## 완료 조건\n\n- [ ] x\n\n## 검증\n\n`true`\n' "$1" "$2" "$3" "$4" "$5"; }
-brief T01 1 없음 '`src/a.py`, `src/new.py` (신규)' '`src/b.py:1-2`' > "$sw/docs/swarm/tasks/T01.md"
+brief T01 1 없음 '`src/a.py`, `src/new.py` (신규), `src/[id]/page.tsx`, `src/my file.py`' '`src/b.py:1-2`' > "$sw/docs/swarm/tasks/T01.md"   # brackets and spaces are literal paths
 brief T02 2 T01 '`src/b.py`, `src/new.py`' '`src/new.py`' > "$sw/docs/swarm/tasks/T02.md"   # edits the file T01 creates, without (신규)
 python3 "$ROOT/skills/swarm-plan/scripts/swarm_check.py" "$plan" >/dev/null || fail "swarm_check.py rejected a valid package"
 : > "$sw/src/new.py"; g add -A; g commit -qm "swarm: 웨이브 1 — T01"
 python3 "$ROOT/skills/swarm-plan/scripts/swarm_check.py" "$plan" >/dev/null || fail "swarm_check.py rejected a valid package after its own 웨이브 1 commit (resume, re-plan round)"
 brief T02 1 T03 '`src`, `src/missing.py`, `docs/core/map.md`, `src/b.py` (신규)' '`src/a.py`' > "$sw/docs/swarm/tasks/T02.md"   # same 웨이브 as T01: directory without a trailing slash (overlaps src/a.py), reads T01's file, dep on a later 웨이브, missing path, tier document, (신규) that exists
-brief T03 2 없음 '`src/b.py`' 없음 > "$sw/docs/swarm/tasks/T03.md"
+brief T03 2 없음 '`src/b.py`, `src/new.py` (신규)' 없음 > "$sw/docs/swarm/tasks/T03.md"   # (신규) again for the file T01 creates
 sed -i 's/| T02 | b | 테스트 | 2 | T01 |/| T02 | b | 테스트 | 1 | T03 |\n| T03 | c | 문서 | 2 | 없음 |\n| T04 | d | 정리 | 2 | 없음 |/' "$plan"   # T04 has no brief
 sed -i 's/^| 2 | 전체 검증 | |$/| 2 | `pytest -q` | |/' "$plan"                                    # last 웨이브 not 전체 검증
+sed -i 's/^- 동시 실행 상한: 8$/- 동시 실행 상한: 1/' "$plan"                                          # 웨이브 1 now holds two tasks
 printf '\n[제목]\n' >> "$sw/docs/swarm/tasks/T01.md"
 sed -i 's/^1\. x$/1. If needed, x/' "$sw/docs/swarm/tasks/T01.md"                       # delegating words inside 해야 할 일
 sed -i 's/^- 전체 검증: `true`$/- 전체 검증: `(rules.md 표준 명령의 test 명령)`/' "$plan"   # template guidance left in
 if out="$(python3 "$ROOT/skills/swarm-plan/scripts/swarm_check.py" "$plan" 2>&1)"; then
   fail "swarm_check.py exited 0 on a broken package"
 fi
-for msg in 'overlap' 'earlier 웨이브' 'is missing' 'does not exist' 'placeholder' 'if needed' 'template guidance' 'same 웨이브' 'reserved' 'exists at 기준 커밋' 'last 웨이브'; do
+for msg in 'overlap' 'earlier 웨이브' 'is missing' 'does not exist' 'placeholder' 'if needed' 'template guidance' 'same 웨이브' 'reserved' 'exists at 기준 커밋' 'last 웨이브' 'already created' 'more than 동시 실행 상한'; do
   grep -q "$msg" <<<"$out" || fail "swarm_check.py fixture output missing '$msg'"
 done
 sed -i 's/^- 기준 커밋: .*/- 기준 커밋: 0000000/' "$plan"

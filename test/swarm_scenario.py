@@ -4,10 +4,12 @@
 Usage: python3 test/swarm_scenario.py [repo root]    (test/check.sh check 13)
 
 회차 1: a tests-first 웨이브 behind a light check; an interrupted 웨이브 (finished task kept, unfinished one
-reset); a retry of the failing path's owner, then of the whole 웨이브; an unrunnable check that stops
-without committing and resumes straight into the check; a stray change that blocks a resume.
+reset); a retry of the failing path's owner, then of the whole 웨이브; an unrunnable check and an unreadable
+reply that stop without committing and resume straight into the check; a stray change that blocks a resume.
 회차 2: a re-planned 웨이브 1 task, closed by a 최종 전체 검증. 회차 3: a 웨이브 that keeps failing is
-committed as (검증 실패) and halts. 회차 4: a stale result file and collect --final.
+committed as (검증 실패) and halts. 회차 4: a stale result file and collect --final. 회차 5: a 부분 완료
+선행 holds its dependent, the all-held 웨이브 is skipped, and the 최종 check fails. Then: a changed 작업
+table without a 회차 row, a status.md in the previous format, and two helpers checked directly.
 """
 import json
 import os
@@ -215,12 +217,17 @@ def main():
     dispatch(swarm("verified", stdin=checker(FULL, "")), ["T04"])
     expect("swarm: 웨이브 2 — T02, T03" in git("log", "--format=%s"), "웨이브 2 was not committed")
 
-    # the checker cannot run: stop without committing, then resume straight into the check
+    # the checker cannot run, then its reply is unreadable: both stop uncommitted and resume straight into the check
     work("T04", 1, {"src/extra.txt": "fine\n"})
     verify(swarm("collect"), FULL)
     out = swarm("verified", stdin="검증 결과: 실행 불가 — sh not found\n")
     expect(action(out) == "finish" and header("전체 검증 최종 결과") == "실행 불가", f"실행 불가 did not end the run:\n{out}")
-    expect("src/extra.txt" not in git("ls-files"), "an unverified 웨이브 was committed")
+    expect("src/extra.txt" not in git("ls-files") and "docs/swarm/results/T04.md" not in git("ls-files"),
+           "an unverified 웨이브 or its result was committed")
+    verify(swarm("next"), FULL)
+    out = swarm("verified", stdin="The checker says everything looks fine.\n")
+    expect(action(out) == "finish" and header("전체 검증 최종 결과") == "실행 불가" and "판독 불가" in out,
+           f"an unreadable checker reply was not treated as 실행 불가:\n{out}")
     verify(swarm("next"), FULL)
     out = swarm("verified", stdin=checker(FULL, ""))
     expect(action(out) == "finish" and header("전체 검증 최종 결과") == "통과" and header("진행") == "끝남", f"the run did not finish green:\n{out}")
@@ -270,6 +277,32 @@ def main():
     verify(out, FULL)
     out = swarm("verified", stdin=checker(FULL, "`src/extra.txt` — contains boom"))
     expect(action(out) == "finish" and header("전체 검증 최종 결과") == "실패", f"a failed 웨이브 with nothing to retry did not halt:\n{out}")
+
+    # 회차 5 re-plans T02 and T04: T02 ends 부분 완료, so T04 is held, 웨이브 3 is skipped, and the 최종 check fails on the old boom
+    rounds += "| 5 | 2026-09-14 | T02, T04 | re-plan |\n"
+    replan(base, rounds, "swarm: 재계획 회차 5")
+    dispatch(swarm("next"), ["T02"])
+    work("T02", 5, {"src/impl.txt": "ok\n"}, state="부분 완료")
+    verify(swarm("collect"), FULL)
+    verify(swarm("verified", stdin="검증 결과: 통과\n"), FULL)
+    status = read("docs/swarm/status.md")
+    expect(row("T04")[2] == "보류" and row("T04")[6] == "선행 T02 부분 완료", "a task behind a 부분 완료 선행 was not held")
+    expect("| 3 | 5 | 건너뜀 |" in status, "the all-held 웨이브 was not recorded as 건너뜀")
+    out = swarm("verified", stdin=checker(FULL, "`src/extra.txt` — contains boom"))
+    expect(action(out) == "finish" and header("전체 검증 최종 결과") == "실패" and "| 최종 | 5 | 실패 — 중단 |" in read("docs/swarm/status.md"),
+           f"a failing 최종 check did not halt the run:\n{out}")
+
+    # a 작업 table changed without a new 회차 row stops the run instead of guessing
+    write("docs/swarm/plan.md", read("docs/swarm/plan.md").replace("| T03 | readme | docs | 2 | 없음 |\n", ""))
+    os.remove(os.path.join(PROJ, "docs/swarm/tasks/T03.md"))
+    out = swarm("next", code=1)
+    expect(action(out) == "stop" and "맞지 않습니다" in out, f"a changed 작업 table without a 회차 row did not stop the run:\n{out}")
+    git("checkout", "--", "docs/swarm/plan.md", "docs/swarm/tasks/T03.md")
+
+    # a status.md in the previous format stops with a clear message instead of being misread
+    write("docs/swarm/status.md", read("docs/swarm/status.md").replace("- 회차: 5\n", ""))
+    out = swarm("next", code=1)
+    expect(action(out) == "stop" and "이전 버전의 형식" in out, f"a previous-format status.md was not recognised:\n{out}")
 
     # helpers checked directly: a failing directory routes to the task owning a file inside it, and a
     # work-tree rename (git add -N) is read as two intact paths

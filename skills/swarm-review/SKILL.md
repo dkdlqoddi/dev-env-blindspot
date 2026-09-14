@@ -9,7 +9,7 @@ The swarm hands back a working tree and a pile of claims. This skill turns the c
 
 ## Workflow
 
-1. **Check the run is over.** Read `docs/swarm/status.md`. If 진행 is not 끝남, tell the user (Korean) the swarm is still running or was interrupted, and stop — rerunning Antigravity's `/swarm-run` resumes it. If 전체 검증 최종 결과 is 실행 불가, tell the user (Korean) to make the verification command runnable and rerun `/swarm-run`, and stop — the last 웨이브 is neither verified nor committed yet. Read `docs/swarm/plan.md` for the 기준 커밋, the 대상 spec, the 전체 검증 command, and the 회차 table.
+1. **Check the run is over.** Read `docs/swarm/status.md`. If 진행 is not 끝남, tell the user (Korean) the swarm is still running or was interrupted, and stop — rerunning Antigravity's `/swarm-run` resumes it. If 전체 검증 최종 결과 is 실행 불가, tell the user (Korean) to fix what stopped the check — the command could not start, or the checker's reply had no 검증 결과 line (the 웨이브 검증 table's 핵심 메시지 says which) — and rerun `/swarm-run`, and stop: the last 웨이브 is neither verified nor committed yet. Read `docs/swarm/plan.md` for the 기준 커밋, the 대상 spec, the 전체 검증 command, and the 회차 table.
 
 2. **Audit.** Spawn IN PARALLEL (one message, two Agent calls): `swarm-auditor` (subagent_type: `swarm-auditor`) with the plan path, `docs/swarm/tasks/`, `docs/swarm/results/`, the status path, and the 기준 커밋; and `check-runner` (subagent_type: `check-runner`) with the 전체 검증 command. Do not read the result files yourself — the auditor distills them.
 

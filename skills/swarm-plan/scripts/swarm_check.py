@@ -7,19 +7,21 @@ plan.md : header bullets 기준 커밋 (a commit of this repository) / 전체 �
           command) / 동시 실행 상한 (a positive number) / 대상 spec / 작업 노트 present and not
           template guidance; sections 목표 / 작업 / 웨이브별 검증 / 회차 present; the 작업 table
           has rows of id | 제목 | 역할 | 웨이브 | 선행 with unique T01-style ids and a numeric
-          웨이브; every id has tasks/<id>.md and every tasks/*.md is listed; 웨이브별 검증 has
-          one row per 웨이브, each 전체 검증 or one backticked command, the last 웨이브 전체 검증;
-          회차 rows number upward and the latest 범위 is 전체 or ids of the 작업 table
+          웨이브, and no 웨이브 holds more tasks than 동시 실행 상한; every id has tasks/<id>.md and
+          every tasks/*.md is listed; 웨이브별 검증 has one row per 웨이브, each 전체 검증 or one
+          backticked command, the last 웨이브 전체 검증; 회차 rows number upward and the latest
+          범위 is 전체 or ids of the 작업 table
 briefs  : header bullets 웨이브 / 선행 / 소유 파일 present and equal to the table; sections
           목표 / 해야 할 일 / 완료 조건 / 검증 present and non-empty; 선행 ids exist and sit in
           an earlier 웨이브; no delegating words (필요하면, 적절히, if needed, as appropriate, ...)
 paths   : judged against git (기준 커밋 and HEAD), never the working tree, so the verdict does
           not change when the swarm's own commits land (resume, re-plan round). (신규) = absent
-          at 기준 커밋. Every other 소유 파일 / 참고 파일 path exists at 기준 커밋 or HEAD, or lies
-          under a (신규) path owned in an earlier 웨이브. A path is a directory when it ends with
-          / or is a tree in git. No two tasks of one 웨이브 own overlapping paths; no task reads
-          (참고 파일) what another task of its 웨이브 owns; no 소유 파일 under docs/swarm/,
-          docs/notes/, docs/quiz.html, or an area's rules.md / map.md / specs/
+          at 기준 커밋 and not already (신규) in an earlier 웨이브. Every other 소유 파일 / 참고 파일
+          path exists at 기준 커밋 or HEAD, or lies under a (신규) path owned in an earlier 웨이브;
+          a path is read as a glob only when it does not exist literally. A path is a directory
+          when it ends with / or is a tree in git. No two tasks of one 웨이브 own overlapping
+          paths; no task reads (참고 파일) what another task of its 웨이브 owns; no 소유 파일
+          under docs/swarm/, docs/notes/, docs/quiz.html, or an area's rules.md / map.md / specs/
 both    : no template placeholders left ([제목], [주제], YYYY-MM-DD, TODO, TBD, <영역>, <단위>,
           <slug>, path/to/)
 
@@ -87,9 +89,8 @@ def paths(text, owned):
         raw = m.group(1).strip()
         if not owned:
             raw = re.sub(r":\d+(-\d+)?$", "", raw)  # 참고 파일 may cite path:12-40
-        if not raw or any(c.isspace() for c in raw):
-            continue
-        out.append((os.path.normpath(raw), raw.endswith("/"), owned and bool(m.group(2))))
+        if raw:
+            out.append((os.path.normpath(raw), raw.endswith("/"), owned and bool(m.group(2))))
     return out
 
 
@@ -185,6 +186,10 @@ def check_plan(src, pkg, violations):
         violations.append("plan.md: 작업 table has no tasks")
 
     waves = sorted({t["wave"] for t in tasks.values() if t["wave"] is not None})
+    for w in waves:
+        count = sum(1 for t in tasks.values() if t["wave"] == w)
+        if count > pkg["cap"]:
+            violations.append(f"plan.md: 웨이브 {w} has {count} tasks, more than 동시 실행 상한 {pkg['cap']} — split it")
     body = section(src, "웨이브별 검증")
     if body is not None:
         seen = set()
@@ -296,18 +301,18 @@ def check_paths(pkg, briefs, violations):
     for info in briefs.values():
         info["own"] = [(p, slash or p in at_base.dirs or p in at_head.dirs, new) for p, slash, new in info["own"]]
         info["refs"] = [(p, slash or p in at_base.dirs or p in at_head.dirs) for p, slash in info["refs"]]
-    created = [(info["wave"], p, d) for info in briefs.values() if info["wave"] is not None
+    created = [(tid, info["wave"], p, d) for tid, info in sorted(briefs.items()) if info["wave"] is not None
                for p, d, new in info["own"] if new]
     areas = sorted({f.split("/")[1] for f in at_base.files | at_head.files if re.fullmatch(r"docs/[^/]+/map\.md", f)})
     reserved = [("docs/swarm", True), ("docs/notes", True), ("docs/quiz.html", False)]
     reserved += [e for a in areas for e in ((f"docs/{a}/rules.md", False), (f"docs/{a}/map.md", False), (f"docs/{a}/specs", True))]
 
     def reachable(p, d, wave):
-        if any(ch in p for ch in GLOB_CHARS):
-            return at_base.matches(p) or at_head.matches(p)
         if at_base.has(p) or at_head.has(p):
             return True
-        return wave is not None and any(w < wave and overlaps((p, d), (q, qd)) for w, q, qd in created)
+        if any(ch in p for ch in GLOB_CHARS) and (at_base.matches(p) or at_head.matches(p)):
+            return True
+        return wave is not None and any(w < wave and overlaps((p, d), (q, qd)) for _, w, q, qd in created)
 
     for tid, info in sorted(briefs.items()):
         where = f"tasks/{tid}.md"
@@ -320,6 +325,9 @@ def check_paths(pkg, briefs, violations):
             if new:
                 if at_base.has(p):
                     violations.append(f"{where}: '{p}' is marked (신규) but exists at 기준 커밋 {base}")
+                creators = [t for t, w, q, _ in created if q == p and info["wave"] is not None and w < info["wave"]]
+                if creators:
+                    violations.append(f"{where}: '{p}' is already created by {creators[0]} in an earlier 웨이브 — list it without (신규)")
             elif not reachable(p, d, info["wave"]):
                 violations.append(f"{where}: '{p}' does not exist at 기준 커밋 or HEAD and no earlier 웨이브 creates it (mark it (신규) if this task creates it)")
         for p, d in info["refs"]:

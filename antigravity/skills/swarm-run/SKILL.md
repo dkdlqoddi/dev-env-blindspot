@@ -36,6 +36,6 @@ If `invoke_subagent` answers that `swarm-worker` or `swarm-checker` is not found
 - Running the verification command yourself floods your context with logs — the checker returns failures only.
 - Workspace `branch` gives each worker a private copy nobody merges — always `inherit`; disjoint 소유 파일 is what keeps the shared tree safe.
 - `swarm_next.py` commits each 웨이브 with `git add -A`, which commits whatever `.gitignore` lets through — in the first smoke test a `__pycache__` landed in a 웨이브 commit because the scratch project had none. The auditor flags such files as 주인 없음; the fix is the consumer's `.gitignore`, not a narrower add.
-- Since agy 1.1.28 an expired `--print-timeout` ends the run with exit code 0 and partial output, so an interrupted swarm looks finished. Rerunning `/swarm-run` is always safe: `next` keeps finished results and resets unfinished tasks.
+- An expired `--print-timeout` ends the run with exit code 0 and partial output (agy changelog 1.1.28, confirmed on 1.2.2), so an interrupted swarm looks finished. Rerunning `/swarm-run` resumes it: `next` refuses changes outside the swarm's own work, keeps finished results, and resets only the unfinished tasks' 소유 파일.
 - `invoke_subagent` returns before its subagents finish (measured on agy 1.2.2); running `collect` straight after the call only reports missing results — wait for the replies first.
 - A checker reply pasted inside double quotes gets its backticked paths executed by the shell — always pass it through the quoted heredoc the script prints.

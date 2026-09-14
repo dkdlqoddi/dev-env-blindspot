@@ -4,8 +4,8 @@
 Run from the project root, carry out the single ACTION printed, then run the command it names.
 
   swarm_next.py next               start or resume: check the plan (swarm_check.py), open a new
-                                   회차, recover an interrupted 웨이브, require a tree clean outside
-                                   the swarm's own uncommitted work, then print the next action
+                                   회차, refuse changes outside the swarm's own work, recover an
+                                   interrupted 웨이브, then print the next action
   swarm_next.py collect [--final]  after a dispatch: record each result's 상태 (only when its 시도
                                    matches); --final marks results still missing 실패 (결과 없음)
   swarm_next.py verified           after a check, with the swarm-checker reply on stdin: record it,
@@ -19,8 +19,9 @@ ACTION: finish | stop       relay the printed Korean text to the user; the run i
 A 웨이브 is done when every task is terminal (완료 / 부분 완료 / 실패 / 보류) and its latest check
 since its latest task run is 통과 (or 건너뜀: every task 보류). A run ends with a 통과 of the
 plan's 전체 검증 after the last change — a 최종 check is added when the last recorded one is not.
-docs/swarm/status.md is written only here, from this skill's templates/status.md.
-Exit codes: 0 action printed, 1 stop, 2 misuse.
+A check that cannot run, or a reply without its 검증 결과 line, stops the run with the 웨이브
+uncommitted; the next run checks again without re-dispatching. docs/swarm/status.md is written only
+here, from this skill's templates/status.md. Exit codes: 0 action printed, 1 stop, 2 misuse.
 """
 import json
 import os
@@ -44,6 +45,7 @@ except ImportError:
     sys.exit(1)
 
 SWARM = "docs/swarm"
+STATUS = f"{SWARM}/status.md"
 SCRIPT = ".agents/skills/swarm-run/scripts/swarm_next.py"
 RESULT_TEMPLATE = ".agents/skills/swarm-run/templates/result.md"
 STATUS_TEMPLATE = os.path.join(HERE, "..", "templates", "status.md")
@@ -56,6 +58,10 @@ REPLY_MARK = "SWARM_CHECK_REPLY"
 
 
 class GitError(Exception):
+    pass
+
+
+class StatusFormatError(Exception):
     pass
 
 
@@ -107,7 +113,7 @@ def blank(wave):
 
 
 def status_file(pkg):
-    return os.path.join(pkg["root"], SWARM, "status.md")
+    return os.path.join(pkg["root"], STATUS)
 
 
 def read_status(pkg):
@@ -115,6 +121,8 @@ def read_status(pkg):
     if not os.path.isfile(path):
         return None
     src = sc.read(path)
+    if sc.bullet(src, "회차") is None:
+        raise StatusFormatError(path)
     st = {"round": number(sc.bullet(src, "회차")) or 1, "started": sc.bullet(src, "시작") or "",
           "progress": sc.bullet(src, "진행") or "실행 중", "final": sc.bullet(src, "전체 검증 최종 결과") or "미실행",
           "tasks": {}, "checks": []}
@@ -181,12 +189,18 @@ def dirty_paths(root):
 
 
 def revert(root, owned):
-    """Put 소유 파일 back to HEAD: restore tracked paths, delete untracked files under them (ignored files stay)."""
+    """Put 소유 파일 back to HEAD: restore tracked paths, delete untracked files under them (ignored files stay).
+
+    Each path is matched literally first (app/[id]/page.tsx is a file, not a glob) and as a glob only
+    when it contains glob characters.
+    """
     for path, _, _ in owned:
-        if git(root, "ls-files", "-z", "--", path).stdout.strip("\0"):
-            git(root, "checkout", "HEAD", "--", path, check=False)
-        for f in filter(None, git(root, "ls-files", "--others", "--exclude-standard", "-z", "--", path).stdout.split("\0")):
-            os.remove(os.path.join(root, f))
+        for spec in [":(literal)" + path] + ([path] if any(ch in path for ch in sc.GLOB_CHARS) else []):
+            if git(root, "ls-files", "-z", "--", spec).stdout.strip("\0"):
+                git(root, "checkout", "HEAD", "--", spec, check=False)
+            for f in filter(None, git(root, "ls-files", "--others", "--exclude-standard", "-z", "--", spec).stdout.split("\0")):
+                if os.path.lexists(os.path.join(root, f)):
+                    os.remove(os.path.join(root, f))
 
 
 def commit(root, message):
@@ -285,9 +299,9 @@ def finish(pkg, st, outcome):
     st["progress"], st["final"] = "끝남", outcome
     write_status(pkg, st)
     root = pkg["root"]
-    git(root, "add", "-A", "--", SWARM)
-    if git(root, "diff", "--cached", "--quiet", "--", SWARM, check=False).returncode != 0:
-        git(root, "commit", "-q", "-m", "swarm: 상태 기록", "--", SWARM)
+    git(root, "add", "--", STATUS)  # status only: an uncommitted 웨이브's results stay with its code until its commit
+    if git(root, "diff", "--cached", "--quiet", "--", STATUS, check=False).returncode != 0:
+        git(root, "commit", "-q", "-m", "swarm: 상태 기록", "--", STATUS)
     lines = [f"스웜 실행 끝 — 전체 검증 최종 결과: {outcome} (회차 {st['round']})",
              "작업: " + " · ".join(f"{s} {sum(t['state'] == s for t in st['tasks'].values())}"
                                   for s in ("완료", "부분 완료", "실패", "보류", "대기"))]
@@ -296,7 +310,7 @@ def finish(pkg, st, outcome):
     last = st["checks"][-1] if st["checks"] else None
     if last and outcome != PASS:
         lines.append(f"마지막 검증: 웨이브 {last['wave']} {last['result']}" + (f" — {last['message']}" if last["message"] else ""))
-    lines.append("다음 단계: 검증 명령이 실행되도록 환경을 고친 뒤 /swarm-run을 다시 실행하세요. 끝난 작업은 다시 돌지 않습니다."
+    lines.append("다음 단계: 검증 명령이 실행되지 않았거나 checker 답을 읽지 못했습니다. 원인을 고친 뒤 /swarm-run을 다시 실행하면 재파견 없이 검증부터 합니다."
                  if outcome == UNRUNNABLE else "다음 단계: Claude Code에서 swarm-review를 실행하세요.")
     return say("finish", "\n".join(lines), 0)
 
@@ -356,11 +370,11 @@ def sync_round(pkg, st, latest):
 
 
 def parse_reply(reply):
-    """(verdict, key message, failure text) of a swarm-checker reply."""
+    """(verdict, key message, failure text) of a swarm-checker reply; no 검증 결과 line reads as 실행 불가."""
     lines = [l.strip() for l in reply.splitlines() if l.strip() and l.strip() != REPLY_MARK]
     head = next((i for i, l in enumerate(lines) if l.startswith("검증 결과:")), None)
     if head is None:
-        return "실패", "checker reply unreadable: " + (lines[0] if lines else "(empty)"), "\n".join(lines[:30])
+        return UNRUNNABLE, "checker 답 판독 불가: " + (lines[0] if lines else "(빈 답)"), ""
     first, rest = lines[head], lines[head + 1:]
     if first.startswith("검증 결과: 통과"):
         return PASS, "", ""
@@ -400,7 +414,7 @@ def cmd_next(plan):
         return stop("docs/swarm/plan.md가 없습니다. Claude Code에서 swarm-plan으로 계획을 먼저 만드세요.")
     if violations:
         return stop("계획 검사(swarm_check.py)를 통과하지 못했습니다. Claude Code에서 계획을 고쳐야 합니다.\n" + "\n".join(violations[:15]))
-    root, notes = pkg["root"], []
+    root, notes, resuming = pkg["root"], [], False
     latest = pkg["rounds"][-1]["n"]
     st = read_status(pkg)
     if st is None:
@@ -416,15 +430,19 @@ def cmd_next(plan):
             st["tasks"][tid]["wave"] != row["wave"] for tid, row in pkg["tasks"].items()):
         return stop("plan.md의 작업 표나 회차가 status.md와 맞지 않습니다. 계획을 바꿨다면 Claude Code의 swarm-plan 재계획 회차로 회차 행을 추가해야 합니다.")
     else:
-        notes += recover(pkg, st)
-    os.makedirs(os.path.join(root, SWARM, "results"), exist_ok=True)
-    write_status(pkg, st)
+        resuming = True
+    # refuse foreign changes before recovery resets anything: the swarm's own uncommitted work is every
+    # task that ran (or was interrupted) since its 웨이브's last commit
     pending = [(SWARM, True)] + [own[:2] for tid, t in st["tasks"].items()
-                                 if t["commit"] == "-" and t["state"] in WORKED for own in pkg["briefs"][tid]["own"]]
+                                 if t["commit"] == "-" and t["state"] in WORKED + ("실행 중",) for own in pkg["briefs"][tid]["own"]]
     stray = [p for p in dirty_paths(root) if not any(sc.overlaps((p, False), a) for a in pending)]
     if stray:
         return stop("스웜이 소유하지 않은 변경이 트리에 있습니다. 커밋하거나 stash한 뒤 /swarm-run을 다시 실행하세요.\n"
                     + "\n".join(f"- {p}" for p in stray[:15]))
+    if resuming:
+        notes += recover(pkg, st)
+    os.makedirs(os.path.join(root, SWARM, "results"), exist_ok=True)
+    write_status(pkg, st)
     return advance(pkg, st, notes)
 
 
@@ -432,7 +450,7 @@ def cmd_collect(plan, final):
     pkg, _ = sc.load(plan)
     st = read_status(pkg)
     if st is None:
-        return misuse(f"{SWARM}/status.md is missing — run: python3 {SCRIPT} next")
+        return misuse(f"{STATUS} is missing — run: python3 {SCRIPT} next")
     missing = []
     for tid, t in st["tasks"].items():
         if t["state"] != "실행 중":
@@ -458,7 +476,7 @@ def cmd_verified(plan):
     pkg, _ = sc.load(plan)
     st = read_status(pkg)
     if st is None:
-        return misuse(f"{SWARM}/status.md is missing — run: python3 {SCRIPT} next")
+        return misuse(f"{STATUS} is missing — run: python3 {SCRIPT} next")
     step = evaluate(pkg, st)
     if step[0] != "verify":
         write_status(pkg, st)
@@ -509,6 +527,9 @@ def main(argv):
         return commands[tuple(args)]()
     except GitError as e:
         return stop(f"git 명령이 실패했습니다. 저장소 상태를 확인한 뒤 /swarm-run을 다시 실행하세요.\n{e}")
+    except StatusFormatError:
+        return stop("docs/swarm/status.md가 이전 버전의 형식입니다. 스웜 도중 이 저장소(submodule)를 올렸다면 "
+                    "이전 커밋으로 되돌려 이 스웜을 끝낸 뒤 다시 올리세요.")
 
 
 if __name__ == "__main__":
