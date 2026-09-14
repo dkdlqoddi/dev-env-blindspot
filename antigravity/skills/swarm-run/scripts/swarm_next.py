@@ -174,7 +174,7 @@ def dirty_paths(root):
         if len(entry) < 4:
             continue
         found.append(entry[3:])
-        if entry[0] in "RC" and i < len(items):  # rename / copy: the source path follows
+        if (entry[0] in "RC" or entry[1] in "RC") and i < len(items):  # rename / copy in index or work tree: the source path follows
             found.append(items[i])
             i += 1
     return [p[len(prefix):] if p.startswith(prefix) else "../" + p for p in found]
@@ -370,7 +370,7 @@ def parse_reply(reply):
 
 
 def route(pkg, text, ids):
-    """The tasks among ids whose 소유 파일 contain a path named in the failure text."""
+    """The tasks among ids whose 소유 파일 are, contain, or lie under a path named in the failure text."""
     tokens = set()
     for raw in re.findall(r"[\w./-]+", text):
         if "/" not in raw and not re.search(r"\.\w{1,8}$", raw):
@@ -379,7 +379,7 @@ def route(pkg, text, ids):
         if not path.startswith(".."):
             tokens.add(path)
     return [tid for tid in ids
-            if any(sc.overlaps((tok, False), own[:2]) for tok in tokens for own in pkg["briefs"][tid]["own"])]
+            if any(sc.overlaps((tok, True), own[:2]) for tok in tokens for own in pkg["briefs"][tid]["own"])]
 
 
 def commit_wave(pkg, st, wave, suffix=""):

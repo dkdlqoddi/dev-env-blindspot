@@ -271,6 +271,21 @@ def main():
     out = swarm("verified", stdin=checker(FULL, "`src/extra.txt` — contains boom"))
     expect(action(out) == "finish" and header("전체 검증 최종 결과") == "실패", f"a failed 웨이브 with nothing to retry did not halt:\n{out}")
 
+    # helpers checked directly: a failing directory routes to the task owning a file inside it, and a
+    # work-tree rename (git add -N) is read as two intact paths
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, os.path.dirname(NEXT))
+    import swarm_next
+    pkg, _ = swarm_next.sc.load(PLAN)
+    expect(swarm_next.route(pkg, "- `src/` — 2 failures", ["T02", "T03"]) == ["T02"], "a failing directory did not route to its owner")
+    write("renamed_src.txt", "a line long enough for rename detection\nsecond line\nthird line\n")
+    git("add", "-A")
+    git("commit", "-qm", "rename fixture")
+    os.rename(os.path.join(PROJ, "renamed_src.txt"), os.path.join(PROJ, "renamed_dst.txt"))
+    git("add", "-N", "renamed_dst.txt")
+    paths = swarm_next.dirty_paths(PROJ)
+    expect(sorted(paths) == ["renamed_dst.txt", "renamed_src.txt"], f"dirty_paths mangled a work-tree rename: {paths}")
+
     shutil.rmtree(TMP, ignore_errors=True)
     print("OK: swarm_next.py scenario passed")
 
