@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Repo self-check: mandate hook, frontmatter lint, reference integrity, decisions table contract, installer idempotency, retired names.
+# Repo self-check: mandate hook, frontmatter lint, reference integrity, decisions table contract, installer upgrade and idempotency, retired names.
 set -euo pipefail
 shopt -s nullglob
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -48,29 +48,40 @@ grep -qxF "$SEP" "$tpl" || fail "$tpl: missing table separator"
 grep -qF 'templates/decisions.md' "$SKILL" || fail "$SKILL: does not name templates/decisions.md"
 grep -qF '날짜 | 영역 | 결정 | 근거 | 기각한 대안 | 결정 주체' "$SKILL" || fail "$SKILL: row format drifted from the template header"
 
-# --- 6. install.sh idempotency (fake consumer project) ---
+# --- 6. install.sh on a fake consumer upgrading from an older version: prunes stale links, keeps the project's own, idempotent ---
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/proj/.claude/shared"
 cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
 (
   cd "$tmp/proj"
-  bash .claude/shared/install.sh >/dev/null
-  cp .claude/settings.json ../settings.first
-  bash .claude/shared/install.sh >/dev/null   # second run must change nothing
+  mkdir -p .claude/skills/own-skill .claude/agents
+  printf 'own\n' > .claude/skills/own-skill/SKILL.md                     # the project's own skill
+  ln -s ../shared/skills/explainer .claude/skills/explainer               # left by the full version
+  ln -s ../shared/agents/doc-verifier.md .claude/agents/doc-verifier.md   # left by the full version
+  ln -s ../../vendor/own-agent.md .claude/agents/own-agent.md             # the project's own link: dangling, but outside shared
+  printf '# proj\n' > CLAUDE.md
+  links() { for l in .claude/skills/* .claude/agents/*; do printf '%s -> %s\n' "$l" "$(readlink "$l" || true)"; done; }
+  bash .claude/shared/install.sh >/dev/null || { echo "install.sh failed"; exit 1; }
+  cp .claude/settings.json ../settings.first; cp CLAUDE.md ../claude.first; links > ../links.first
+  bash .claude/shared/install.sh >/dev/null || { echo "install.sh failed on second run"; exit 1; }
   cmp -s .claude/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
-  [[ -L .claude/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
-  [[ -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
-  [[ -L .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
-  [[ -f .claude/agents/codebase-scanner.md ]] || { echo "agent symlink broken"; exit 1; }
+  cmp -s CLAUDE.md ../claude.first || { echo "CLAUDE.md rewritten on second run"; exit 1; }
+  [[ "$(links)" == "$(cat ../links.first)" ]] || { echo "links changed on second run"; exit 1; }
+  [[ -L .claude/skills/blindspot-pass && -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink missing or broken"; exit 1; }
+  [[ -L .claude/agents/codebase-scanner.md && -f .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing or broken"; exit 1; }
+  [[ "$(links | grep -c ' -> \.\./shared/')" == 2 ]] || { echo "expected exactly 2 links into shared:"; links; exit 1; }
+  [[ ! -L .claude/skills/explainer && ! -L .claude/agents/doc-verifier.md ]] || { echo "stale shared links not pruned"; exit 1; }
+  [[ -f .claude/skills/own-skill/SKILL.md && -L .claude/agents/own-agent.md ]] || { echo "the project's own skill or link was touched"; exit 1; }
+  [[ ! -e docs ]] || { echo "install.sh created docs/"; exit 1; }
   [[ "$(grep -c 'mandate.sh' .claude/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
   [[ "$(grep -cxF '@.claude/shared/MANDATE.md' CLAUDE.md)" == 1 ]] || { echo "CLAUDE.md import missing or duplicated"; exit 1; }
-) || fail "install idempotency check failed"
+) || fail "install check failed"
 
 # --- 7. names retired with the full lifecycle must not survive in shipped files ---
 retired=(requirements-interview explainer work-report blindspot-flow doc-verifier docs_check quiz.html docs/notes map.md rules.md specs/ '25 어절')
 pats=(); for r in "${retired[@]}"; do pats+=(-e "$r"); done
-hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" || true)"
+hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" "$ROOT/install.sh" || true)"
 [[ -z "$hits" ]] || fail "retired name referenced:"$'\n'"$hits"
 
 echo "OK: all checks passed"
