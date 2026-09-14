@@ -125,7 +125,8 @@ def dispatch(out, ids):
 def verify(out, command):
     expect(action(out) == "verify", f"expected a check `{command}`, got:\n{out}")
     (entry,) = entries(out)
-    expect(entry["TypeName"] == "swarm-checker" and entry["Prompt"].endswith(": " + command), f"malformed checker entry: {entry}")
+    expect(entry["TypeName"] == "swarm-checker" and entry["Model"] == "inherit" and entry["Prompt"].endswith(": " + command),
+           f"malformed checker entry: {entry}")
 
 
 def checker(command, detail):

@@ -23,6 +23,11 @@ for f in "${files[@]}"; do
   grep -q '^name:' <<<"$fm" || fail "$f: missing name"
   grep -q '^description:' <<<"$fm" || fail "$f: missing description"
 done
+# the merge-gate agents judge on Opus at xhigh effort (whether subagents inherit the session effort is undocumented)
+for f in "$ROOT"/agents/change-analyzer.md "$ROOT"/agents/swarm-auditor.md; do
+  fm="$(awk '/^---$/{c++; next} c==1' "$f")"
+  for kv in 'model: opus' 'effort: xhigh'; do grep -qx "$kv" <<<"$fm" || fail "$f: needs '$kv'"; done
+done
 
 # --- 2b. Antigravity-side lint: frontmatter contract of .agents/{skills,agents,rules} files (tool names measured on agy 1.1.27, models on 1.2.2) ---
 ag=("$ROOT"/antigravity/skills/*/SKILL.md "$ROOT"/antigravity/agents/*.md "$ROOT"/antigravity/rules/*.md)
@@ -36,8 +41,7 @@ for f in "${ag[@]}"; do
   esac
   if [[ "$f" == */agents/* ]]; then
     for kv in 'subagent: true' 'mainAgent: false' 'commandExecutionPolicy: auto'; do grep -qx "$kv" <<<"$fm" || fail "$f: needs '$kv'"; done
-    grep -qxE 'model: (inherit|flash)' <<<"$fm" || fail "$f: needs 'model: inherit' or 'model: flash' — the agent file's model wins over invoke_subagent's Model"
-    [[ "$f" != */swarm-worker.md ]] || grep -qx 'model: inherit' <<<"$fm" || fail "$f: the worker must inherit the dispatcher's --model (model: flash runs gemini-3.8-flash-tiered whatever --model says)"
+    grep -qx 'model: inherit' <<<"$fm" || fail "$f: needs 'model: inherit' — the agent file's model wins over invoke_subagent's Model, and the whole swarm runs only on the dispatcher's --model gemini-3.8-flash-high (model: flash would run gemini-3.8-flash-tiered)"
     grep -qx 'tools:' <<<"$fm" || fail "$f: needs 'tools:' followed by a block sequence (one '  - name' per line) so the allowlist can be checked"
     tools="$(grep -o '^  - .*' <<<"$fm" | sed 's/  - //')"
     [[ -n "$tools" ]] || fail "$f: tools allowlist is empty (empty means no tools)"
@@ -70,12 +74,23 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/proj/.claude/shared"
 cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
+# a model the project already set is kept (with a note) while effortLevel is still added
+mkdir -p "$tmp/proj2/.claude"
+ln -s "$tmp/proj/.claude/shared" "$tmp/proj2/.claude/shared"
+printf '{"model": "sonnet"}\n' > "$tmp/proj2/.claude/settings.json"
+(
+  cd "$tmp/proj2"
+  note="$(bash .claude/shared/install.sh 2>&1 >/dev/null)"
+  python3 -c 'import json, sys; d = json.load(open(".claude/settings.json")); sys.exit(d.get("model") != "sonnet" or d.get("effortLevel") != "xhigh")' || { echo "install.sh overwrote the project's model or did not add effortLevel"; exit 1; }
+  grep -qF "keeps model='sonnet'" <<<"$note" || { echo "install.sh did not note the kept model: $note"; exit 1; }
+) || fail "install.sh settings merge check failed"
 (
   cd "$tmp/proj"
   bash .claude/shared/install.sh >/dev/null
   cp .claude/settings.json ../settings.first
   bash .claude/shared/install.sh >/dev/null   # second run must change nothing
   cmp -s .claude/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
+  python3 -c 'import json, sys; d = json.load(open(".claude/settings.json")); sys.exit(d.get("model") != "opus" or d.get("effortLevel") != "xhigh")' || { echo "settings.json does not pin model opus and effortLevel xhigh"; exit 1; }
   [[ -L .claude/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
   [[ -f .claude/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
   [[ -L .claude/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }

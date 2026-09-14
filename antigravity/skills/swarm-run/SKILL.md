@@ -5,7 +5,7 @@ description: Use when the user asks to run, continue, or resume the swarm (/swar
 
 # Swarm Run
 
-You are the dispatcher's hands, not its judgment. `scripts/swarm_next.py` in this skill's folder reads the plan, the status file, and the result files, and prints exactly one action at a time. Carry each action out literally and hand the outcome back to the script. Which tasks run, which retry, what gets committed, and when the run stops are the script's decisions, never yours.
+You are the dispatcher's hands, not its judgment. `scripts/swarm_next.py` in this skill's folder reads the plan, the status file, and the result files, and prints exactly one action at a time. Carry each action out literally and hand the outcome back to the script. Which tasks run, which retry, what gets committed, and when the run stops are the script's decisions, never yours. The whole swarm runs on the model this session was started with — Gemini 3.8 Flash (High), via `--model gemini-3.8-flash-high --effort high` — because every swarm agent file inherits it.
 
 ## Loop
 

@@ -1,14 +1,14 @@
 # 스웜 실행 보강 설계 — 외부 리뷰 반영
 
 - 날짜: 2026-09-14
-- 상태: 구현, 오프라인 시나리오 검사, agy 1.2.2 실측(모델 조합, 중단 후 재개), 코드 리뷰와 변경 분석 반영 완료. 머지 전 퀴즈 대기
+- 상태: 리뷰 반영 사이클 인수(2026-09-14 퀴즈 통과). 같은 날 사용자 지정으로 모델 배치를 고정(§4 결정 8·9·10·18) — 그 변경의 퀴즈 대기
 - 브랜치: `claude-antigravity-cowork`
 - 선행 스펙: `2026-09-08-antigravity-swarm-design.md`. 두 하네스 구조, `docs/swarm/` 파일 인터페이스, 3계층 문서 계약은 그대로다. 이 문서가 그 문서의 결정 6·7·9·11, §4 계약 일부, §5 실행 프로토콜, §12 열린 질문을 대체한다
-- 입력: Fable 5.1 리뷰(사용자 공유, 2026-09-14). 사용자가 원하는 배치는 계획 Opus 5 xhigh(또는 Fable 5.1), 구현 Gemini 3.8 Flash High, 리뷰·검증 Opus 5이고, 목표는 제한된 Claude 토큰을 효율적으로 쓰는 것이다
+- 입력: Fable 5.1 리뷰(사용자 공유, 2026-09-14). 사용자가 원하는 배치는 계획·리뷰·검증 Opus xHigh, 구현 Gemini 3.8 Flash High(이것만, medium 사용 안 함)이고, 목표는 제한된 Claude 토큰을 효율적으로 쓰는 것이다
 
 ## 1. 목적과 배경
 
-2026-09-08 설계는 끊김 없는 스모크 테스트(3작업 2웨이브)를 통과했다. 리뷰는 실제 사이클에서 곧 부딪칠 흐름 — 재개, 재계획, 재시도, 테스트 먼저 웨이브 — 이 막힌다는 점과, 모델 배치가 사용자 의도와 다르다는 점을 지적했다. 지적은 전부 코드와 대조해 사실로 확인했고(1번은 임시 저장소로 재현), 대조하는 동안 리뷰에 없던 결함 네 가지를 더 찾았다. 구현 뒤에는 코드 리뷰와 변경 분석(change-analyzer)이 결함 아홉 가지를 더 찾아 함께 고쳤다(§3).
+2026-09-08 설계는 끊김 없는 스모크 테스트(3작업 2웨이브)를 통과했다. 리뷰는 실제 사이클에서 곧 부딪칠 흐름 — 재개, 재계획, 재시도, 테스트 먼저 웨이브 — 이 막힌다는 점과, 모델 배치가 사용자 의도와 다르다는 점을 지적했다. 지적은 전부 코드와 대조해 사실로 확인했고(1번은 임시 저장소로 재현), 대조하는 동안 리뷰에 없던 결함 네 가지를 더 찾았다. 구현 뒤에는 코드 리뷰와 변경 분석(change-analyzer)이 결함 아홉 가지를 더 찾아 함께 고쳤다(§3). 인수 뒤 사용자가 모델 배치를 고정했다: Claude Code의 판단 자리는 Opus xHigh, Antigravity는 Gemini 3.8 Flash High만.
 
 방향은 한 줄이다. **실행 쪽에 남아 있던 판단을 스크립트로 옮기고, 판정 기준을 작업 트리가 아니라 git에 둔다.** 빠른 모델은 스크립트가 출력한 동작을 옮기기만 한다.
 
@@ -19,8 +19,8 @@
 | 1 | (신규) 검사가 디스크를 봐서 웨이브 1 커밋 뒤 재개·재계획이 막힘 | 재현. 웨이브 2가 웨이브 1의 새 파일을 고치는 계획은 처음부터 표현 불가 | 경로 판정을 기준 커밋·HEAD로. (신규) = 기준 커밋에 없음. 그 밖은 기준 커밋·HEAD에 있거나 앞 웨이브가 (신규)로 만드는 경로 | `swarm_check.py` check_paths |
 | 2 | 테스트 먼저 웨이브와 "웨이브마다 전체 검증"이 충돌, 워커가 테스트를 약화할 위험 | 확인. swarm-plan은 테스트 먼저 순서를 권하고 swarm-run은 웨이브마다 전체 검증 | plan.md `## 웨이브별 검증`(마지막 웨이브는 전체 검증 강제). 워커 규칙·브리프 검증 규칙·감사 판정에 테스트 약화 금지 | plan.md 템플릿, `swarm_check.py`, swarm-worker, swarm-auditor |
 | 3 | 웨이브 도중 중단의 복구 절차 없음 | 확인. 재개 전제 조건(트리 깨끗)에 걸려 멈춤 | `next`가 스웜 밖 변경을 먼저 거부한 뒤 실행 중으로 남은 작업을 정리: 시도가 맞는 결과가 있으면 기록, 없으면 소유 파일을 HEAD로 되돌리고 다시 대기 | `swarm_next.py` cmd_next, recover |
-| 4 | 구현이 Flash High가 아님 | 확인 후 실측. `model: flash`는 `--model`과 무관하게 gemini-3.8-flash-tiered | swarm-worker `model: inherit`, 인계 명령 `--model gemini-3.8-flash-high`, 검사 2b가 워커의 inherit 강제 | `antigravity/agents/swarm-worker.md`, `test/check.sh` 2b |
-| 5 | 리뷰가 Opus가 아님(auditor sonnet 고정) | 확인 | swarm-auditor 모델 고정 해제(세션 모델 상속). effort 권장은 README §3 | `agents/swarm-auditor.md` |
+| 4 | 구현이 Flash High가 아님 | 확인 후 실측. `model: flash`는 `--model`과 무관하게 gemini-3.8-flash-tiered | swarm-worker와 swarm-checker 모두 `model: inherit`, 인계 명령 `--model gemini-3.8-flash-high --effort high`, 검사 2b가 모든 Antigravity 에이전트의 inherit 강제 | `antigravity/agents/*.md`, `test/check.sh` 2b |
+| 5 | 리뷰가 Opus가 아님(auditor sonnet 고정) | 확인 | swarm-auditor와 change-analyzer를 Opus xHigh로 고정(`model: opus`, `effort: xhigh`). 세션은 install.sh가 Opus xHigh로 설정 | `agents/swarm-auditor.md`, `agents/change-analyzer.md`, `install.sh` |
 | 6 | Claude 토큰은 §11 표보다 크고, 브리프 언어가 토큰에 직결 | 확인. 브리프 작성과 diff 이중 읽기가 §11에 없음 | 스웜 패키지 본문 영어(사용자 선택), 라벨은 한국어 유지. §9에 비용 보강 | 템플릿 4종, swarm-plan 3단계 |
 | 7 | 재시도가 웨이브 전체를 재파견 | 확인 | 실패 경로의 주인 작업만 먼저, 다음은 웨이브 전체, 그다음 중단 | `swarm_next.py` cmd_verified, route |
 | 8 | 회차에 상한이 없음 | 확인 | 한 번 재계획된 작업이 또 실패하면 스웜에서 빼고 Claude Code 세션에서 직접 구현 | swarm-review 4단계, swarm-plan 재계획 회차 |
@@ -63,9 +63,9 @@
 | 5 | 실패한 웨이브 | `(검증 실패)` 커밋 후 중단 | 감사가 실패를 보고, 재실행이 트리 오염으로 막히지 않음. 전용 브랜치라 되돌리기는 git revert | 되돌림 — 감사가 원인을 못 봄 / 미커밋 유지 — 재개 규칙이 복잡 |
 | 6 | 중단 복구 | 스웜 밖 변경 검사를 통과한 뒤 작업 단위로. 결과(시도 일치)가 있으면 기록, 없으면 소유 파일을 되돌리고 대기 | 한 웨이브의 소유 파일은 겹치지 않아 작업 단위 되돌리기가 안전. 끝난 워커의 작업을 버리지 않음. 스웜 밖 변경이 있으면 아무것도 건드리지 않음 | 웨이브 전체 되돌림(리뷰 원안) / 반쯤 쓴 파일 위에서 이어 하기 / 복구 명령을 사용자가 따로 실행 |
 | 7 | 실행 불가 | 검증 명령이 시작하지 못하거나 checker 답에 검증 결과 줄이 없으면 재시도 없이 중단. 웨이브는 커밋하지 않고 status.md만 커밋. 다음 실행은 재파견 없이 검증부터 | 워커가 고칠 수 없는 환경 문제이거나 dispatcher가 답을 잘못 옮긴 것 | 실패처럼 재시도 — 쿼터 낭비 / 판독 불가면 자동 재검증 — 반복되면 끝나지 않음 |
-| 8 | 워커 모델 | 워커 `model: inherit` + `--model gemini-3.8-flash-high`, checker `model: flash` | 실측: 에이전트 파일의 model이 호출의 Model보다 우선. inherit만이 `--model`을 워커에 전달 | 파일에 구체 모델 이름 고정 — 버전마다 공유 저장소 수정, 미실측 / `--effort high` — 모델 이름이 더 명시적 |
-| 9 | dispatcher 모델 | 워커와 같은 `--model`(High) | 워커를 High로 두는 실측된 경로가 inherit뿐. dispatcher 판단은 스크립트가 대신하고, 늘어나는 것은 Gemini 쿼터 | 리뷰 권고 "오케스트레이터 medium 유지" — 워커 High와 양립하는 실측 경로 없음 |
-| 10 | 감사 모델 | swarm-auditor 세션 모델 상속 | Flash의 완료 주장을 diff와 대조하는 유일한 자리. change-analyzer와 같은 논리 | sonnet 유지 — 가장 아끼면 안 되는 자리를 아낌 |
+| 8 | 스웜 에이전트 모델 | `swarm-worker`와 `swarm-checker` 모두 `model: inherit`, 실행은 `--model gemini-3.8-flash-high --effort high` | 사용자 지정(Antigravity는 Flash High만). 실측: 에이전트 파일의 model이 호출의 Model보다 우선해 inherit만이 `--model`을 전달. `--effort`를 모델과 맞춰 적으면 어긋난 effort로 시작하는 일이 없음(어긋나면 agy가 거부) | checker만 `model: flash`(gemini-3.8-flash-tiered) — 사용자 지정과 다름 / 파일에 구체 모델 이름 고정 — 미실측 / `--effort` 생략 |
+| 9 | dispatcher 모델 | 워커와 같은 `--model gemini-3.8-flash-high --effort high`. medium·low는 쓰지 않음 | 사용자 지정. 워커를 High로 두는 실측 경로가 inherit뿐이고, dispatcher 판단은 스크립트가 대신함. 늘어나는 것은 Gemini 쿼터 | 리뷰 권고 "오케스트레이터 medium 유지" — 사용자가 쓰지 않기로 결정 |
+| 10 | 머지 판정 에이전트 모델 | `change-analyzer`와 `swarm-auditor`를 `model: opus`, `effort: xhigh`로 고정 | 사용자 선택(판단 자리만 Opus xHigh). 둘 다 머지 게이트에 들어가는 판정이고, 서브에이전트가 세션 effort를 물려받는지는 문서에 없음 | sonnet 유지 / 세션 모델 상속(같은 날 초안) / 모든 에이전트 Opus xHigh — 탐색·검사 토큰 급증 |
 | 11 | 스웜 패키지 언어 | 본문 영어, 헤딩·라벨·상태 값 한국어 | 사용자 선택. 브리프는 강한 모델의 가장 큰 출력, 결과 파일은 감사가 읽음. 라벨은 스크립트 계약 | 한국어 유지(2026-09-08 결정 11) / 브리프·결과만 영어 |
 | 12 | 회차 상한 | 한 번 재계획된 작업이 또 실패하면 세션에서 직접 구현하고 계획에서 제거 | 두 번째 실패는 브리프가 아니라 능력 문제. 세 번째 회차는 브리프 재작성·감사 비용만 더함 | 상한 없음(기존) |
 | 13 | 워커 안전 | 파괴적 명령·패키지 설치·네트워크·전역 설정 금지(브리프가 원문으로 적은 명령만 예외), 전용 worktree 권장, 예약 경로 검사 | `--dangerously-skip-permissions`와 auto 실행인데 금지 목록이 git뿐이었음 | `--sandbox` 강제 — 테스트·git 동작 미검증 |
@@ -73,6 +73,7 @@
 | 15 | 중단 후 재실행 | 기다리는 규칙 없이 바로 재실행 | 실측: CLI가 끝나면 서브에이전트도 멈춤(60초간 변경 없음) | 재실행 전 대기 시간 규칙 |
 | 16 | 웨이브 크기 | 웨이브당 작업 수 ≤ 동시 실행 상한을 `swarm_check.py`가 강제 | swarm-plan Bounded 규칙을 검사로. 첫 파견은 상한으로 나누지만 재시도 파견은 대상 전원을 보내므로, 웨이브 크기가 상한 안이어야 재시도도 상한 안 | 재시도 파견을 상한으로 분할 — 실패 메시지를 상태에 따로 보관해야 함 |
 | 17 | (신규) 표시 | 경로마다 만드는 작업의 브리프에서 한 번만 | 두 번째 (신규)는 뒤 워커가 파일 유무를 오해하게 함. 설계 §6에 있었지만 강제되지 않았음 | 표시 중복 허용 |
+| 18 | Claude Code 세션 모델 | `install.sh`가 소비 프로젝트 `.claude/settings.json`에 `"model": "opus"`, `"effortLevel": "xhigh"`를 넣음(키가 없을 때만, 다른 값이 있으면 유지하고 stderr로 알림). 탐색·검사 에이전트(codebase-scanner, domain-researcher: sonnet / doc-verifier, check-runner: haiku)는 유지 | 사용자 지정·선택. 스킬 frontmatter에는 model·effort 필드가 없어 세션은 프로젝트 설정으로만 고정됨. Claude Code 2.1.270에 settings `effortLevel` 키 확인 | 문서 안내만 — 고정되지 않음 / 기존 값 덮어쓰기 — 팀이 정한 설정을 지움 / 탐색·검사 에이전트도 Opus xHigh — 토큰 급증 |
 
 ## 5. `swarm_next.py` 상태 기계
 
@@ -88,6 +89,8 @@
 | `verify` | checker 한 항목 호출, 답을 heredoc으로 `verified`에 |
 | `wait` | 아직 답하지 않은 워커를 기다렸다가 `collect`, 모두 답했으면 `collect --final` |
 | `finish` / `stop` | 출력된 한국어 요약을 그대로 사용자에게 |
+
+출력하는 모든 worker·checker 항목의 `Model`은 `inherit`다(에이전트 파일과 같음).
 
 전이 규칙:
 
@@ -112,42 +115,50 @@
 
 | 확인 | 결과 |
 |---|---|
-| 설치된 버전 | 1.2.2(2026-09-08 실측은 1.1.27). 새 옵션 `--effort low\|medium\|high`, `--sandbox`, `--log-file`, `--output-format json` |
+| 설치된 버전 | 1.2.2(2026-09-08 실측은 1.1.27). 새 옵션 `--effort`, `--sandbox`, `--log-file`, `--output-format json` |
 | 에이전트 파일 `model` × 호출 `Model` (세션 gemini-3.8-flash-high) | inherit·inherit → flash-high / flash·flash → gemini-3.8-flash-tiered / flash·inherit → flash-tiered / inherit·flash → flash-high. **파일이 이긴다**(서브에이전트 대화 기록의 모델 이름으로 확인) |
+| `--model gemini-3.8-flash-high --effort medium` | 로그 "conflicts with --effort=medium", exit 1 — 조용히 낮은 등급으로 내려가지 않고 시작을 거부 |
+| `--model gemini-3.8-flash-high --effort high` | gemini-3.8-flash-high로 해석, 정상 종료 |
+| 실행 모델 노출 | agy 바이너리에 실행 모델을 담는 환경 변수가 없음 — 스크립트가 실행 모델을 검증할 수 없음 |
 | 도구 허용목록 9개 이름 | 1.2.2에서 오류 없이 로드 |
 | `invoke_subagent` 반환 시점 | 워커가 끝나기 전에 반환. 답은 메시지로 나중에 도착 |
 | `--print-timeout` 만료 | exit 0과 부분 출력으로 끝남(changelog 1.1.28, 아래 스모크에서 확인) |
 | 스모크 — 3작업 2웨이브(테스트 먼저 웨이브는 `py_compile` 검증), `--print-timeout 75s`로 1차 실행 | 89초에 exit 0으로 종료. 웨이브 1 검증·커밋 완료, 웨이브 2의 T02·T03이 실행 중인 채 끊김(README 수정, 새 파일 생성, 결과 파일 없음) |
 | 종료 후 60초 관찰 | 파일 변경 없음 — CLI가 끝나면 서브에이전트도 멈춘다 |
 | 같은 명령으로 재실행(`--print-timeout 20m`) | 66초에 완료. T02·T03의 소유 파일을 되돌리고 시도 2로 재파견, 웨이브 2 전체 검증 통과, `swarm: 웨이브 2 — T02, T03`과 `swarm: 상태 기록` 커밋, 테스트 5개 통과, 트리 깨끗. dispatcher가 JSON 복사와 heredoc 전달을 지시대로 수행 |
+| Claude Code 2.1.270 설정 | settings.json `effortLevel` 키와 환경 변수 `CLAUDE_CODE_EFFORT_LEVEL`이 있음(바이너리 문자열). 문서상 값은 low·medium·high·xhigh·max·ultracode, 프로젝트 설정이 사용자 설정보다 우선 |
 
-스모크는 코드 리뷰·변경 분석 반영 전 버전으로 돌렸다. 그 뒤의 수정(재개 순서, 경로 처리, 판독 불가, 상태 기록 범위)은 시나리오 테스트가 덮는다.
+스모크는 코드 리뷰·변경 분석 반영과 모델 고정 전 버전으로 돌렸다. 그 뒤의 수정(재개 순서, 경로 처리, 판독 불가, 상태 기록 범위, checker inherit)은 시나리오 테스트와 `check.sh`가 덮는다.
 
 ## 8. 테스트 변경 (`test/check.sh`)
 
 | # | 검사 | 변경 |
 |---|---|---|
-| 2b | Antigravity 에이전트 | `model: flash` 고정 → `model: inherit` 또는 `flash`, swarm-worker는 inherit 강제 |
-| 5 | 설치 | `.agents/skills/swarm-run/scripts/swarm_next.py` 링크 해석, 설치 경로에서 `swarm_check.py`를 import해 계획 없음으로 멈춤 |
+| 2 | 판정 에이전트 | change-analyzer·swarm-auditor의 `model: opus`, `effort: xhigh` |
+| 2b | Antigravity 에이전트 | `model: flash` 고정 → 모든 에이전트 `model: inherit` 강제 |
+| 5 | 설치 | settings.json의 `"model": "opus"`, `"effortLevel": "xhigh"`, 프로젝트가 정한 model은 유지·알림, `.agents/skills/swarm-run/scripts/swarm_next.py` 링크 해석, 설치 경로에서 `swarm_check.py`를 import해 계획 없음으로 멈춤 |
 | 8 | 템플릿 계약 | plan.md `웨이브별 검증`, status.md 회차·진행·최종 결과 줄, result.md 시도 줄 |
 | 12 | swarm_check | 임시 git 저장소. 정상 패키지(웨이브 2가 웨이브 1의 새 파일을 (신규) 없이 소유, 대괄호·공백 경로 포함)가 웨이브 1 커밋 전후 모두 통과. 깨진 패키지에 같은 웨이브 참고 파일, 예약 경로, 기준 커밋에 있는 (신규), 두 번째 (신규), 상한 초과 웨이브, 마지막 웨이브 검증, 영어 금지어 추가. 커밋이 아닌 기준 커밋 |
-| 13 | swarm_next 시나리오(신설) | `test/swarm_scenario.py`: 테스트 먼저 웨이브, 중단 복구, 일부 → 전체 재시도, 실행 불가·판독 불가 후 재개, 트리 오염 거부, 재계획 회차와 최종 검증, 두 번 실패 후 중단 커밋, 옛 결과 무시와 `collect --final`, 부분 완료 선행 → 보류 → 건너뜀 → 최종 검증 실패, 회차 없는 작업 표 변경 거부, 이전 형식 status.md 거부, 이름 바꾸기 파싱과 폴더 라우팅 |
+| 13 | swarm_next 시나리오(신설) | `test/swarm_scenario.py`: 테스트 먼저 웨이브, 중단 복구, 일부 → 전체 재시도, 실행 불가·판독 불가 후 재개, 트리 오염 거부, 재계획 회차와 최종 검증, 두 번 실패 후 중단 커밋, 옛 결과 무시와 `collect --final`, 부분 완료 선행 → 보류 → 건너뜀 → 최종 검증 실패, 회차 없는 작업 표 변경 거부, 이전 형식 status.md 거부, 이름 바꾸기 파싱과 폴더 라우팅, 모든 출력 항목의 `Model: inherit` |
 
 ## 9. 비용 (2026-09-08 §11 보강)
 
 | 항목 | Claude 토큰 | 이번 변경의 영향 |
 |---|---|---|
-| 브리프 N장 작성(강한 모델 출력) | 가장 큼 | 본문 영어로 줄임 |
-| 감사(swarm-auditor) | diff와 결과 파일 입력 | sonnet에서 세션 모델로 — 의도적으로 늘림 |
-| 보고(change-analyzer) | 같은 diff를 한 번 더 | 변경 없음 — 머지 게이트 |
+| 브리프 N장 작성(Opus xHigh 출력) | 가장 큼 | 본문 영어로 줄임 |
+| 감사(swarm-auditor) | diff와 결과 파일 입력 | sonnet에서 Opus xHigh 고정으로 — 의도적으로 늘림 |
+| 보고(change-analyzer) | 같은 diff를 한 번 더 | Opus xHigh 고정 — 머지 게이트 |
+| 탐색·검사 에이전트 | 스캔 결과, 문서 검증, 검사 요약 | 변경 없음(sonnet·haiku) — 사용자 선택으로 토큰 절약 |
 | 재계획 회차 | 브리프 재작성과 감사 반복 | 회차 상한으로 세 번째부터 차단 |
-| 스웜 실행(dispatcher·워커·checker) | 0 (Gemini 쿼터) | dispatcher·워커가 High라 쿼터 증가, 재시도가 좁아지고 판독 불가는 재시도하지 않아 감소 |
+| 스웜 실행(dispatcher·워커·checker) | 0 (Gemini 쿼터) | 셋 다 Flash High라 쿼터 증가, 재시도가 좁아지고 판독 불가는 재시도하지 않아 감소 |
 
-권장 effort(README §3): swarm-plan은 xhigh — 분해 품질이 스웜 전체 품질이다. swarm-review는 high — 판정은 세션 모델을 상속한 auditor가 하고 스킬은 라우팅만 한다. Claude Code 스킬 frontmatter에는 model·effort 필드가 없어 세션 설정으로만 바꾼다(서브에이전트 frontmatter에는 `effort`가 있지만 auditor에는 고정하지 않는다).
+모델 배치(README §3): Claude Code 세션은 install.sh가, change-analyzer·swarm-auditor는 frontmatter가 Opus xHigh로 고정한다. Claude Code 스킬 frontmatter에는 model·effort 필드가 없어 세션은 프로젝트 설정으로만 고정할 수 있고, 세션 안의 `/model`·`/effort`는 그 세션에만 적용된다. Antigravity는 Gemini 3.8 Flash High만 쓰고 medium은 쓰지 않는다.
 
 ## 10. 의도적 범위 제외
 
-- 에이전트 파일에 구체 모델 이름(gemini-3.8-flash-high)을 쓰는 방식은 실측하지 않았다. dispatcher만 medium으로 내리는 구성에는 그 실측이 필요하다.
+- 스웜 에이전트마다 다른 모델을 쓰는 구성은 두지 않는다 — 전부 Gemini 3.8 Flash High(사용자 지정). 에이전트 파일에 구체 모델 이름을 쓰는 방식은 실측하지 않았다.
+- 스크립트는 실제 실행 모델을 확인하지 않는다. agy가 실행 모델을 노출하지 않는다.
+- Claude Code의 탐색·검사 에이전트는 Opus로 올리지 않는다(토큰 절약, 사용자 선택).
 - `--sandbox` 모드에서 테스트와 git이 도는지는 확인하지 않았다. 전용 worktree 권장으로 대신한다.
 - 재시도 라우팅은 실패 메시지에 나온 경로만 본다. 스택 트레이스 해석이나 import 관계 분석은 하지 않는다.
 - 이미 커밋된 실패 웨이브를 자동으로 되돌리지 않는다. 재계획 회차가 판단한다.
@@ -165,8 +176,10 @@
 | 경로 주인 라우팅 오판 | 다음 실패에서 웨이브 전체로 넓힘. checker가 트레이스의 가장 깊은 프로젝트 파일도 적음 |
 | 워커가 테스트를 약화 | 워커 규칙, 브리프 검증 규칙, 감사의 테스트 약화 판정 |
 | 스웜 패키지를 사용자가 영어로 읽어야 함 | 사용자 선택. 노트·퀴즈·요약·사용자 메시지는 한국어 유지 |
+| Antigravity 앱에서 다른 모델을 고른 채 실행 | README와 swarm-mandate 규칙이 Gemini 3.8 Flash (High) 선택을 안내. 스크립트로는 막을 수 없음 |
+| 소비 프로젝트 settings.json에 다른 model·effortLevel이 이미 있음 | install.sh가 유지하고 알림. 사용자가 값을 지우고 다시 실행 |
 | 스웜 도중 submodule을 올려 status.md 형식이 바뀜 | 이전 형식이면 멈춤. README §4에 진행 중 업데이트 금지 |
-| agy 동작(모델 해석, 반환 시점, 타임아웃)이 버전마다 바뀜 | 검사 2b가 모델 값과 도구 이름을 고정, CLAUDE.md 스모크 절차에 중단·재개 포함 |
+| agy 동작(모델 해석, 반환 시점, 타임아웃)이 버전마다 바뀜 | 검사 2b가 model: inherit과 도구 이름을 고정, CLAUDE.md 스모크 절차에 중단·재개 포함 |
 
 ## 12. 열린 질문
 
@@ -177,13 +190,12 @@
 | 웨이브마다 자동 커밋해도 되는가 | 예 — 전용 브랜치(전용 worktree 권장). 실패 웨이브도 `(검증 실패)`로 커밋 |
 | 인수 시 `docs/swarm/`를 지우는가 | 예 — git이 보존 |
 | 브리프 언어 | 영어(라벨 한국어) — 사용자 선택 |
-| 오케스트레이터 모델 | 워커와 같은 `--model`(gemini-3.8-flash-high). 판단은 스크립트가 대신 |
+| 오케스트레이터 모델 | `gemini-3.8-flash-high`(`--effort high`) — 사용자 지정, medium·low는 쓰지 않음 |
 | Antigravity 앱에서의 `/swarm-run` | 여전히 미검증, CLI만 실측 |
-| 오케스트레이터가 flash-low로도 안정적인가 | 보류 — 워커 High 구성과 양립하는 실측 경로가 없음 |
+| 오케스트레이터가 flash-low로도 안정적인가 | 쓰지 않음 — 사용자 지정 |
 
 남은 질문:
 
 | 질문 | 해소 계획 |
 |---|---|
-| 에이전트 파일 `model`에 구체 모델 이름이 되는가(dispatcher만 medium) | 필요해지면 실측 |
 | 실제 소비 프로젝트에서 재시도 라우팅 적중률 | 첫 실제 사이클의 status.md로 확인 |

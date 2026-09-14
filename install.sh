@@ -19,13 +19,13 @@ for f in "$SHARED"/agents/*.md; do
   ln -sfn "../shared/agents/$name" ".claude/agents/$name"
 done
 
-# 2. merge SessionStart hook into .claude/settings.json
+# 2. merge the SessionStart hook and the session model (Opus at xhigh effort) into .claude/settings.json
 SETTINGS=".claude/settings.json"
 HOOK_CMD='bash "$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh"'
 if ! command -v python3 >/dev/null 2>&1; then
   echo "error: need python3 to merge $SETTINGS."
   echo "Add this to $SETTINGS manually:"
-  echo '  {"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash \"$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh\""}]}]}}'
+  echo '  {"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash \"$CLAUDE_PROJECT_DIR/.claude/shared/hooks/mandate.sh\""}]}]},"model":"opus","effortLevel":"xhigh"}'
   exit 1
 fi
 python3 - "$SETTINGS" "$HOOK_CMD" <<'PY'
@@ -40,9 +40,19 @@ if os.path.exists(path):
         sys.exit(f"error: {path} is not valid JSON — fix or remove it, then re-run")
     if not isinstance(data, dict):
         sys.exit(f"error: {path} is not a JSON object — fix or remove it, then re-run")
+changed = False
 ss = data.setdefault("hooks", {}).setdefault("SessionStart", [])
 if not any(h.get("command") == cmd for e in ss for h in e.get("hooks", [])):
     ss.append({"hooks": [{"type": "command", "command": cmd}]})
+    changed = True
+# the workflow plans and reviews on Opus at xhigh effort; a value the project already set is kept, with a note
+for key, value in (("model", "opus"), ("effortLevel", "xhigh")):
+    if key not in data:
+        data[key] = value
+        changed = True
+    elif data[key] != value:
+        print(f"note: {path} keeps {key}={data[key]!r}; this workflow expects {value!r} (Claude Code on Opus at xhigh effort)", file=sys.stderr)
+if changed:
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")

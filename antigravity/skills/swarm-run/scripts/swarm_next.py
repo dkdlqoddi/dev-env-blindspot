@@ -49,7 +49,7 @@ STATUS = f"{SWARM}/status.md"
 SCRIPT = ".agents/skills/swarm-run/scripts/swarm_next.py"
 RESULT_TEMPLATE = ".agents/skills/swarm-run/templates/result.md"
 STATUS_TEMPLATE = os.path.join(HERE, "..", "templates", "status.md")
-WORKER_MODEL, CHECKER_MODEL = "inherit", "flash"  # mirror the agent files, whose model: wins over this field (agy 1.2.2)
+WORKER_MODEL = CHECKER_MODEL = "inherit"  # mirrors the agent files (their model: wins over this field, agy 1.2.2): the whole swarm runs on the dispatcher's --model
 WORKED = ("완료", "부분 완료", "실패")  # terminal states of a task that ran
 PASS, SKIP, UNRUNNABLE = "통과", "건너뜀", "실행 불가"
 RETRY_SOME, RETRY_ALL, HALT = "실패 — 일부 재시도", "실패 — 전체 재시도", "실패 — 중단"

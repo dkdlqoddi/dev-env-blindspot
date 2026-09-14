@@ -29,9 +29,9 @@ The strong model thinks once, in full context; the fast models execute many time
 
 5. **Open the notes.** Ensure `docs/notes/<slug>.md` exists (the `work-report` skill's `templates/notes.md`, installed at `.claude/skills/work-report/templates/notes.md`) and append one entry: the decomposition decision (웨이브 count, each lighter 웨이브별 검증 and why, what was kept out of the swarm and why) — `work-report` report mode promotes it later.
 
-6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): Antigravity에서 `/swarm-run` 실행 — 앱이면 이 프로젝트를 열고 채팅에 `/swarm-run`; CLI면 프로젝트 루트에서
-   `agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-high --dangerously-skip-permissions --print-timeout 60m`
-   워커는 이 `--model`을 그대로 쓴다. 중간에 끊겨도 같은 명령을 다시 실행하면 이어서 한다. 끝나면 Claude Code에서 `swarm-review`.
+6. **Hand off.** Commit the package (`git add docs/swarm docs/notes && git commit -m "swarm: 계획 <slug>"`), then tell the user (Korean): Antigravity에서 `/swarm-run` 실행 — 앱이면 이 프로젝트를 열고 모델을 Gemini 3.8 Flash (High)로 고른 뒤 채팅에 `/swarm-run`; CLI면 프로젝트 루트에서
+   `agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-high --effort high --dangerously-skip-permissions --print-timeout 60m`
+   dispatcher, 워커, checker가 모두 이 모델로 돈다 — medium이나 다른 모델로 실행하지 않는다. 중간에 끊겨도 같은 명령을 다시 실행하면 이어서 한다. 끝나면 Claude Code에서 `swarm-review`.
 
 **Re-plan round** (called from `swarm-review` with the failed, held, or deviated task ids): keep the 기준 커밋 and every 완료 확인 task untouched; rewrite only the named briefs — fold each 막힌 것 text in, split a task that was too big, add a 선행 where an interface was missing. A task that an earlier 회차 row's 범위 already names is not re-planned again: `swarm-review` moves it into the Claude Code session, so remove its 작업 row and brief here and drop it from every 선행 that names it (its in-session commit satisfies them). Append a 회차 row whose 범위 lists exactly the re-planned ids — `swarm_next.py` re-runs those and every 보류 task, nothing else; re-run step 4; tell the user to run `/swarm-run` again (it resumes from `docs/swarm/status.md`).
 

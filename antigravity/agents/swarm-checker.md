@@ -1,6 +1,6 @@
 ---
 name: swarm-checker
-description: Read-only swarm verifier. Invoked by the swarm-run skill with one command (a 웨이브별 검증 or the plan's 전체 검증); runs it exactly once and returns failures only, in a fixed format a script parses — never fixes anything, never edits files.
+description: Read-only swarm verifier. Invoked by the swarm-run skill with one command (a 웨이브별 검증 or the plan's 전체 검증); runs it exactly once and returns failures only, in a fixed format a script parses — never fixes anything, never edits files. Runs on the session model (model inherit) like every swarm agent, so the whole swarm stays on the dispatcher's --model.
 tools:
   - view_file
   - find_by_name
@@ -8,7 +8,7 @@ tools:
   - run_command
 subagent: true
 mainAgent: false
-model: flash
+model: inherit
 commandExecutionPolicy: auto
 ---
 

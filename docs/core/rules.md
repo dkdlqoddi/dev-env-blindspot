@@ -16,7 +16,7 @@
 | 6 | 계층 문서는 줄 상한(60/150/200)을 넘기지 않는다 | 매 작업이 읽는 문서가 다시 컨텍스트 문제가 된다 | skills/work-report/scripts/docs_check.py |
 | 7 | 스웜 계획은 명세에서만 나온다. 한 묶음(웨이브) 안의 소유 파일은 겹치지 않고, 묶음의 작업 수는 동시 실행 상한 안이며, 마지막 묶음의 검사는 전체 검사다. 파일 유무는 변경 기록(기준 커밋) 기준으로 판정한다 | 빠른 모델이 추측으로 구현하거나, 공유 트리에서 서로 덮어쓰거나, 검증 안 된 변경으로 끝나거나, 재개가 막힌다 | skills/swarm-plan/SKILL.md, skills/swarm-plan/scripts/swarm_check.py |
 | 8 | 스웜 실행의 순서, 재시도, 중단 복구, 커밋, 상태 기록은 상태 스크립트만 정하고 빠른 모델은 그 출력만 옮긴다 | 빠른 모델이 상태 표를 잘못 고치거나 일하는 워커를 실패로 적고, 끊긴 실행을 이어 가지 못한다 | antigravity/skills/swarm-run/scripts/swarm_next.py, test/swarm_scenario.py |
-| 9 | 구현 워커의 에이전트 파일은 실행 명령의 모델을 물려받는다(model: inherit) | 실행 명령에서 고른 모델과 상관없이 가벼운 모델로 구현한다 | antigravity/agents/swarm-worker.md, test/check.sh 검사 2b |
+| 9 | 모델 배치는 고정이다. Claude Code 세션과 머지 판정 에이전트(change-analyzer, swarm-auditor)는 Opus를 가장 깊은 생각 단계(xHigh)로 쓰고, 탐색·검사 에이전트는 Sonnet·Haiku를 쓴다. Antigravity 스웜 에이전트는 모두 실행 명령의 모델을 물려받고(model: inherit), 스웜은 Gemini 3.8 Flash High로만 실행한다. medium은 쓰지 않는다 | 머지 판정을 약한 모델이 하거나, 실행 명령과 다른 가벼운 모델로 구현·검사하거나, Claude 사용량이 불필요하게 늘어난다 | install.sh, agents/*.md, antigravity/agents/*.md, test/check.sh 검사 2·2b·5 |
 
 ## 관례
 
@@ -33,7 +33,7 @@
 |---|---|
 | test | bash test/check.sh |
 | 퀴즈 확인 | python3 -m http.server 8765 --directory docs 후 localhost:8765/quiz.html (Playwright는 file:// 차단) |
-| 스웜 실행(소비 프로젝트) | agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-high --dangerously-skip-permissions --print-timeout 60m (끊기면 같은 명령을 다시 실행) |
+| 스웜 실행(소비 프로젝트) | agy --add-dir "$PWD" -p '/swarm-run' --model gemini-3.8-flash-high --effort high --dangerously-skip-permissions --print-timeout 60m (끊기면 같은 명령을 다시 실행) |
 
 ## 용어
 
