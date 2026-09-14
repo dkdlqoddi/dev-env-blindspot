@@ -81,7 +81,7 @@ cp -a "$ROOT/." "$tmp/proj/.claude/shared/"
 # --- 7. names retired with the full lifecycle must not survive in shipped files ---
 retired=(requirements-interview explainer work-report blindspot-flow doc-verifier docs_check quiz.html docs/notes map.md rules.md specs/ '25 어절')
 pats=(); for r in "${retired[@]}"; do pats+=(-e "$r"); done
-hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" "$ROOT/install.sh" || true)"
+hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" "$ROOT/install.sh" "$ROOT/README.md" "$ROOT/CLAUDE.md" || true)"
 [[ -z "$hits" ]] || fail "retired name referenced:"$'\n'"$hits"
 
 # --- 8. this repo's own decision record follows the template: same header, every row greppable and six cells wide ---
