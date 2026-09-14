@@ -84,4 +84,14 @@ pats=(); for r in "${retired[@]}"; do pats+=(-e "$r"); done
 hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" "$ROOT/install.sh" || true)"
 [[ -z "$hits" ]] || fail "retired name referenced:"$'\n'"$hits"
 
+# --- 8. this repo's own decision record follows the template: same header, every row greppable and six cells wide ---
+dec="$ROOT/docs/decisions.md"
+[[ -f "$dec" ]] || fail "missing $dec"
+grep -qxF "$HDR" "$dec" || fail "$dec: table header drifted from the template"
+grep -qxF "$SEP" "$dec" || fail "$dec: missing table separator"
+bad="$(awk -v sep="$SEP" 'f && !/^[|] 20/ {print NR": "$0} $0 == sep {f=1}' "$dec")"
+[[ -z "$bad" ]] || fail "$dec: every line after the separator must be a row starting with '| 20' (a blank or unpiped line splits the table):"$'\n'"$bad"
+bad="$(awk -F'|' '/^[|] 20/ && NF != 8 {print NR": "$0}' "$dec")"
+[[ -z "$bad" ]] || fail "$dec: rows must have exactly 6 cells (no raw | inside a cell):"$'\n'"$bad"
+
 echo "OK: all checks passed"
