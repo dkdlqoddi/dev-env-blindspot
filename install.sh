@@ -21,7 +21,17 @@ for f in "$SHARED"/agents/*.md; do
   ln -sfn "../shared/agents/$name" ".antigravity/agents/$name"
 done
 
-# 2. merge SessionStart hook into .antigravity/settings.json
+# 2. prune links into $SHARED whose target is gone (skills/agents an update removed);
+#    the project's own files, and links pointing anywhere else, are left alone
+pruned=0
+for l in .antigravity/skills/* .antigravity/agents/*; do
+  [[ -L "$l" && ! -e "$l" ]] || continue
+  case "$(readlink "$l")" in
+    ../shared/*|"$PWD/$SHARED"/*) rm "$l"; pruned=$((pruned + 1)) ;;
+  esac
+done
+
+# 3. merge SessionStart hook into .antigravity/settings.json
 SETTINGS=".antigravity/settings.json"
 HOOK_CMD='bash "$ANTIGRAVITY_PROJECT_DIR/.antigravity/shared/hooks/mandate.sh"'
 if command -v python3 >/dev/null 2>&1 && python3 -c "" >/dev/null 2>&1; then
@@ -54,7 +64,7 @@ if not any(h.get("command") == cmd for e in ss for h in e.get("hooks", [])):
         f.write("\n")
 PY
 
-# 3. ensure ANTIGRAVITY.md imports the mandate
+# 4. ensure ANTIGRAVITY.md imports the mandate
 IMPORT_LINE='@.antigravity/shared/MANDATE.md'
 if [[ -f ANTIGRAVITY.md ]]; then
   grep -qxF "$IMPORT_LINE" ANTIGRAVITY.md || printf '\n%s\n' "$IMPORT_LINE" >> ANTIGRAVITY.md
@@ -62,4 +72,4 @@ else
   printf '%s\n' "$IMPORT_LINE" > ANTIGRAVITY.md
 fi
 
-echo "blindspot: installed — skills/agents symlinked, SessionStart hook merged, ANTIGRAVITY.md import ensured"
+echo "blindspot: installed — skills/agents symlinked, $pruned stale link(s) pruned, SessionStart hook merged, ANTIGRAVITY.md import ensured"

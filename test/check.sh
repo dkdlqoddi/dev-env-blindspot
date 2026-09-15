@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Repo self-check: mandate hook, frontmatter lint, reference integrity, installer idempotency.
+# Repo self-check: mandate hook, frontmatter lint, reference integrity, decisions table contract, installer upgrade and idempotency, retired names.
 set -euo pipefail
 shopt -s nullglob
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
-# --- 1. mandate hook outputs the skill mapping ---
+# --- 1. mandate hook injects the session rules ---
 out="$(bash "$ROOT/hooks/mandate.sh")"
-for skill in requirements-interview blindspot-pass explainer work-report blindspot-flow; do
-  grep -q "$skill" <<<"$out" || fail "mandate.sh output missing $skill"
-done
-for p in 'docs/<area>/rules.md' 'docs/<area>/map.md' 'docs/<area>/specs/<unit>.md' 'docs/quiz.html' 'docs/notes/'; do
-  grep -qF "$p" <<<"$out" || fail "mandate.sh output missing tier path $p"
+for s in '# Blindspot Mandate' 'blindspot-pass' 'docs/decisions.md'; do
+  grep -qF "$s" <<<"$out" || fail "mandate.sh output missing '$s'"
 done
 
-# --- 2. frontmatter lint (skills + agents) ---
+# --- 2. MANDATE.md is injected into every consumer session twice (hook + @import): keep it tiny ---
+[[ "$(wc -l < "$ROOT/MANDATE.md")" -le 10 ]] || fail "MANDATE.md over 10 lines"
+
+# --- 3. frontmatter lint (one skill + one agent) ---
 files=("$ROOT"/skills/*/SKILL.md "$ROOT"/agents/*.md)
-[[ ${#files[@]} -eq 10 ]] || fail "expected 10 lintable files (5 skills + 5 agents), got ${#files[@]}"
+[[ ${#files[@]} -eq 2 ]] || fail "expected 2 lintable files (1 skill + 1 agent), got ${#files[@]}"
 for f in "${files[@]}"; do
   [[ "$(head -n1 "$f")" == "---" ]] || fail "$f: missing frontmatter open"
   fm="$(awk '/^---$/{c++; next} c==1' "$f")"
@@ -24,7 +24,7 @@ for f in "${files[@]}"; do
   grep -q '^description:' <<<"$fm" || fail "$f: missing description"
 done
 
-# --- 3. skill → agent reference integrity (agent rename tripwire) ---
+# --- 4. skill ↔ agent reference integrity, both directions (agent rename tripwire) ---
 refs="$(grep -ho '`TypeName: [a-z-]*`' "$ROOT"/skills/*/SKILL.md | sed 's/.*`TypeName: \([a-z-]*\)`.*/\1/' | sort -u)" || true
 [[ -n "$refs" ]] || fail "no TypeName references found in any SKILL.md — pattern drift?"
 while read -r name; do
@@ -35,70 +35,63 @@ for f in "$ROOT"/agents/*.md; do
   grep -q "\`TypeName: $name\`" "$ROOT"/skills/*/SKILL.md || fail "agents/$name.md is not referenced by any SKILL.md"
 done
 
-# --- 4. readability standard present in its 4 self-contained copies (see ANTIGRAVITY.md conventions) ---
-n="$(grep -l '25 어절' "$ROOT"/skills/*/SKILL.md | wc -l)" || true
-[[ "$n" -eq 4 ]] || fail "readability standard marker ('25 어절') in $n SKILL.md files, expected 4"
+# --- 5. decisions table contract: the skill writes rows by column order, so template and skill must agree ---
+HDR='| 날짜 | 영역 | 결정 | 근거 | 기각한 대안 | 결정 주체 |'
+SEP='|---|---|---|---|---|---|'
+SKILL="$ROOT/skills/blindspot-pass/SKILL.md"
+tpl="$ROOT/skills/blindspot-pass/templates/decisions.md"
+[[ -f "$tpl" ]] || fail "missing $tpl"
+grep -qxF '# 결정 기록' "$tpl" || fail "$tpl: missing title '# 결정 기록'"
+grep -qxF "$HDR" "$tpl" || fail "$tpl: table header drifted"
+grep -qxF "$SEP" "$tpl" || fail "$tpl: missing table separator"
+! grep -q '^| 20' "$tpl" || fail "$tpl: ships a row — grep would count it as a decision"
+grep -qF 'templates/decisions.md' "$SKILL" || fail "$SKILL: does not name templates/decisions.md"
+grep -qF '날짜 | 영역 | 결정 | 근거 | 기각한 대안 | 결정 주체' "$SKILL" || fail "$SKILL: row format drifted from the template header"
 
-# --- 5. install.sh idempotency (fake consumer project) ---
+# --- 6. install.sh on a fake consumer upgrading from an older version: prunes stale links, keeps the project's own, idempotent ---
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/proj/.antigravity/shared"
 cp -a "$ROOT/." "$tmp/proj/.antigravity/shared/"
 (
   cd "$tmp/proj"
-  bash .antigravity/shared/install.sh >/dev/null
-  cp .antigravity/settings.json ../settings.first
-  bash .antigravity/shared/install.sh >/dev/null   # second run must change nothing
+  mkdir -p .antigravity/skills/own-skill .antigravity/agents
+  printf 'own\n' > .antigravity/skills/own-skill/SKILL.md                     # the project's own skill
+  ln -s ../shared/skills/explainer .antigravity/skills/explainer               # left by the full version
+  ln -s ../shared/agents/doc-verifier.md .antigravity/agents/doc-verifier.md   # left by the full version
+  ln -s ../../vendor/own-agent.md .antigravity/agents/own-agent.md             # the project's own link: dangling, but outside shared
+  printf '# proj\n' > ANTIGRAVITY.md
+  links() { for l in .antigravity/skills/* .antigravity/agents/*; do printf '%s -> %s\n' "$l" "$(readlink "$l" || true)"; done; }
+  bash .antigravity/shared/install.sh >/dev/null || { echo "install.sh failed"; exit 1; }
+  cp .antigravity/settings.json ../settings.first; cp ANTIGRAVITY.md ../antigravity.first; links > ../links.first
+  bash .antigravity/shared/install.sh >/dev/null || { echo "install.sh failed on second run"; exit 1; }
   cmp -s .antigravity/settings.json ../settings.first || { echo "settings.json rewritten on second run"; exit 1; }
-  [[ -e .antigravity/skills/blindspot-pass ]] || { echo "skill symlink missing"; exit 1; }
-  [[ -f .antigravity/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink broken"; exit 1; }
-  [[ -e .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing"; exit 1; }
-  [[ -f .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink broken"; exit 1; }
+  cmp -s ANTIGRAVITY.md ../antigravity.first || { echo "ANTIGRAVITY.md rewritten on second run"; exit 1; }
+  [[ "$(links)" == "$(cat ../links.first)" ]] || { echo "links changed on second run"; exit 1; }
+  [[ -L .antigravity/skills/blindspot-pass && -f .antigravity/skills/blindspot-pass/SKILL.md ]] || { echo "skill symlink missing or broken"; exit 1; }
+  [[ -L .antigravity/agents/codebase-scanner.md && -f .antigravity/agents/codebase-scanner.md ]] || { echo "agent symlink missing or broken"; exit 1; }
+  [[ "$(links | grep -c ' -> \.\./shared/')" == 2 ]] || { echo "expected exactly 2 links into shared:"; links; exit 1; }
+  [[ ! -L .antigravity/skills/explainer && ! -L .antigravity/agents/doc-verifier.md ]] || { echo "stale shared links not pruned"; exit 1; }
+  [[ -f .antigravity/skills/own-skill/SKILL.md && -L .antigravity/agents/own-agent.md ]] || { echo "the project's own skill or link was touched"; exit 1; }
+  [[ ! -e docs ]] || { echo "install.sh created docs/"; exit 1; }
   [[ "$(grep -c 'mandate.sh' .antigravity/settings.json)" == 1 ]] || { echo "hook missing or duplicated"; exit 1; }
   [[ "$(grep -cxF '@.antigravity/shared/MANDATE.md' ANTIGRAVITY.md)" == 1 ]] || { echo "ANTIGRAVITY.md import missing or duplicated"; exit 1; }
-) || fail "install idempotency check failed"
+) || fail "install check failed"
 
-# --- 6. countable limits: docs_check.py runs clean on every shipped template ---
-python3 "$ROOT/skills/work-report/scripts/docs_check.py" \
-  "$ROOT/skills/work-report/templates/quiz.html" \
-  "$ROOT/skills/blindspot-pass/templates/rules.md" \
-  "$ROOT/skills/blindspot-pass/templates/map.md" \
-  "$ROOT/skills/explainer/templates/spec.md" >/dev/null \
-  || fail "docs_check.py reported violations on the shipped templates"
+# --- 7. names retired with the full lifecycle must not survive in shipped files ---
+retired=(requirements-interview explainer work-report blindspot-flow doc-verifier docs_check quiz.html docs/notes map.md rules.md specs/ '25 어절')
+pats=(); for r in "${retired[@]}"; do pats+=(-e "$r"); done
+hits="$(grep -rnF "${pats[@]}" "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" "$ROOT/install.sh" "$ROOT/README.md" "$ROOT/ANTIGRAVITY.md" || true)"
+[[ -z "$hits" ]] || fail "retired name referenced:"$'\n'"$hits"
 
-# --- 7. retired per-cycle paths must not survive in shipped instructions ---
-hits="$(grep -rn -e 'docs/blindspot' -e 'YYYY-MM-DD-' -e 'quiz_check.py' -e 'implementation-notes' "$ROOT/skills" "$ROOT/agents" "$ROOT/MANDATE.md" || true)"
-[[ -z "$hits" ]] || fail "retired path referenced:"$'\n'"$hits"
-
-# --- 8. template heading contract: skills write sections by heading name ---
-need() { local f="$1"; shift; for h in "$@"; do grep -qxF "## $h" "$f" || fail "$f: missing heading '## $h'"; done; }
-need "$ROOT/skills/blindspot-pass/templates/rules.md" "불변 규칙" "관례" "표준 명령" "용어"
-need "$ROOT/skills/blindspot-pass/templates/map.md" "영역 개요" "단위" "주요 흐름" "통합 지점" "알려진 위험"
-need "$ROOT/skills/explainer/templates/spec.md" "목적과 배경" "요구사항" "동작 방식" "결정 기록" "엣지케이스와 제약" "의도적 범위 제외" "열린 질문" "변경 이력"
-grep -q '^## YYYY-MM-DD HH:MM' "$ROOT/skills/work-report/templates/notes.md" || fail "notes.md: missing entry heading"
-
-# --- 9. docs_check.py must fail loudly on broken tier files (negative fixture) ---
-fx="$tmp/fx/area"; mkdir -p "$fx/specs"
-printf '# r\n%.0s' $(seq 61) > "$fx/rules.md"
-printf '# m\n\n## 단위\n\n| 단위 | 하는 일 | 위치 | 상세 명세 |\n|---|---|---|---|\n| a | x | src/a | specs/missing.md |\n' > "$fx/map.md"
-{ printf '# s\n\n## 목적과 배경\n\n'; printf '%s ' $(seq 30); printf '끝.\n\n## 요구사항\n\n## 동작 방식\n\n## 의도적 범위 제외\n\n'; printf 'x\n%.0s' $(seq 200); } > "$fx/specs/orphan.md"
-if out="$(python3 "$ROOT/skills/work-report/scripts/docs_check.py" "$fx/rules.md" "$fx/map.md" "$fx/specs/orphan.md" 2>&1)"; then
-  fail "docs_check.py exited 0 on a broken fixture"
-fi
-for msg in 'max 60' 'does not exist' 'not listed' 'max 200' '어절'; do
-  grep -q "$msg" <<<"$out" || fail "docs_check.py fixture output missing '$msg'"
-done
-
-# --- 10. every templates/<file> named in a SKILL.md ships in some skill ---
-tpls="$(grep -ho 'templates/[A-Za-z0-9_.-]*' "$ROOT"/skills/*/SKILL.md | sed 's#templates/##' | sort -u || true)"
-[[ -n "$tpls" ]] || fail "no templates/<file> references found in any SKILL.md — pattern drift?"
-while read -r t; do
-  found=0
-  for f in "$ROOT"/skills/*/templates/"$t"; do [[ -f "$f" ]] && found=1; done
-  [[ $found == 1 ]] || fail "a SKILL.md references templates/$t but no skill ships it"
-done <<<"$tpls"
-
-# --- 11. MANDATE.md is injected into every consumer session twice (hook + @import): keep it small ---
-[[ "$(wc -l < "$ROOT/MANDATE.md")" -le 60 ]] || fail "MANDATE.md over 60 lines"
+# --- 8. this repo's own decision record follows the template: same header, every row greppable and six cells wide ---
+dec="$ROOT/docs/decisions.md"
+[[ -f "$dec" ]] || fail "missing $dec"
+grep -qxF "$HDR" "$dec" || fail "$dec: table header drifted from the template"
+grep -qxF "$SEP" "$dec" || fail "$dec: missing table separator"
+bad="$(awk -v sep="$SEP" 'f && !/^[|] 20/ {print NR": "$0} $0 == sep {f=1}' "$dec")"
+[[ -z "$bad" ]] || fail "$dec: every line after the separator must be a row starting with '| 20' (a blank or unpiped line splits the table):"$'\n'"$bad"
+bad="$(awk -F'|' '/^[|] 20/ && NF != 8 {print NR": "$0}' "$dec")"
+[[ -z "$bad" ]] || fail "$dec: rows must have exactly 6 cells (no raw | inside a cell):"$'\n'"$bad"
 
 echo "OK: all checks passed"
