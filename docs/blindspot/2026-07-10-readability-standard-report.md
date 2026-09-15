@@ -1,5 +1,8 @@
 # 산출물 가독성 표준 도입 작업 보고서
 
+> Codex 변환본(2026-09-15): 당시 기능과 승인 결과는 유지하고, 개발
+> 지침·agent 형식·검증 표현을 Codex 기준으로 옮겼다.
+
 - 날짜: 2026-07-10
 - 기준: 5f434c4 → 9318100 (readability 3사이클, 커밋 14개) + 문서 동기화 4722b79
 - 퀴즈: docs/blindspot/quiz/2026-07-10-readability-standard.html — **통과 완료 (2026-07-10 사용자 검수 승인)**
@@ -18,7 +21,7 @@ AI가 만들어 주는 다섯 가지 작업 문서(요구사항, 사각지대 �
 
 ### 리뷰 포인트 (개발자용)
 
-- `skills/work-report/SKILL.md:24-33` — 기준 원문. 다른 4곳(explainer §2, requirements-interview §3–4, blindspot-pass §3–5)은 자기완결을 위한 의도적 사본 — 수정 시 5곳 동시 갱신 (CLAUDE.md Conventions에 명문화)
+- `skills/work-report/SKILL.md:24-33` — 기준 원문. 다른 4곳(explainer §2, requirements-interview §3–4, blindspot-pass §3–5)은 자기완결을 위한 의도적 사본 — 수정 시 5곳 동시 갱신 (`AGENTS.md` Conventions에 명문화)
 - `skills/blindspot-pass/SKILL.md:27` — "both tables (구체화된 질문·질문·결정·보류 이유)" 열↔표 매핑이 산문 지시. 최종 리뷰가 미해소 표 `질문` 칸 누락을 잡아 9318100에서 일반화
 - `skills/work-report/templates/quiz.html:45` — `it.explain` 무가드 렌더: 누락 시 "undefined" 노출 (지침 필수 규정만이 방어)
 - `skills/work-report/templates/quiz.html:55` — `answer` 인덱스 범위 무가드 (QUESTIONS 계약상 유효 보장, 수용된 minor)
@@ -46,18 +49,18 @@ AI가 만들어 주는 다섯 가지 작업 문서(요구사항, 사각지대 �
 | 미해소 표의 `질문` 칸이 규칙 열거에서 누락 | 최종 리뷰 발견 → "두 표의 질문·결정·보류 이유 칸 전체"로 일반화 (9318100) |
 | 정답 보기만 유독 긴 문항 (Q5, 47자 vs 32자×3) | 길이 재균형 [42,46,41,42] (680c24c) — 길이가 정답 힌트가 되지 않도록 |
 | explain 필드 누락 | 런타임 가드 없음 — "undefined" 노출 (수용; SKILL.md 필수 규정 + 자가 점검이 방어) |
-| Playwright가 file:// 차단 | 동일 파일을 localhost HTTP로 서빙해 동등 검증 (CLAUDE.md Test 섹션에 기록) |
+| Playwright가 file:// 차단 | 동일 파일을 localhost HTTP로 서빙해 동등 검증 (`AGENTS.md` Test 섹션에 기록) |
 | 재작성 요약의 사실 정확성 | "보조 조사원 세 가지"를 당시 스냅샷 기준으로 유지 (현재는 4종 — 무심코 갱신하면 역사 왜곡) |
 
 ### 의도적 범위 제외
 
-- 에이전트 지시문(codebase-scanner 등 4종) 문체 — 모델 간 통신, 사용자 비노출
+- 에이전트 TOML 지시문(codebase_scanner 등 4종) 문체 — 모델 간 통신, 사용자 비노출
 - 발견 근거·스캔 원본 요약·리뷰 포인트·Agent 섹션 문체 — 기술 독자용이 설계 의도
 - 문장 규칙의 자동 검사(CI) — 기계 판정 불가 판단, doc-verifier + 자가 점검으로 대체
 - requirements/unknowns 재생성 샘플 — 이 저장소에 해당 산출물 부재 (소비 프로젝트 첫 실행이 실전 검증)
 
 ### 구현 노트 요약
 
-- 노트 모드 미가동 — 구현이 subagent 방식(태스크별 파견 + 이중 리뷰)이라 결정 기록이 스펙 3건·플랜 3건·진행 원장(.superpowers/sdd/progress.md)에 실시간 축적됨. 이 문서들이 구현 노트를 대체
+- 노트 모드 미가동 — 구현이 subagent 방식(태스크별 파견 + 이중 리뷰)이라 당시 설계 기록과 진행 원장이 구현 노트를 대체함
 - 최종 리뷰발 수정 2건: 퀴즈 Q5 보기 길이(680c24c), blindspot-pass 5단계 칸 커버리지(9318100) — 둘 다 스펙 문구가 원인, 스펙도 개정 동기화
 - 검증: test/check.sh 매 단계 통과, 퀴즈·템플릿 Playwright 실브라우저 확인(채점·해설·재채점 무중복), 재작성 요약 기계 스캔(화살표·코드 조각 0건)

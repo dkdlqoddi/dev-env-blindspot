@@ -19,3 +19,9 @@
 | 2026-09-14 | core | MANDATE의 탐색 위임 규칙은 blindspot-pass 안의 탐색에만 적용한다 | MANDATE는 매 세션 주입됨. 범위가 없으면 작은 작업의 파일 찾기에도 스캐너가 떠 토큰 절감을 깎음 | 비자명한 작업 전체 / 모든 탐색 | 사용자 |
 | 2026-09-14 | core | install.sh는 옛 링크를 이름 목록이 아니라 .claude/shared를 가리키면서 대상이 없는 링크로 판정해 지운다 | 폐기된 이름을 스크립트에 남기지 않음. 프로젝트 자체 파일과 다른 곳을 가리키는 링크는 보존. 로컬 소비 프로젝트 15곳 모두 ../shared/ 상대 링크 (2026-09-14 실측) | 폐기 이름 목록 하드코딩 / 대상 없는 링크 전부 삭제 | 자체 |
 | 2026-09-14 | core | MANDATE 이중 주입(SessionStart hook과 CLAUDE.md import)은 유지한다 | 10줄 이하라 중복 비용이 작고, hook이 실패해도 import가 남음. 2026-09-07 설계 §15의 후속 과제를 닫음 | hook 제거 / import 제거 | 사용자 |
+| 2026-09-15 | core | codex 브랜치는 main의 lite를 기준으로 다시 만들고 기존 origin/codex 이력을 대체한다 | 2026-09-15 사용자 승인. 기존 origin/codex는 full 버전에서 갈라져 최신 lite와 양방향으로 분기됨 | 기존 브랜치 병합 / 이중 런타임 유지 | 사용자 |
+| 2026-09-15 | core | 질문 상한은 request_user_input 한 번에 맞춰 3개로 변경한다 | 2026-09-15 사용자 승인. Codex 구조화 질문 도구는 한 번에 최대 3문항을 받음. 2026-09-14 질문 상한 결정을 대체 | 네 번째 질문을 별도 턴으로 질문 / 구조화 입력 미사용 | 사용자 |
+| 2026-09-15 | core | Codex 소비 경로는 .codex/shared, .agents/skills, .codex/agents, .codex/hooks.json, AGENTS.md로 둔다 | Codex 공식 발견 위치와 2026-09-15 사용자 승인. 2026-09-14 설치 및 이중 주입 결정을 Codex 방식으로 대체 | 사용자 홈 설치 / 플러그인 패키징 | 자체 |
+| 2026-09-15 | core | codebase_scanner는 gpt-5.6-terra medium의 읽기 전용 TOML profile로 배포한다 | 스캔은 누락된 결정을 찾는 판단 작업이며 프로젝트 custom agent는 .codex/agents의 TOML을 사용 | 부모 모델 상속 / 경량 모델 low | 자체 |
+| 2026-09-15 | core | 과거 설계·계획 문서는 모두 삭제하고 docs/blindspot 과거 기록은 Codex 관점으로 변환한다 | 2026-09-15 사용자 요청. 과거 기록까지 Codex 브랜치와 일관되어야 함 | 과거 문서 유지 / 활성 파일만 변환 | 사용자 |
+| 2026-09-15 | core | 옛 Codex full agent 사본은 배포 당시 바이트와 정확히 같을 때만 설치기가 정리한다 | skill 링크와 달리 복사된 profile은 대상 소멸로 식별할 수 없으며 수정본 삭제는 소비자 데이터 손실 위험 | 옛 이름 전부 강제 삭제 / 옛 profile 모두 보존 | 자체 |
