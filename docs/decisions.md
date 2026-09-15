@@ -25,3 +25,5 @@
 | 2026-09-15 | core | codebase_scanner는 gpt-5.6-terra medium의 읽기 전용 TOML profile로 배포한다 | 스캔은 누락된 결정을 찾는 판단 작업이며 프로젝트 custom agent는 .codex/agents의 TOML을 사용 | 부모 모델 상속 / 경량 모델 low | 자체 |
 | 2026-09-15 | core | 과거 설계·계획 문서는 모두 삭제하고 docs/blindspot 과거 기록은 Codex 관점으로 변환한다 | 2026-09-15 사용자 요청. 과거 기록까지 Codex 브랜치와 일관되어야 함 | 과거 문서 유지 / 활성 파일만 변환 | 사용자 |
 | 2026-09-15 | core | 옛 Codex full agent 사본은 배포 당시 바이트와 정확히 같을 때만 설치기가 정리한다 | skill 링크와 달리 복사된 profile은 대상 소멸로 식별할 수 없으며 수정본 삭제는 소비자 데이터 손실 위험 | 옛 이름 전부 강제 삭제 / 옛 profile 모두 보존 | 자체 |
+| 2026-09-15 | core | Codex 스캐너도 main과 같이 기존 결정에 모순되는 증거를 결정 행과 함께 보고하고, 전달된 경로 또는 glob 안에서만 탐색한다 | main:agents/codebase-scanner.md:18의 충돌 감지와 탐색 경계가 Codex 프로필에서 누락된 리뷰 결과 | 결정되지 않은 항목만 보고 / 저장소 전체 탐색 허용 | 자체 |
+| 2026-09-15 | core | 서브에이전트를 실행할 수 없으면 blindspot pass를 중단하고 부모 컨텍스트에서 대체 스캔하지 않는다 | main:MANDATE.md:9의 raw scan main-context 격리를 유지해야 함 | 부모가 두 렌즈를 순차 탐색 / 저장소 산출물만 금지 | 자체 |

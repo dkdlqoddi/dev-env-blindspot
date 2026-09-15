@@ -11,12 +11,13 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 [[ ! -e "$ROOT/CLAUDE.md" ]] || fail "CLAUDE.md must not ship on the Codex branch"
 [[ ! -e "$ROOT/docs/superpowers" ]] || fail "docs/superpowers must be removed"
 
-# --- 2. mandate hook is exact and compact ---
+# --- 2. mandate hook is exact, compact, and preserves scanner isolation ---
 cmp -s <(bash "$ROOT/hooks/mandate.sh") "$ROOT/MANDATE.md" || fail "mandate hook output differs from MANDATE.md"
 for text in '# Blindspot Mandate' '$blindspot-pass' 'docs/decisions.md' 'codebase_scanner'; do
   grep -qF "$text" "$ROOT/MANDATE.md" || fail "MANDATE.md missing '$text'"
 done
 [[ "$(wc -l < "$ROOT/MANDATE.md")" -le 10 ]] || fail "MANDATE.md exceeds 10 lines"
+grep -qF 'raw scan output never lands in the main context' "$ROOT/MANDATE.md" || fail "mandate lost main-context isolation"
 
 # --- 3. exactly one skill and one Codex custom-agent profile ---
 skills=("$ROOT"/skills/*/SKILL.md)
@@ -36,11 +37,14 @@ grep -qx 'model_reasoning_effort = "medium"' "$profile" || fail "agent effort mi
 grep -qx 'sandbox_mode = "read-only"' "$profile" || fail "agent must be read-only"
 grep -q '^developer_instructions = """' "$profile" || fail "agent instructions missing"
 
-# --- 4. skill workflow keeps both scans, Codex fallbacks, and one three-question round ---
-for text in 'integration-points' 'edge-cases' 'codebase_scanner' 'IN PARALLEL' 'request_user_input' 'at most 3' '.codex/agents/codebase_scanner.toml' 'general subagent' 'parent'; do
+# --- 4. skill workflow keeps both scans, custom-profile fallback, isolation, and one three-question round ---
+for text in 'integration-points' 'edge-cases' 'codebase_scanner' 'IN PARALLEL' 'request_user_input' 'at most 3' '.codex/agents/codebase_scanner.toml' 'general subagent' 'stop the pass' 'do not perform either scan in the parent context'; do
   grep -qF "$text" "$skill" || fail "skill contract missing '$text'"
 done
 ! grep -qE 'AskUserQuestion|subagent_type|CLAUDE\.md|at most 4|2–4 concrete' "$skill" || fail "skill retains a non-Codex workflow term"
+for text in 'Read the given decision rows first' 'or what contradicts them' 'Cite a contradicted row by its date and 결정' 'evidence that settles it is a finding' 'Keep the search inside the given paths or globs'; do
+  grep -qF "$text" "$profile" || fail "scanner parity contract missing '$text'"
+done
 
 # --- 5. decision table contract remains append-only and six cells wide ---
 HDR='| 날짜 | 영역 | 결정 | 근거 | 기각한 대안 | 결정 주체 |'
