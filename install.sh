@@ -72,4 +72,24 @@ else
   printf '%s\n' "$IMPORT_LINE" > ANTIGRAVITY.md
 fi
 
-echo "blindspot: installed — skills/agents symlinked, $pruned stale link(s) pruned, SessionStart hook merged, ANTIGRAVITY.md import ensured"
+# 5. ensure AGENTS.md imports the mandate (Antigravity standard rule file)
+AGENTS_IMPORT='@[Blindspot Mandate](.antigravity/shared/MANDATE.md)'
+if [[ -f AGENTS.md ]]; then
+  grep -qxF "$AGENTS_IMPORT" AGENTS.md || printf '\n%s\n' "$AGENTS_IMPORT" >> AGENTS.md
+else
+  printf '%s\n' "$AGENTS_IMPORT" > AGENTS.md
+fi
+
+# 6. install as Antigravity plugin and register skills for global/workspace discovery
+if command -v agy >/dev/null 2>&1; then
+  agy plugin install "$SHARED" >/dev/null 2>&1 || true
+fi
+mkdir -p "$HOME/.gemini/config/skills"
+ln -sfn "$PWD/$SHARED/skills/blindspot-pass" "$HOME/.gemini/config/skills/blindspot-pass"
+
+mkdir -p .agents/skills .agents/agents
+ln -sfn "../../$SHARED/skills/blindspot-pass" .agents/skills/blindspot-pass
+ln -sfn "../../$SHARED/agents/codebase-scanner.md" .agents/agents/codebase-scanner.md
+
+echo "blindspot: installed — skills/agents symlinked, $pruned stale link(s) pruned, SessionStart hook merged, AGENTS.md and ANTIGRAVITY.md import ensured"
+
