@@ -12,8 +12,10 @@ inside root `AGENTS.md` and an existing `AGENTS.override.md`.
 Blindspot-lite keeps only two capabilities beyond an ordinary Codex workflow:
 turn unknown unknowns into at most three decidable questions before an
 implementation plan, and append every decision to `docs/decisions.md` so later
-sessions do not ask it again. It creates no other runtime document. PR review is
-the merge gate.
+sessions do not ask it again. It creates no other runtime document and has no
+PR merge gate: finished, verified work is committed directly on the default
+branch (`main`) and pushed, with the summary and review points in the commit
+message body.
 
 ## Test
 

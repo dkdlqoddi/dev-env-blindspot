@@ -21,7 +21,7 @@ Unknown unknowns are the failures you don't see coming. Turn them into decidable
 
 5. **Record.** Append one row per answered, self-decided, or parked question to `docs/decisions.md`: 날짜 | 영역 | 결정 | 근거 | 기각한 대안 | 결정 주체. One line per row, append-only; never edit or delete an existing row — to supersede one, add a new row whose 근거 names the old row's date. When the file does not exist, create it from this skill's `templates/decisions.md` first. In plan mode, where every edit but the plan file is blocked, put the rows verbatim in the plan and make appending them the plan's first step after approval, before any code.
 
-6. **Plan and hand off.** Write the plan as plan mode's own output (outside plan mode, as your reply)—no plan document is created in the repository. Each plan step names the decision rows and `file:line` evidence it relies on. Hand off in Korean: 구현 중 계획에서 벗어나는 결정은 `docs/decisions.md`에 한 줄 추가할 것, 머지 게이트는 PR 리뷰.
+6. **Plan and hand off.** Write the plan as plan mode's own output (outside plan mode, as your reply)—no plan document is created in the repository. Each plan step names the decision rows and `file:line` evidence it relies on. Hand off in Korean: 구현 중 계획에서 벗어나는 결정은 `docs/decisions.md`에 한 줄 추가할 것, 완료하고 검증한 작업은 PR 없이 기본 브랜치(main)에 직접 커밋·푸시할 것.
 
 ## Gotchas
 
